@@ -2,7 +2,7 @@
   "profiles": {
     "ConsoleApp": {
       "commandName": "Project",
-      "commandLineArgs": "https://klk.wbijam.pl/pierwsza_seria.html D:\\Download\\ReZero"
+      "commandLineArgs": "https://drstone.wbijam.pl/pierwsza_seria.html D:\\Download\\Dr.Stone"
     }
   }
 }

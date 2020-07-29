@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using DownloaderLibrary.Episodes;
 using OpenQA.Selenium;
@@ -27,13 +26,26 @@ namespace DownloaderLibrary.Downloaders {
 			var service = ChromeDriverService.CreateDefaultService();
 			service.SuppressInitialDiagnosticInformation = true;
 			service.HideCommandPromptWindow = true;
-			_driver = new ChromeDriver(service) { Url = episodeListUri.AbsoluteUri };
+			var chromeOptions = new ChromeOptions();
+			chromeOptions.AddArgument("headless");
+			_driver = new ChromeDriver(service, chromeOptions) {
+				Url = episodeListUri.AbsoluteUri,
+			};
 		}
 
 		public async Task DownloadAllEpisodesAsync(IProgress<DownloadProgress> progress = null) {
+			var random = new Random();
 			var episodes = GetEpisodes();
 			foreach (var episode in episodes) {
-				await DownloadEpisode(episode, progress);
+				if (episode.IsDownloaded) continue;
+				try {
+					await DownloadEpisode(episode, progress);
+				}
+				catch (Exception e) {
+					progress.Report(new DownloadProgress(episode.Number, 0, error: $"Error ({e.Message}) Trying again..."));
+					await Task.Delay(random.Next(800, 1500));
+					await DownloadAllEpisodesAsync(progress);
+				}
 			}
 		}
 
@@ -50,14 +62,14 @@ namespace DownloaderLibrary.Downloaders {
 
 			DateTime lastUpdate = DateTime.Now;
 			long lastBytes = 0;
-
+			long totalBytes = 0;
 			using (var client = new WebClient()) {
-				var retryMax = 5;
-				var retryCount = 0;
+				long previousBytesPerSecond = 0;
 				var tcs = new TaskCompletionSource<object>(episode.DownloadUri);
 				if (progress != null) {
 					client.DownloadProgressChanged += (sender, args) => {
-						long bytesPerSecond = 0;
+						if (totalBytes == 0)
+							totalBytes = args.TotalBytesToReceive;
 						if (lastBytes == 0) {
 							lastUpdate = DateTime.Now;
 							lastBytes = args.BytesReceived;
@@ -66,19 +78,21 @@ namespace DownloaderLibrary.Downloaders {
 
 						var now = DateTime.Now;
 						var timeSpan = now - lastUpdate;
-						if (timeSpan.Seconds == 0) timeSpan = TimeSpan.FromSeconds(1);
-						var bytesChange = args.BytesReceived - lastBytes;
-						bytesPerSecond = bytesChange / timeSpan.Seconds;
 
-						lastBytes = args.BytesReceived;
-						lastUpdate = now;
+						if (timeSpan.Milliseconds > 500) {
+							var bytesChange = args.BytesReceived - lastBytes;
+							var bytesPerSecond = bytesChange * 2;
+							previousBytesPerSecond = bytesPerSecond;
+							lastBytes = args.BytesReceived;
+							lastUpdate = now;
+						}
 
 						progress.Report(new DownloadProgress(
 							episode.Number,
 							(double) args.ProgressPercentage / 100,
 							args.BytesReceived,
 							args.TotalBytesToReceive,
-							bytesPerSecond)
+							previousBytesPerSecond)
 						);
 					};
 				}
@@ -87,18 +101,16 @@ namespace DownloaderLibrary.Downloaders {
 				client.DownloadFileCompleted += (sender, args) => {
 					if (args.UserState != tcs) {
 						if (args.Error != null) {
-							progress.Report(new DownloadProgress(episode.Number, 0, 0, 0, 0, args.Error.Message));
-							if (retryCount < retryMax) {
-								Thread.Sleep(1000);
-								retryCount++;
-								client.DownloadFileAsync(episode.DownloadUri, filePath);
-							}
-							else {
-								tcs.TrySetException(args.Error);
-							}
+							progress?.Report(new DownloadProgress(episode.Number, 0, 0, 0, 0, args.Error.Message));
+							tcs.TrySetException(args.Error);
 						}
 						else if (args.Cancelled) tcs.TrySetCanceled();
 						else {
+							progress?.Report(new DownloadProgress(episode.Number,
+								1,
+								totalBytes,
+								totalBytes,
+								0));
 							tcs.TrySetResult(null);
 							episode.IsDownloaded = true;
 						}
@@ -131,8 +143,8 @@ namespace DownloaderLibrary.Downloaders {
 			if (_episodes.Count == 0) {
 				var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(30));
 				var table = wait.Until(driver => driver.FindElement(By.Id("tresc_lewa")));
-				var rows = table.FindElements(By.TagName("tr"));
-				for (var index = 0; index < rows.Count; index++) {
+				var rows = table.FindElements(By.TagName("tr")).Reverse().ToArray();
+				for (var index = 0; index < rows.Length; index++) {
 					var row = rows[index];
 					var episode = new Episode {
 						Number = index + 1,
