@@ -1,8 +1,8 @@
 {
   "profiles": {
     "ConsoleApp": {
-      "commandName": "Project",
-      "commandLineArgs": "https://drstone.wbijam.pl/pierwsza_seria.html D:\\Download\\Dr.Stone"
+        "commandName": "Project",
+        "commandLineArgs": "https://hunter.wbijam.pl/hunter_x_hunter_2011.html \"D:\\Download\\Hunter x Hunter 2011\""
     }
   }
 }

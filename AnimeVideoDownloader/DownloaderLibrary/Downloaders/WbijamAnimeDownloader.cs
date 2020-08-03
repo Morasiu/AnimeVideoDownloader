@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using DownloaderLibrary.Checkpoints;
 using DownloaderLibrary.Episodes;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -12,16 +14,28 @@ using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 
 namespace DownloaderLibrary.Downloaders {
-	public class WbijamAnimeDownloader : IAnimeDownloader {
+	public class WbijamAnimeDownloader : BaseAnimeDownloader {
 		private readonly Uri _episodeListUri;
 		private readonly string _downloadPath;
+		private readonly ICheckpoint _checkpoint;
 		private readonly RemoteWebDriver _driver;
 		private readonly List<Episode> _episodes;
+		private readonly WebClient _client;
 
-		public WbijamAnimeDownloader(Uri episodeListUri, string downloadPath) {
+		public WbijamAnimeDownloader(Uri episodeListUri, string downloadPath, 
+			ICheckpoint checkpoint, IProgress<DownloadProgress> progress) : base(progress) {
 			_episodeListUri = episodeListUri;
 			_downloadPath = downloadPath;
+			_checkpoint = checkpoint;
 			_episodes = new List<Episode>();
+			_client = new WebClient();
+
+			if (!checkpoint.Exist(downloadPath)) {
+				checkpoint.Save(downloadPath, _episodes);
+			} else {
+				_episodes = checkpoint.Load(downloadPath).ToList();
+				CheckDownloadedEpisodes();
+			}
 
 			var service = ChromeDriverService.CreateDefaultService();
 			service.SuppressInitialDiagnosticInformation = true;
@@ -31,42 +45,49 @@ namespace DownloaderLibrary.Downloaders {
 			_driver = new ChromeDriver(service, chromeOptions) {
 				Url = episodeListUri.AbsoluteUri,
 			};
+
 		}
 
-		public async Task DownloadAllEpisodesAsync(IProgress<DownloadProgress> progress = null) {
+		public override async Task DownloadAllEpisodesAsync() {
 			var random = new Random();
 			var episodes = GetEpisodes();
 			foreach (var episode in episodes) {
-				if (episode.IsDownloaded) continue;
+				if (episode.IsDownloaded) {
+					Progress.Report(new DownloadProgress(episode.Number, 1.0));
+					continue;
+				}
+
 				try {
-					await DownloadEpisode(episode, progress);
+					await DownloadEpisode(episode);
 				}
 				catch (Exception e) {
-					progress.Report(new DownloadProgress(episode.Number, 0, error: $"Error ({e.Message}) Trying again..."));
+					Progress.Report(new DownloadProgress(episode.Number, 0,
+						error: $"Error ({e.Message}) Trying again..."));
 					await Task.Delay(random.Next(800, 1500));
-					await DownloadAllEpisodesAsync(progress);
+					await DownloadAllEpisodesAsync();
 				}
 			}
 		}
 
-		public async Task DownloadEpisode(Episode episode, IProgress<DownloadProgress> progress = null) {
+		public override async Task DownloadEpisode(Episode episode) {
 			if (episode.IsDownloaded) {
-				progress.Report(new DownloadProgress(episode.Number, 1.0));
+				Progress?.Report(new DownloadProgress(episode.Number, 1.0));
 			}
 
 			if (episode.DownloadUri is null) {
 				if (episode.EpisodeUri is null)
 					throw new InvalidOperationException($"{nameof(episode.EpisodeUri)} was null.");
 				episode.DownloadUri = GetEpisodeDownloadUrl(episode);
+				_checkpoint.Save(_downloadPath, _episodes);
 			}
 
 			DateTime lastUpdate = DateTime.Now;
 			long lastBytes = 0;
 			long totalBytes = 0;
+			long previousBytesPerSecond = 0;
+			var tcs = new TaskCompletionSource<object>(episode.DownloadUri);
 			using (var client = new WebClient()) {
-				long previousBytesPerSecond = 0;
-				var tcs = new TaskCompletionSource<object>(episode.DownloadUri);
-				if (progress != null) {
+				if (Progress != null) {
 					client.DownloadProgressChanged += (sender, args) => {
 						if (totalBytes == 0)
 							totalBytes = args.TotalBytesToReceive;
@@ -81,13 +102,13 @@ namespace DownloaderLibrary.Downloaders {
 
 						if (timeSpan.Milliseconds > 500) {
 							var bytesChange = args.BytesReceived - lastBytes;
-							var bytesPerSecond = bytesChange * 2;
+							var bytesPerSecond = bytesChange * (1000 / 500);
 							previousBytesPerSecond = bytesPerSecond;
 							lastBytes = args.BytesReceived;
 							lastUpdate = now;
 						}
 
-						progress.Report(new DownloadProgress(
+						Progress.Report(new DownloadProgress(
 							episode.Number,
 							(double) args.ProgressPercentage / 100,
 							args.BytesReceived,
@@ -98,37 +119,38 @@ namespace DownloaderLibrary.Downloaders {
 				}
 
 				var filePath = Path.Combine(_downloadPath, $"{episode.Number}.mp4");
+				episode.Path = filePath;
+				_checkpoint.Save(_downloadPath, _episodes);
 				client.DownloadFileCompleted += (sender, args) => {
 					if (args.UserState != tcs) {
 						if (args.Error != null) {
-							progress?.Report(new DownloadProgress(episode.Number, 0, 0, 0, 0, args.Error.Message));
+							Progress?.Report(new DownloadProgress(episode.Number, 0, 0, 0, 0, args.Error.Message));
 							tcs.TrySetException(args.Error);
 						}
-						else if (args.Cancelled) tcs.TrySetCanceled();
+						else if (args.Cancelled) 
+							tcs.TrySetCanceled();
 						else {
-							progress?.Report(new DownloadProgress(episode.Number,
+							Progress?.Report(new DownloadProgress(episode.Number,
 								1,
 								totalBytes,
 								totalBytes,
 								0));
 							tcs.TrySetResult(null);
 							episode.IsDownloaded = true;
+							_checkpoint.Save(_downloadPath, _episodes);
 						}
 					}
 				};
-
-
+			
 				if (File.Exists(filePath)) {
-					client.OpenRead(episode.DownloadUri);
-					var bytesTotal = Convert.ToInt64(client.ResponseHeaders["Content-Length"]);
-					var downloadedFileTotalBytes = new FileInfo(filePath).Length;
-					if (downloadedFileTotalBytes == bytesTotal) {
-						progress.Report(new DownloadProgress(
+					if (IsFileDownloadCompleted(episode, filePath)) {
+						Progress?.Report(new DownloadProgress(
 							episode.Number,
 							1.0,
-							downloadedFileTotalBytes,
-							downloadedFileTotalBytes));
+							totalBytes,
+							totalBytes));
 						episode.IsDownloaded = true;
+						_checkpoint.Save(_downloadPath, _episodes);
 						return;
 					}
 				}
@@ -137,9 +159,10 @@ namespace DownloaderLibrary.Downloaders {
 
 				await tcs.Task;
 			}
+
 		}
 
-		public IEnumerable<Episode> GetEpisodes() {
+		public override IEnumerable<Episode> GetEpisodes() {
 			if (_episodes.Count == 0) {
 				var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(30));
 				var table = wait.Until(driver => driver.FindElement(By.Id("tresc_lewa")));
@@ -153,18 +176,57 @@ namespace DownloaderLibrary.Downloaders {
 					};
 					_episodes.Add(episode);
 				}
+
+				_checkpoint.Save(_downloadPath, _episodes);
 			}
 
 			return _episodes.OrderBy(e => e.Number);
 		}
 
-		public void Dispose() {
+		public override void Dispose() {
+			_client.Dispose();
 			_driver?.Dispose();
+		}
+
+		private bool IsFileDownloadCompleted(Episode episode, string filePath) {
+			if (string.IsNullOrWhiteSpace(episode.DownloadUri.AbsoluteUri))
+				throw new NullReferenceException($"{nameof(episode.DownloadUri)} was null");
+			try {
+				_client.OpenRead(episode.DownloadUri);
+			}
+			catch (Exception) {
+				var random = new Random();
+				Thread.Sleep(random.Next(800, 1500));
+				return IsFileDownloadCompleted(episode, filePath);
+			}
+			var bytesTotal = Convert.ToInt64(_client.ResponseHeaders["Content-Length"]);
+
+			var downloadedFileTotalBytes = new FileInfo(filePath).Length;
+			if (downloadedFileTotalBytes == bytesTotal) {
+				return true;
+			}
+
+			return false;
+		}
+
+		private void CheckDownloadedEpisodes() {
+			foreach (var episode in _episodes) {
+				if (episode.IsDownloaded) {
+					if (episode.DownloadUri == null)
+						episode.IsDownloaded = false;
+					else {
+						if (!File.Exists(episode.Path)) {
+							episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
+						}
+					}
+				}
+			}
 		}
 
 		private Uri GetEpisodeDownloadUrl(Episode episode) {
 			_driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var videoProviders = _driver.FindElements(By.ClassName("lista_hover"));
+
 			string mp4UpProviderUrl = null;
 			foreach (var videoProvider in videoProviders) {
 				var info = videoProvider.FindElements(By.TagName("td"));
@@ -181,11 +243,15 @@ namespace DownloaderLibrary.Downloaders {
 				throw new InvalidOperationException($"Mp4Up url for episode [{episode.Name}] could not be found.");
 			var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(30));
 			_driver.Url = mp4UpProviderUrl;
+
 			var iframe =
 				wait.Until(ExpectedConditions.ElementExists(By.XPath("/html/body/div[2]/div[2]/center/iframe")));
+
 			_driver.SwitchTo().Frame(iframe);
+
 			var source =
 				wait.Until(ExpectedConditions.ElementExists(By.XPath("/html/body/div[2]/div[1]/div[1]/button[5]")));
+
 			var url = source.GetAttribute("href");
 			return new Uri(url);
 		}

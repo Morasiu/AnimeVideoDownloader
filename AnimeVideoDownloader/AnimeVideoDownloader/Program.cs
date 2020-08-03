@@ -16,11 +16,21 @@ namespace ConsoleApp {
 			Console.Clear();
 			Console.WriteLine($"=== Anime Video Downloader App - {Assembly.GetExecutingAssembly().GetName().Version} ===");
 			Console.CursorVisible = false;
-			using var manager = new DownloaderManager(new Uri(args[0]), args[1]);
-			_episodes = manager.GetEpisodes();
 			var progress = new Progress<DownloadProgress>(d => OnProgressChanged(null, d));
 			progress.ProgressChanged += OnProgressChanged;
-			await manager.DownloadAllEpisodes(progress);
+
+			if (args.Length < 2) {
+				Console.WriteLine("Download URL and DownloadPath is needed.");
+				return;
+			}
+
+			var episodesUrl = new Uri(args[0]);
+			var downloadDirectory = args[1];
+			using var manager = new DownloaderManager(episodesUrl, downloadDirectory, progress);
+			lock (ConsoleWriterLock) {
+				_episodes = manager.GetEpisodes();
+			}
+			await manager.DownloadAllEpisodes();
 		}
 
 		private static void OnProgressChanged(object sender, DownloadProgress e) {
@@ -30,14 +40,14 @@ namespace ConsoleApp {
 				var totalBytes = ByteSize.FromBytes(e.TotalBytes).ToString("0.00");
 				var bytesReceived = ByteSize.FromBytes(e.BytesReceived).ToString("0.00");
 				var bytesPerSecond = ByteSize.FromBytes(e.BytesPerSecond).ToString("0.00");
-				var timeRemained = TimeSpan.FromSeconds((e.TotalBytes - e.BytesReceived) / (e.BytesPerSecond == 0 ? 1 : e.BytesPerSecond));
+				var timeRemained = TimeSpan.FromSeconds((e.TotalBytes - e.BytesReceived) / (e.BytesPerSecond == 0 ? 1.0 : e.BytesPerSecond));
 				if (e.Error != null) Console.ForegroundColor = ConsoleColor.Red;
 				else if (Math.Abs(e.Percent - 1.0) < 0.01) Console.ForegroundColor = ConsoleColor.Green;
 				else Console.ForegroundColor = ConsoleColor.Yellow;
 				Console.Write($">> {name} {Math.Round(e.Percent * 100, 2)}% - {bytesReceived}/{totalBytes}" +
-				              $" | {bytesPerSecond}/s Remained: {timeRemained} " +
+				              $" | {bytesPerSecond}/s Remained: {timeRemained:hh\\:mm\\:ss} " +
 				              $"{(e.Error != null ? string.Concat("ERROR: ", e.Error) : string.Empty)}");
-				Console.Write(new string(' ', Console.BufferWidth - Console.CursorLeft - 1));
+				Console.Write(new string(' ', Console.BufferWidth - Console.CursorLeft));
 				Console.Write('\n');
 				Console.ResetColor();
 				Console.SetCursorPosition(0, e.EpisodeNumber);
