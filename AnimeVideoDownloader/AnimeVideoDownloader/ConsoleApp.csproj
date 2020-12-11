@@ -13,10 +13,4 @@
     <ProjectReference Include="..\DownloaderLibrary\DownloaderLibrary.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="chromedriver.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

@@ -7,6 +7,8 @@ using DownloaderLibrary.Episodes;
 
 namespace DownloaderLibrary.Checkpoints {
 	public class JsonCheckpoint : ICheckpoint {
+		private static readonly object Lock = new object();
+
 		public IEnumerable<Episode> Load(string downloadDirectoryPath) {
 			CheckDirectory(downloadDirectoryPath);
 
@@ -19,12 +21,14 @@ namespace DownloaderLibrary.Checkpoints {
 		public void Save(string downloadDirectoryPath, IEnumerable<Episode> episodes) {
 			CheckDirectory(downloadDirectoryPath);
 
-			var jsonSerializerOptions = new JsonSerializerOptions() {
-				WriteIndented = true
+			var jsonSerializerOptions = new JsonSerializerOptions {
+				WriteIndented = true,
 			};
 			var json = JsonSerializer.Serialize(episodes, jsonSerializerOptions);
 			var path = GetCheckpointPath(downloadDirectoryPath);
-			File.WriteAllText(path, json, Encoding.UTF8);
+			lock (Lock) {
+				File.WriteAllText(path, json, Encoding.UTF8);
+			}
 		}
 
 		public bool Exist(string downloadDirectoryPath) {

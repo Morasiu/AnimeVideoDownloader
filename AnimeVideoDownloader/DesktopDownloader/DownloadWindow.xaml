@@ -1,0 +1,21 @@
+﻿<Window x:Class="DesktopDownloader.DownloadWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Anime Downloader" Height="450" Width="800"
+		Closing="Window_Closing">
+	<Grid ScrollViewer.CanContentScroll="True">
+        <Grid.RowDefinitions>
+			<RowDefinition Height="30"></RowDefinition>
+			<RowDefinition Height="*" ScrollViewer.CanContentScroll="True"></RowDefinition>
+        </Grid.RowDefinitions>
+	    <Button Grid.Row="0" Content="Download all" Click="DownloadAllOnClick" Margin="5" Name="DownloadAllButton" IsEnabled="False"/>
+	    <ScrollViewer Grid.Row="1" CanContentScroll="True">
+	        <StackPanel Name="StackPanel">
+
+	        </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

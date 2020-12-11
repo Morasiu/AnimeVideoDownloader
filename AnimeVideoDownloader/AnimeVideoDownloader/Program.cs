@@ -30,7 +30,7 @@ namespace ConsoleApp {
 			lock (ConsoleWriterLock) {
 				_episodes = manager.GetEpisodes();
 			}
-			await manager.DownloadAllEpisodes();
+			await manager.DownloadAllEpisodesAsync();
 		}
 
 		private static void OnProgressChanged(object sender, DownloadProgress e) {
