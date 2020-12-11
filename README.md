@@ -1,5 +1,13 @@
 # AnimeVideoDownloader
 
+## WPF
+
+Can be found at `AnimeVideoDownloader/DesktopDownloader`
+
+### Usage
+
+1. Download from release page.
+
 ## Console
 
 Use:
