@@ -7,6 +7,10 @@ Can be found at `AnimeVideoDownloader/DesktopDownloader`
 ### Usage
 
 1. Download from release page.
+2. Run by clicking on `DesktopDownloader.exe`
+
+![Window1](Docs/Window1.png)
+![Window2](Docs/Window2.png)
 
 ## Console
 
