@@ -1,6 +1,6 @@
 ﻿namespace DownloaderLibrary {
-	public struct DownloadProgress {
-		public DownloadProgress(int episodeNumber, double percent, long bytesReceived = 0, long totalBytes = 0,
+	public struct DownloadProgressData {
+		public DownloadProgressData(int episodeNumber, double percent, long bytesReceived = 0, long totalBytes = 0,
 			long bytesPerSecond = 0, string error = null) {
 			EpisodeNumber = episodeNumber;
 			Percent = percent;

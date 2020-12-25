@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Windows;
 using DesktopDownloader.Data;
+using DownloaderLibrary;
+using DownloaderLibrary.Checkpoints;
+using DownloaderLibrary.Downloaders;
+using DownloaderLibrary.Drivers;
 
 namespace DesktopDownloader {
 	/// <summary>
@@ -26,15 +30,29 @@ namespace DesktopDownloader {
 				MessageBox.Show("Download directory is invalid.", "Error", MessageBoxButton.OK);
 				return;
 			}
-			var tempData = new TempData() {
+
+			var tempData = new TempData {
 				LatestDownloadPath = DownloadDirectoryTextBox.Text,
 				LatestDownloadUri = EpisodeUrlTextBox.Text
 			};
 
 			TempDataSaver.Save(tempData);
-			var win = new DownloadWindow(uri, downloadDirectory);
-			win.Show();
-			this.Close();
+
+			var factory = new DownloaderFactory();
+			var downloaderConfig = new DownloaderConfig {
+				ShouldDownloadFillers = DownloadFillersCheckbox.IsChecked.Value,
+				Checkpoint = new JsonCheckpoint(),
+				DownloadDirectory = downloadDirectory,
+			};
+			var downloader = factory.GetDownloaderForSite(uri, downloaderConfig);
+
+			if (downloader == null) {
+				MessageBox.Show($"Site:\n {uri} not supported yet.", "Site not supported", MessageBoxButton.OK,
+					MessageBoxImage.Error);
+				return;
+			}
+
+			this.Content = new DownloadUserControl(downloader);
 		}
 
 		private void DownloadDirectoryOpenDialogButton_OnClick(object sender, RoutedEventArgs e) {
@@ -53,6 +71,7 @@ namespace DesktopDownloader {
 				};
 				TempDataSaver.Save(tempData);
 			}
+
 			DownloadDirectoryTextBox.Text = tempData.LatestDownloadPath;
 			EpisodeUrlTextBox.Text = tempData.LatestDownloadUri;
 		}
