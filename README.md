@@ -11,6 +11,8 @@ Supported sites:
 Supported video providers:
 * CDA
 
+History version can be found [here](CHANGELOG.md)
+
 ### Usage
 
 1. Download from release page.
