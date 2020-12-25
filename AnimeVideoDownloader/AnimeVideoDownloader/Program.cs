@@ -16,7 +16,7 @@ namespace ConsoleApp {
 			Console.Clear();
 			Console.WriteLine($"=== Anime Video Downloader App - {Assembly.GetExecutingAssembly().GetName().Version} ===");
 			Console.CursorVisible = false;
-			var progress = new Progress<DownloadProgress>(d => OnProgressChanged(null, d));
+			var progress = new Progress<DownloadProgressData>(d => OnProgressChanged(null, d));
 			progress.ProgressChanged += OnProgressChanged;
 
 			if (args.Length < 2) {
@@ -26,14 +26,14 @@ namespace ConsoleApp {
 
 			var episodesUrl = new Uri(args[0]);
 			var downloadDirectory = args[1];
-			using var manager = new DownloaderManager(episodesUrl, downloadDirectory, progress);
+			using var manager = new DownloaderFactory(episodesUrl, downloadDirectory, progress);
 			lock (ConsoleWriterLock) {
 				_episodes = manager.GetEpisodes();
 			}
 			await manager.DownloadAllEpisodesAsync();
 		}
 
-		private static void OnProgressChanged(object sender, DownloadProgress e) {
+		private static void OnProgressChanged(object sender, DownloadProgressData e) {
 			lock (ConsoleWriterLock) {
 				Console.SetCursorPosition(0, e.EpisodeNumber);
 				var name = _episodes.Single(episode => episode.Number == e.EpisodeNumber).Name;

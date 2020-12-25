@@ -4,6 +4,13 @@
 
 Can be found at `AnimeVideoDownloader/DesktopDownloader`
 
+Supported sites:
+* OgladajAnime.pl
+* Wbijam.pl
+
+Supported video providers:
+* CDA
+
 ### Usage
 
 1. Download from release page.

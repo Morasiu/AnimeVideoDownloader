@@ -15,23 +15,21 @@ namespace DesktopDownloader {
 	/// <summary>
 	/// Interaction logic for Window1.xaml
 	/// </summary>
-	public partial class DownloadWindow {
-		private readonly DownloaderManager _downloaderManager;
-		private readonly Progress<DownloadProgress> _progress;
+	public partial class DownloadUserControl {
+		private readonly BaseAnimeDownloader _downloader;
 		private readonly SortedList<int, DownloadProgressControl> _controls;
 		private const string DoneEmoji = "✔️";
 
-		public DownloadWindow(Uri downloadUrl, string downloadPath, bool downloadFiller = false) {
+		public DownloadUserControl(BaseAnimeDownloader downloader) {
 			InitializeComponent();
+
 			_controls = new SortedList<int, DownloadProgressControl>();
 			Loaded += OnLoaded;
-			_progress = new Progress<DownloadProgress>();
-			_progress.ProgressChanged += OnProgress;
-			var downloaderConfig = new DownloaderConfig { ShouldDownloadFillers = downloadFiller };
-			_downloaderManager = new DownloaderManager(downloadUrl, downloadPath, _progress, downloaderConfig);
+			_downloader = downloader;
+			_downloader.ProgressChanged += OnProgress; 
 		}
 
-		private void OnProgress(object sender, DownloadProgress data) {
+		private void OnProgress(object sender, DownloadProgressData data) {
 			Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action) delegate {
 				var control = _controls[data.EpisodeNumber];
 				if (Math.Abs(data.Percent - 1) < 0.05) {
@@ -56,7 +54,7 @@ namespace DesktopDownloader {
 
 		private async void OnLoaded(object sender, RoutedEventArgs e) {
 			try {
-				await _downloaderManager.InitAsync();
+				await _downloader.InitAsync();
 			}
 			catch (ChromeVersionException exception) {
 				Console.WriteLine(exception);
@@ -66,7 +64,7 @@ namespace DesktopDownloader {
 				return;
 			}
 
-			var episodes = _downloaderManager.GetEpisodes();
+			var episodes = await _downloader.GetEpisodesAsync();
 			foreach (var episode in episodes) {
 				var wrapPanel = new WrapPanel();
 				var control = new DownloadProgressControl();
@@ -148,11 +146,7 @@ namespace DesktopDownloader {
 		}
 
 		private async Task DownloadAddEpisodesTaskAsync() {
-			await _downloaderManager.DownloadAllEpisodesAsync().ConfigureAwait(false);
-		}
-
-		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
-			_downloaderManager.Dispose();
+			await _downloader.DownloadAllEpisodesAsync().ConfigureAwait(false);
 		}
 	}
 
