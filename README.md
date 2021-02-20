@@ -10,6 +10,7 @@ Supported sites:
 
 Supported video providers:
 * CDA
+* ~~Mp4Up~~ Require passwords
 
 History version can be found [here](CHANGELOG.md)
 
