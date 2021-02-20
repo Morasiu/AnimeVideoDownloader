@@ -7,6 +7,7 @@ Can be found at `AnimeVideoDownloader/DesktopDownloader`
 Supported sites:
 * OgladajAnime.pl
 * Wbijam.pl
+* Shinden.pl
 
 Supported video providers:
 * CDA
