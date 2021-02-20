@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using DownloaderLibrary.Episodes;
 using DownloaderLibrary.Providers;
@@ -38,8 +39,26 @@ namespace DownloaderLibrary.Downloaders {
 
 		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
-			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(15));
-			var table = wait.Until(a => a.FindElement(By.XPath("/html/body/div[4]/div/article/section[3]/div/table/tbody")));
+			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
+			wait.Timeout = TimeSpan.FromSeconds(5);
+			try {
+				var cookies = wait.Until(a =>
+					a.FindElement(By.XPath("/html/body/div[14]/div[1]/div[2]/div/div[2]/button[2]")));
+				cookies.Click();
+				var cookies2 = wait.Until(a => a.FindElement(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
+				cookies2.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+			finally {
+				wait.Timeout = TimeSpan.FromSeconds(30);
+			}
+			IWebElement table;
+			try {
+				table = wait.Until(a => a.FindElement(By.XPath("/html/body/div[4]/div/article/section[3]/div/table/tbody")));
+			}
+			catch (WebDriverTimeoutException) {
+				throw new WebDriverTimeoutException("Cannot load episode providers list");
+			}
 			var rows = table.FindElements(By.TagName("tr"));
 			IWebElement playerButton = null; 
 			foreach (var row in rows) {
@@ -56,8 +75,25 @@ namespace DownloaderLibrary.Downloaders {
 			}
 
 			if (playerButton == null) throw new NullReferenceException("Player button did not work");
-			playerButton.Click();
-			var iframe = wait.Until(a => a.FindElement(By.XPath("/html/body/div[4]/div/article/div[2]/div/iframe")));
+			var tryNumber = 30;
+			while (true) {
+				tryNumber--;
+				if (tryNumber == 0) break;
+				try {
+					playerButton.Click();
+					break;
+				}
+				catch (ElementClickInterceptedException ) {
+					Thread.Sleep(1000);
+				}
+			}
+			IWebElement iframe;
+			try {
+				iframe = wait.Until(a => a.FindElement(By.XPath("/html/body/div[4]/div/article/div[2]/div/iframe")));
+			}
+			catch (WebDriverTimeoutException) {
+				throw new WebDriverTimeoutException("Cannot load episode player");
+			}
 			var src = iframe.GetAttribute("src");
 			var provider = new ProviderFactory(Driver).GetProvider(ProviderType.Cda);
 			return await provider.GetVideoSourceAsync(src);

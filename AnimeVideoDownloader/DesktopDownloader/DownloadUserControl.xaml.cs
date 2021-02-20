@@ -75,7 +75,13 @@ namespace DesktopDownloader {
 				status.Text = "⌛";
 				control.Status = status;
 				wrapPanel.Children.Add(status);
-
+				
+				// EPISODE NUMBER
+				// EPISODE NAME
+				var episodeNumber = new TextBlock { Text = episode.Number.ToString() };
+				episodeNumber.Width = 20;
+				wrapPanel.Children.Add(episodeNumber);
+				
 				// EPISODE NAME
 				var episodeName = new TextBlock { Text = episode.Name };
 				episodeName.Width = 350;
