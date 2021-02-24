@@ -69,9 +69,11 @@ namespace DownloaderLibrary.Downloaders {
 					var soundsLanguage = spans[1].GetAttribute("textContent");
 					if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
 					quality = columns[1].Text;
-
-					playerButton = columns[5].FindElement(By.TagName("a"));
+					
+					if (playerButton == null)
+						playerButton = columns[5].FindElement(By.TagName("a"));
 					if (quality == "1080p") {
+						playerButton = columns[5].FindElement(By.TagName("a"));
 						break;
 					}
 				}
