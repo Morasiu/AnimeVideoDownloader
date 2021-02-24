@@ -18,7 +18,9 @@ namespace DownloaderLibrary.Providers {
 
 			var source =
 				wait.Until(ExpectedConditions.ElementExists(By.TagName("video")));
-			if (source.GetAttribute("class") == "pb-ad-video-player") {
+
+			var attribute = source.GetAttribute("class");
+			if (attribute == "pb-ad-video-player") {
 				var adClick = Driver.FindElement(By.ClassName("pb-vid-click"));
 				adClick.Click();
 				var adTimeText = Driver.FindElement(By.ClassName("pb-max-time")).Text;
