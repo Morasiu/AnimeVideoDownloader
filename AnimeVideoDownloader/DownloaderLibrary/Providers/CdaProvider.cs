@@ -12,10 +12,9 @@ namespace DownloaderLibrary.Providers {
 
 		public override Task<Uri> GetVideoSourceAsync(string url) {
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
-			var cdaVideoViewUrl1080P = $"{url}?wersja=1080p";
 
 			// Go to CDA page
-			Driver.Url = cdaVideoViewUrl1080P;
+			Driver.Url = url;
 
 			var source =
 				wait.Until(ExpectedConditions.ElementExists(By.TagName("video")));
