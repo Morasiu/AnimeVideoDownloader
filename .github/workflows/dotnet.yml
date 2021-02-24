@@ -16,9 +16,9 @@ jobs:
       with:
         dotnet-version: 3.1.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore AnimeVideoDownloader/DesktopDownloader/DesktopDownloader.csproj
     - name: Build
-      run: dotnet publish -c Release -o Publish
+      run: dotnet publish AnimeVideoDownloader/DesktopDownloader/DesktopDownloader.csproj  -c Release -o Publish 
     - uses: papeloto/action-zip@v1
       with:
         files: Publish/ 
