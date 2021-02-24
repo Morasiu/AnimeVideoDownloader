@@ -5,13 +5,13 @@ using System.Reflection;
 using System.Threading.Tasks;
 using ByteSizeLib;
 using DownloaderLibrary;
+using DownloaderLibrary.Downloaders;
 using DownloaderLibrary.Episodes;
 
 namespace ConsoleApp {
 	class Program {
 		private static readonly object ConsoleWriterLock = new object();
 		private static IEnumerable<Episode> _episodes;
-
 		static async Task Main(string[] args) {
 			Console.Clear();
 			Console.WriteLine($"=== Anime Video Downloader App - {Assembly.GetExecutingAssembly().GetName().Version} ===");
@@ -26,11 +26,9 @@ namespace ConsoleApp {
 
 			var episodesUrl = new Uri(args[0]);
 			var downloadDirectory = args[1];
-			using var manager = new DownloaderFactory(episodesUrl, downloadDirectory, progress);
-			lock (ConsoleWriterLock) {
-				_episodes = manager.GetEpisodes();
-			}
-			await manager.DownloadAllEpisodesAsync();
+			using var downloader = new DownloaderFactory().GetDownloaderForSite(episodesUrl, new DownloaderConfig() {DownloadDirectory = downloadDirectory});
+			_episodes = await downloader.GetEpisodesAsync();
+			await downloader.DownloadAllEpisodesAsync();
 		}
 
 		private static void OnProgressChanged(object sender, DownloadProgressData e) {

@@ -26,7 +26,8 @@ namespace DesktopDownloader {
 			_controls = new SortedList<int, DownloadProgressControl>();
 			Loaded += OnLoaded;
 			_downloader = downloader;
-			_downloader.ProgressChanged += OnProgress; 
+			_downloader.ProgressChanged += OnProgress;
+			Application.Current.MainWindow.Closed += (sender, args) => _downloader.Dispose();
 		}
 
 		private void OnProgress(object sender, DownloadProgressData data) {
@@ -53,6 +54,7 @@ namespace DesktopDownloader {
 		}
 
 		private async void OnLoaded(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
 			try {
 				await _downloader.InitAsync();
 			}
@@ -75,7 +77,13 @@ namespace DesktopDownloader {
 				status.Text = "⌛";
 				control.Status = status;
 				wrapPanel.Children.Add(status);
-
+				
+				// EPISODE NUMBER
+				// EPISODE NAME
+				var episodeNumber = new TextBlock { Text = episode.Number.ToString() };
+				episodeNumber.Width = 20;
+				wrapPanel.Children.Add(episodeNumber);
+				
 				// EPISODE NAME
 				var episodeName = new TextBlock { Text = episode.Name };
 				episodeName.Width = 350;
@@ -137,12 +145,15 @@ namespace DesktopDownloader {
 			}
 
 			DownloadAllButton.IsEnabled = true;
+			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
 
 		private async void DownloadAllOnClick(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
 			DownloadAllButton.IsEnabled = false;
 			await DownloadAddEpisodesTaskAsync();
+			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
 		private async Task DownloadAddEpisodesTaskAsync() {

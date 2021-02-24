@@ -6,11 +6,13 @@
         mc:Ignorable="d">
 	<Grid ScrollViewer.CanContentScroll="True">
         <Grid.RowDefinitions>
-			<RowDefinition Height="30"></RowDefinition>
+	        <RowDefinition Height="5"></RowDefinition>
+	        <RowDefinition Height="35"></RowDefinition>
 			<RowDefinition Height="*" ScrollViewer.CanContentScroll="True"></RowDefinition>
         </Grid.RowDefinitions>
-	    <Button Grid.Row="0" Content="Download all" Click="DownloadAllOnClick" Margin="5" Name="DownloadAllButton" IsEnabled="False"/>
-	    <ScrollViewer Grid.Row="1" CanContentScroll="True">
+		<ProgressBar Minimum="0" Maximum="100" Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed" />
+	    <Button Grid.Row="1" Content="Download all" Click="DownloadAllOnClick" Margin="5" Name="DownloadAllButton" IsEnabled="False"/>
+	    <ScrollViewer Grid.Row="2" CanContentScroll="True">
 	        <StackPanel Name="StackPanel">
 
 	        </StackPanel>
