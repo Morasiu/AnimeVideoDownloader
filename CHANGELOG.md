@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.1.0] - 24.02.2021
+- New fresh look
+
 ## [1.0.0] - 2020-12-25
 ### Added
 - Support for wbijam

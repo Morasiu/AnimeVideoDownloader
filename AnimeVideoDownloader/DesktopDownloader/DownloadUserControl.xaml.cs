@@ -26,7 +26,8 @@ namespace DesktopDownloader {
 			_controls = new SortedList<int, DownloadProgressControl>();
 			Loaded += OnLoaded;
 			_downloader = downloader;
-			_downloader.ProgressChanged += OnProgress; 
+			_downloader.ProgressChanged += OnProgress;
+			Application.Current.MainWindow.Closed += (sender, args) => _downloader.Dispose();
 		}
 
 		private void OnProgress(object sender, DownloadProgressData data) {
@@ -53,6 +54,7 @@ namespace DesktopDownloader {
 		}
 
 		private async void OnLoaded(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
 			try {
 				await _downloader.InitAsync();
 			}
@@ -143,12 +145,15 @@ namespace DesktopDownloader {
 			}
 
 			DownloadAllButton.IsEnabled = true;
+			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
 
 		private async void DownloadAllOnClick(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
 			DownloadAllButton.IsEnabled = false;
 			await DownloadAddEpisodesTaskAsync();
+			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
 		private async Task DownloadAddEpisodesTaskAsync() {

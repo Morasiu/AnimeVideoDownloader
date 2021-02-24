@@ -19,6 +19,7 @@ namespace DesktopDownloader {
 		}
 
 		private void CheckEpisodesButton_OnClick(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
 			var episodeUrl = EpisodeUrlTextBox.Text;
 			if (!Uri.TryCreate(episodeUrl, UriKind.Absolute, out var uri)) {
 				MessageBox.Show("Episode link is invalid.", "Error", MessageBoxButton.OK);
@@ -51,7 +52,7 @@ namespace DesktopDownloader {
 					MessageBoxImage.Error);
 				return;
 			}
-
+			LoadingBar.Visibility = Visibility.Collapsed;
 			this.Content = new DownloadUserControl(downloader);
 		}
 
