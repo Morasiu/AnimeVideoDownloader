@@ -60,6 +60,7 @@ namespace DownloaderLibrary.Downloaders {
 
 			var rows = table.FindElements(By.TagName("tr"));
 			IWebElement playerButton = null;
+			var quality = string.Empty;
 			foreach (var row in rows) {
 				var columns = row.FindElements(By.TagName("td"));
 				var providerName = columns[0].Text;
@@ -67,11 +68,12 @@ namespace DownloaderLibrary.Downloaders {
 					var spans = columns[2].FindElements(By.TagName("span"));
 					var soundsLanguage = spans[1].GetAttribute("textContent");
 					if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
-					var quality = columns[1].Text;
+					quality = columns[1].Text;
 
 					playerButton = columns[5].FindElement(By.TagName("a"));
-					if (quality == "1080p")
+					if (quality == "1080p") {
 						break;
+					}
 				}
 			}
 
@@ -98,8 +100,9 @@ namespace DownloaderLibrary.Downloaders {
 			}
 
 			var src = iframe.GetAttribute("src");
+			var fullSrc = $"{src}?wersja={quality}";
 			var provider = new ProviderFactory(Driver).GetProvider(ProviderType.Cda);
-			return await provider.GetVideoSourceAsync(src);
+			return await provider.GetVideoSourceAsync(fullSrc);
 		}
 
 		private static void AcceptCookies(WebDriverWait wait) {
