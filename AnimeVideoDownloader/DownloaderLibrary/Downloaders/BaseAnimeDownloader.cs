@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
+using Downloader;
 using DownloaderLibrary.Drivers;
 using DownloaderLibrary.Episodes;
+using DownloaderLibrary.Helpers;
 using OpenQA.Selenium.Remote;
 
 namespace DownloaderLibrary.Downloaders {
@@ -15,10 +20,11 @@ namespace DownloaderLibrary.Downloaders {
 		protected List<Episode> Episodes;
 		protected readonly DownloaderConfig Config;
 		protected RemoteWebDriver Driver;
+		public event EventHandler<DownloadProgressData> ProgressChanged;
 
 		protected BaseAnimeDownloader(Uri episodeListUri, DownloaderConfig config = null) {
 			EpisodeListUri = episodeListUri;
-			Progress = new Progress<DownloadProgressData>(progress => ProgressChanged?.Invoke(this, progress));
+			Progress = new Progress<DownloadProgressData>(p => ProgressChanged?.Invoke(this, p));
 			Config = config ?? new DownloaderConfig();
 			Episodes = new List<Episode>();
 		}
@@ -39,7 +45,8 @@ namespace DownloaderLibrary.Downloaders {
 		public async Task DownloadAllEpisodesAsync() {
 			var random = new Random();
 			var episodes = await GetEpisodesAsync().ConfigureAwait(false);
-			foreach (var episode in episodes) {
+			foreach (var episode in episodes) 
+			{
 				if (episode.IsDownloaded) {
 					Progress.Report(
 						new DownloadProgressData(episode.Number, 1.0, episode.TotalBytes, episode.TotalBytes));
@@ -72,91 +79,63 @@ namespace DownloaderLibrary.Downloaders {
 				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
 			}
 
-			DateTime lastUpdate = DateTime.Now;
-			long lastBytes = 0;
-			long totalBytes = 0;
-			long previousBytesPerSecond = 0;
-			var tcs = new TaskCompletionSource<object>(episode.DownloadUri);
-			using (var client = new WebClient()) {
-				if (Progress != null) {
-					client.DownloadProgressChanged += (sender, args) => {
-						if (totalBytes == 0)
-							totalBytes = args.TotalBytesToReceive;
-						if (lastBytes == 0) {
-							lastUpdate = DateTime.Now;
-							lastBytes = args.BytesReceived;
-							return;
-						}
-
-						var now = DateTime.Now;
-						var timeSpan = now - lastUpdate;
-
-						if (timeSpan.Milliseconds > 500) {
-							var bytesChange = args.BytesReceived - lastBytes;
-							var bytesPerSecond = bytesChange * (1000 / 500);
-							previousBytesPerSecond = bytesPerSecond;
-							lastBytes = args.BytesReceived;
-							lastUpdate = now;
-						}
-
-						Progress.Report(new DownloadProgressData(
-							episode.Number,
-							(double) args.ProgressPercentage / 100,
-							args.BytesReceived,
-							args.TotalBytesToReceive,
-							previousBytesPerSecond)
-						);
-					};
+			if (episode.Path == null) episode.Path = Path.Combine(Config.DownloadDirectory, $"{episode.Number}.mp4");
+			
+			var config = new DownloadConfiguration {
+				MaxTryAgainOnFailover = int.MaxValue,
+				OnTheFlyDownload = false,
+				RequestConfiguration = new RequestConfiguration {
+					KeepAlive = true,
+					Accept = "*/*",
+					UseDefaultCredentials = false,
+					UserAgent =
+						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"
 				}
+			};
 
-				var filePath = Path.Combine(Config.DownloadDirectory, $"{episode.Number}.mp4");
-				episode.Path = filePath;
+			var downloadService = new DownloadService(config);
+			long bytesSinceLastSave = 0;
+			long previousReceivedBytes = 0;
+			DateTime timeSinceLastSave = DateTime.Now;
+			
+			downloadService.DownloadProgressChanged += (sender, args) => {
+				var downloadProgressData = new DownloadProgressData(episode.Number,
+					args.ProgressPercentage / 100,
+					args.ReceivedBytesSize,
+					args.TotalBytesToReceive,
+					(long) args.BytesPerSecondSpeed);
+
+				Progress.Report(downloadProgressData);
+				bytesSinceLastSave += args.ReceivedBytesSize - previousReceivedBytes;
+				previousReceivedBytes = args.ReceivedBytesSize;
+				if (DateTime.Now - timeSinceLastSave > TimeSpan.FromSeconds(2) ) {
+					downloadService.Package.SavePackage(episode.Path);
+					bytesSinceLastSave = 0;
+					timeSinceLastSave = DateTime.Now;
+
+				}
+			};
+
+			downloadService.DownloadFileCompleted += (sender, args) => {
+				if (!args.Cancelled && args.Error == null) {
+					downloadService.Package.Delete(episode.Path);
+					episode.IsDownloaded = true;
+				}
+			};
+			downloadService.DownloadStarted += (sender, args) => {
+				episode.TotalBytes = args.TotalBytesToReceive;
 				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
-				client.DownloadFileCompleted += (sender, args) => {
-					if (args.UserState != tcs) {
-						if (args.Error != null) {
-							Progress?.Report(new DownloadProgressData(episode.Number, 0, 0, 0, 0, args.Error.Message));
-							tcs.TrySetException(args.Error);
-						}
-						else if (args.Cancelled)
-							tcs.TrySetCanceled();
-						else {
-							Progress?.Report(new DownloadProgressData(episode.Number,
-								1,
-								totalBytes,
-								totalBytes,
-								0));
-							tcs.TrySetResult(null);
-							episode.IsDownloaded = true;
-							episode.TotalBytes = totalBytes;
-							Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
-						}
-					}
-				};
-
-				if (File.Exists(filePath)) {
-					if (episode.TotalBytes == 0) {
-						client.OpenRead(episode.DownloadUri);
-						episode.TotalBytes = Convert.ToInt64(client.ResponseHeaders["Content-Length"]);
-					}
-
-
-					if (IsFileDownloadCompleted(episode, filePath)) {
-						Progress?.Report(new DownloadProgressData(
-							episode.Number,
-							1.0,
-							totalBytes,
-							totalBytes));
-						episode.IsDownloaded = true;
-						Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
-						return;
-					}
-				}
-
-				client.DownloadFileAsync(episode.DownloadUri, filePath);
-
-				await tcs.Task.ConfigureAwait(false);
+			}; 
+			var package = downloadService.Package.LoadPackage(episode.Path);
+			if (package == null) {
+				await downloadService.DownloadFileAsync(episode.DownloadUri.AbsoluteUri, episode.Path)
+				                     .ConfigureAwait(false);
 			}
+			else
+				await downloadService.DownloadFileAsync(package).ConfigureAwait(false);
+
+			episode.IsDownloaded = true;
+			downloadService.Package.Delete(episode.Path);
 		}
 
 		public async Task<IEnumerable<Episode>> GetEpisodesAsync() {
@@ -184,27 +163,19 @@ namespace DownloaderLibrary.Downloaders {
 			Driver?.Dispose();
 		}
 
-		public event EventHandler<DownloadProgressData> ProgressChanged;
 
 		private void CheckDownloadedEpisodes(List<Episode> episodes) {
 			foreach (var episode in episodes) {
 				if (episode.IsDownloaded) {
-					if (episode.DownloadUri == null)
-						episode.IsDownloaded = false;
-					else {
-						episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
-					}
+					episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
 				}
 			}
 		}
 
 		protected bool IsFileDownloadCompleted(Episode episode, string filePath) {
-			if (string.IsNullOrWhiteSpace(episode.DownloadUri.AbsoluteUri))
-				throw new NullReferenceException($"{nameof(episode.DownloadUri)} was null");
-
-
 			if (!File.Exists(filePath)) return false;
-
+			if (episode.TotalBytes == 0) return false;
+			
 			var downloadedFileTotalBytes = new FileInfo(filePath).Length;
 			if (downloadedFileTotalBytes == episode.TotalBytes) {
 				return true;

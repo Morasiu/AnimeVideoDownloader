@@ -33,12 +33,13 @@ namespace DesktopDownloader {
 		private void OnProgress(object sender, DownloadProgressData data) {
 			Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action) delegate {
 				var control = _controls[data.EpisodeNumber];
-				if (Math.Abs(data.Percent - 1) < 0.05) {
+				if (Math.Abs(data.Percent - 1) < 0.001) {
 					control.Status.Text = DoneEmoji;
 					control.Percent.Text = "100%";
 					control.BytesReceived.Text = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
 					control.TotalBytes.Text = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
 					control.BytesPerSecond.Text = ByteSize.FromBytes(0).ToString("0.00") + "/s";
+					return;
 				}
 
 				control.Percent.Text = data.Percent.ToString("0%");
