@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DownloaderLibrary.Episodes;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
 namespace DownloaderLibrary.Downloaders {
@@ -100,7 +97,10 @@ namespace DownloaderLibrary.Downloaders {
 			catch (WebDriverTimeoutException) {
 				throw new WebDriverTimeoutException("Cannot load episode player");
 			}
-
+			
+			// HERE TODO asa
+			quality = "360p";
+			
 			var src = iframe.GetAttribute("src");
 			var fullSrc = $"{src}?wersja={quality}";
 			var provider = new ProviderFactory(Driver).GetProvider(ProviderType.Cda);

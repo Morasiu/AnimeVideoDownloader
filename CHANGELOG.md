@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.3.0] - 28.02.2021
+- Automatic resume download
+- Logs in appDirectory/logs.txt
+- Support for shinden.pl
+
+## [1.2.0] - ???
+- Just trying github actions
+
 ## [1.1.0] - 24.02.2021
 - New fresh look
 

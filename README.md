@@ -36,3 +36,6 @@ For example:
 ```bash
 dotnet run https://drstone.wbijam.pl/pierwsza_seria.html D:/Dr.Stone/
 ```
+## Both
+
+- Logs can be found at `appDirectory/logs.txt`
