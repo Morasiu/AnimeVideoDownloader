@@ -63,14 +63,15 @@ namespace DownloaderLibrary.Helpers {
 
 		public static void Delete(this DownloadPackage package, string episodePath) {
 			var formattedPath = GetFilePath(episodePath);
+			if (!File.Exists(formattedPath)) return;
 			File.Delete(formattedPath);
 		}
 
 		private static string GetFilePath(string episodePath) {
 			if (episodePath == null) return null;
-			var fileInfo = new FileInfo(episodePath);
-			var fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
-			var formattedPath = Path.Combine(fileInfo.Directory?.FullName ?? string.Empty, $".{fileName}-chunkInfo");
+			var directoryName = Path.GetDirectoryName(episodePath);
+			var fileName = Path.GetFileNameWithoutExtension(episodePath);
+			var formattedPath = Path.Combine(directoryName ?? string.Empty, $".{fileName}-chunkInfo");
 			return formattedPath;
 		}
 	}

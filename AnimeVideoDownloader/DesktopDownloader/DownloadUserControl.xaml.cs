@@ -3,10 +3,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using ByteSizeLib;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
 using DownloaderLibrary.Downloaders;
-using DownloaderLibrary.Episodes;
 
 namespace DesktopDownloader {
 	/// <summary>
@@ -26,27 +26,26 @@ namespace DesktopDownloader {
 		}
 
 		private void OnProgress(object sender, DownloadProgressData data) {
-			// Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action) delegate {
-			// 	var control = _controls[data.EpisodeNumber];
-			// 	if (Math.Abs(data.Percent - 1) < 0.001) {
-			// 		control.Status.Text = DoneEmoji;
-			// 		control.Percent.Text = "100%";
-			// 		control.BytesReceived.Text = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
-			// 		control.TotalBytes.Text = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
-			// 		control.BytesPerSecond.Text = ByteSize.FromBytes(0).ToString("0.00") + "/s";
-			// 		return;
-			// 	}
-			//
-			// 	control.Percent.Text = data.Percent.ToString("0%");
-			// 	control.BytesReceived.Text = ByteSize.FromBytes(data.BytesReceived).ToString("0.00");
-			// 	control.TotalBytes.Text = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
-			// 	control.BytesPerSecond.Text = ByteSize.FromBytes(data.BytesPerSecond).ToString("0.00") + "/s";
-			// 	control.Error.Text = data.Error;
-			//
-			// 	var timeRemained = TimeSpan.FromSeconds(
-			// 		(data.TotalBytes - data.BytesReceived) / (data.BytesPerSecond == 0 ? 1.0 : data.BytesPerSecond));
-			// 	control.TimeRemained.Text = $"Remained: {timeRemained:hh\\:mm\\:ss}";
-			// });
+			
+			var episodeView = EpisodeViews.Single(a => a.Episode.Number == data.EpisodeNumber);
+			if (Math.Abs(data.Percent - 1) < 0.001) {
+				episodeView.Status = Emoji.Done;
+				episodeView.Percent = data.Percent;
+				episodeView.BytesReceived = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
+				episodeView.TotalBytes = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
+				episodeView.BytesPerSecond = ByteSize.FromBytes(0).ToString("0.00") + "/s";
+				return;
+			}
+			
+			episodeView.Percent = data.Percent;
+			episodeView.BytesReceived = ByteSize.FromBytes(data.BytesReceived).ToString("0.00");
+			episodeView.TotalBytes = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
+			episodeView.BytesPerSecond = ByteSize.FromBytes(data.BytesPerSecond).ToString("0.00") + "/s";
+			episodeView.Error = data.Error;
+			
+			var timeRemained = TimeSpan.FromSeconds(
+				(data.TotalBytes - data.BytesReceived) / (data.BytesPerSecond == 0 ? 1.0 : data.BytesPerSecond));
+			episodeView.TimeRemained = $"Remained: {timeRemained:hh\\:mm\\:ss}";
 		}
 
 		private async void OnLoaded(object sender, RoutedEventArgs e) {
@@ -156,16 +155,5 @@ namespace DesktopDownloader {
 		private async Task DownloadAddEpisodesTaskAsync() {
 			await _downloader.DownloadAllEpisodesAsync().ConfigureAwait(false);
 		}
-	}
-
-	public class EpisodeView {
-		public Episode Episode { get; set; }
-		public string Status { get; set; } = Emoji.InProgress;
-		public double Percent { get; set; } = 0;
-		public long BytesReceived { get; set; }
-		public long TotalBytes { get; set; }
-		public long BytesPerSecond { get; set; }
-		public TimeSpan TimeRemained { get; set; }
-		public string Error { get; set; }
 	}
 }

@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Downloader;
 using DownloaderLibrary.Drivers;
 using DownloaderLibrary.Episodes;
 using DownloaderLibrary.Helpers;
 using OpenQA.Selenium.Remote;
+using Serilog;
 
 namespace DownloaderLibrary.Downloaders {
 	public abstract class BaseAnimeDownloader : IDisposable {
@@ -27,6 +24,10 @@ namespace DownloaderLibrary.Downloaders {
 			Progress = new Progress<DownloadProgressData>(p => ProgressChanged?.Invoke(this, p));
 			Config = config ?? new DownloaderConfig();
 			Episodes = new List<Episode>();
+			
+			Log.Logger = new LoggerConfiguration()
+			             .WriteTo.File("logs.txt", rollingInterval:RollingInterval.Infinite, shared:true)
+			             .CreateLogger();
 		}
 
 		public virtual async Task InitAsync() {
@@ -59,8 +60,10 @@ namespace DownloaderLibrary.Downloaders {
 					await DownloadEpisode(episode).ConfigureAwait(false);
 				}
 				catch (Exception e) {
+					var error = $"Error ({e.GetType()}: {e.Message}) Trying again... Info ({e.Source})";
+					Log.Error(e, "Error while downloading episode: {EpisodeNumber}", episode.Number);
 					Progress.Report(new DownloadProgressData(episode.Number, 0,
-						error: $"Error ({e.GetType()}: {e.Message}) Trying again... Info ({e.Source})"));
+						error: error));
 					await Task.Delay(random.Next(800, 1500)).ConfigureAwait(false);
 					await DownloadAllEpisodesAsync().ConfigureAwait(false);
 				}
@@ -82,19 +85,11 @@ namespace DownloaderLibrary.Downloaders {
 			if (episode.Path == null) episode.Path = Path.Combine(Config.DownloadDirectory, $"{episode.Number}.mp4");
 			
 			var config = new DownloadConfiguration {
-				MaxTryAgainOnFailover = int.MaxValue,
+				CheckDiskSizeBeforeDownload = true,
 				OnTheFlyDownload = false,
-				RequestConfiguration = new RequestConfiguration {
-					KeepAlive = true,
-					Accept = "*/*",
-					UseDefaultCredentials = false,
-					UserAgent =
-						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"
-				}
 			};
 
 			var downloadService = new DownloadService(config);
-			long bytesSinceLastSave = 0;
 			long previousReceivedBytes = 0;
 			DateTime timeSinceLastSave = DateTime.Now;
 			
@@ -106,13 +101,10 @@ namespace DownloaderLibrary.Downloaders {
 					(long) args.BytesPerSecondSpeed);
 
 				Progress.Report(downloadProgressData);
-				bytesSinceLastSave += args.ReceivedBytesSize - previousReceivedBytes;
 				previousReceivedBytes = args.ReceivedBytesSize;
-				if (DateTime.Now - timeSinceLastSave > TimeSpan.FromSeconds(2) ) {
+				if (DateTime.Now - timeSinceLastSave > SaveProgressConfig.SaveTime) {
 					downloadService.Package.SavePackage(episode.Path);
-					bytesSinceLastSave = 0;
 					timeSinceLastSave = DateTime.Now;
-
 				}
 			};
 

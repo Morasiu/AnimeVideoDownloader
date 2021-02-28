@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO.Packaging;
+using System.Reflection;
 using System.Windows;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
@@ -16,6 +19,7 @@ namespace DesktopDownloader {
 			EpisodeUrlTextBox.Text = "https://rezero.wbijam.pl/pierwsza_seria.html";
 			DownloadDirectoryTextBox.Text = "D:/ReZero";
 			Loaded += OnLoaded;
+			this.Title = $"Desktop Downloader {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}";
 		}
 
 		private void CheckEpisodesButton_OnClick(object sender, RoutedEventArgs e) {
