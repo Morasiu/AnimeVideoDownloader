@@ -98,9 +98,6 @@ namespace DownloaderLibrary.Downloaders {
 				throw new WebDriverTimeoutException("Cannot load episode player");
 			}
 			
-			// HERE TODO asa
-			quality = "360p";
-			
 			var src = iframe.GetAttribute("src");
 			var fullSrc = $"{src}?wersja={quality}";
 			var provider = new ProviderFactory(Driver).GetProvider(ProviderType.Cda);
