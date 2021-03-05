@@ -46,22 +46,21 @@
                             </Grid.RowDefinitions>
 
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
+                                <ColumnDefinition Width="13" />
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="350" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="110" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Status}" Width="20" />
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Episode.Number}" Width="20" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Episode.Name}" Width="350" />
-                            <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding EpisodeTypeLetter}" Width="20" />
-                            <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Percent, StringFormat=0%}"
-                                       Width="40" />
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Status}" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Episode.Number}" TextAlignment="Center" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Episode.Name}" />
+                            <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding EpisodeTypeLetter}" />
+                            <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Percent, StringFormat=0%}" />
                             <TextBlock Grid.Row="0" Grid.Column="5" Width="145">
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="{}{0}/{1}">
@@ -70,10 +69,12 @@
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>
-                            <TextBlock Grid.Row="0" Grid.Column="6" Text="{Binding BytesPerSecond}" Width="70" />
-                            <TextBlock Grid.Row="0" Grid.Column="7" Text="{Binding TimeRemained}" Width="110" />
-                            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="8" Foreground="Red" Text="{Binding Error}"
-                                       Visibility="{Binding Path=Error , Converter={StaticResource NullVisibilityConverter}}" />
+                            <TextBlock Grid.Row="0" Grid.Column="6" Text="{Binding BytesPerSecond}" />
+                            <TextBlock Grid.Row="0" Grid.Column="7" Text="{Binding TimeRemained}" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="8" Foreground="Red"
+                                       Text="{Binding Error}"
+                                       Visibility="{Binding Path=Error , Converter={StaticResource NullVisibilityConverter}}"
+                                       TextWrapping="Wrap" />
                         </Grid>
                     </WrapPanel>
                 </DataTemplate>

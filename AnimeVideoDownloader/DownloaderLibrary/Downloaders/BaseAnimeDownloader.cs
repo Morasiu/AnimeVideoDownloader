@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Downloader;
 using DownloaderLibrary.Drivers;
@@ -63,15 +64,16 @@ namespace DownloaderLibrary.Downloaders {
 					if (IsServerReturningForbidden(e)) {
 						episode.DownloadUri = null;
 					}
+
+					if (IsConnectionTimeout(e)) {
+						episode.DownloadUri = null;
+					}
+					
 					ReportError(e, episode);
 					await Task.Delay(random.Next(800, 1500)).ConfigureAwait(false);
 					await DownloadAllEpisodesAsync().ConfigureAwait(false);
 				}
 			}
-		}
-
-		private static bool IsServerReturningForbidden(Exception e) {
-			return e.Message == "The remote server returned an error: (403) Forbidden.";
 		}
 
 		private void ReportError(Exception e, Episode episode) {
@@ -123,6 +125,7 @@ namespace DownloaderLibrary.Downloaders {
 				if (!args.Cancelled && args.Error == null) {
 					downloadService.Package.Delete(episode.Path);
 					episode.IsDownloaded = true;
+					Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
 				}
 			};
 			downloadService.DownloadStarted += (sender, args) => {
@@ -185,6 +188,14 @@ namespace DownloaderLibrary.Downloaders {
 			}
 
 			return false;
+		}
+
+		private static bool IsConnectionTimeout(Exception e) {
+			return (e.GetBaseException() as SocketException)?.SocketErrorCode == SocketError.TimedOut;
+		}
+
+		private static bool IsServerReturningForbidden(Exception e) {
+			return e.Message == "The remote server returned an error: (403) Forbidden.";
 		}
 	}
 }

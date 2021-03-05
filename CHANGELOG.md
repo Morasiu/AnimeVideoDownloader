@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Now downloader will try to find another `episode.DownloadUri` if server is returning 403 forbidden
+- Now downloader will try to find another `episode.DownloadUri` if connection timeout
+- Episode number text in desktop app was too short 
 
 ## [1.3.1] - 28.02.2021
 
