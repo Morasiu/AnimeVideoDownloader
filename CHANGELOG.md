@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.3.2] - xxxxxxxxx
+
+### Fixed
+- Now downloader will try to find another `episode.DownloadUri` if server is returning 403 forbidden
+
 ## [1.3.1] - 28.02.2021
 
 ### Fixed

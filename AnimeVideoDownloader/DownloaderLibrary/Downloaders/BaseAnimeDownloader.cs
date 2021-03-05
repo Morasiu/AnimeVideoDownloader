@@ -60,14 +60,25 @@ namespace DownloaderLibrary.Downloaders {
 					await DownloadEpisode(episode).ConfigureAwait(false);
 				}
 				catch (Exception e) {
-					var error = $"Error ({e.GetType()}: {e.Message}) Trying again... Info ({e.Source})";
-					Log.Error(e, "Error while downloading episode: {EpisodeNumber}", episode.Number);
-					Progress.Report(new DownloadProgressData(episode.Number, 0,
-						error: error));
+					if (IsServerReturningForbidden(e)) {
+						episode.DownloadUri = null;
+					}
+					ReportError(e, episode);
 					await Task.Delay(random.Next(800, 1500)).ConfigureAwait(false);
 					await DownloadAllEpisodesAsync().ConfigureAwait(false);
 				}
 			}
+		}
+
+		private static bool IsServerReturningForbidden(Exception e) {
+			return e.Message == "The remote server returned an error: (403) Forbidden.";
+		}
+
+		private void ReportError(Exception e, Episode episode) {
+			var error = $"Error ({e.GetType()}: {e.Message}) Trying again... Info ({e.Source})";
+			Log.Error(e, "Error while downloading episode: {EpisodeNumber}", episode.Number);
+			Progress.Report(new DownloadProgressData(episode.Number, 0,
+				error: error));
 		}
 
 		public async Task DownloadEpisode(Episode episode) {
