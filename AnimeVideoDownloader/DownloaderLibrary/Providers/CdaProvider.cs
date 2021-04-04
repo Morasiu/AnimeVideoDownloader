@@ -16,8 +16,15 @@ namespace DownloaderLibrary.Providers {
 			// Go to CDA page
 			Driver.Url = url;
 
-			var source =
-				wait.Until(ExpectedConditions.ElementExists(By.TagName("video")));
+			IWebElement source;
+			try {
+				source = wait.Until(ExpectedConditions.ElementExists(By.TagName("video")));
+			}
+			catch (WebDriverTimeoutException) {
+				throw new WebDriverTimeoutException("Cannot load CDA player.");
+			}
+			
+
 
 			var attribute = source.GetAttribute("class");
 			if (attribute == "pb-ad-video-player") {

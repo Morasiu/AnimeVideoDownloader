@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.4.0] - 04.04.2021
+
+### Added
+- Now downloader automatically resume downloading from save point (created every 5s)
+
+### Fixed
+- Now downloader will try to find another `episode.DownloadUri` if server is returning 403 forbidden
+- Now downloader will try to find another `episode.DownloadUri` if server is returning 404 Not found
+- Now downloader will try to find another `episode.DownloadUri` if connection timeout
+- Episode number text in desktop app was too short 
+
 ## [1.3.1] - 28.02.2021
 
 ### Fixed

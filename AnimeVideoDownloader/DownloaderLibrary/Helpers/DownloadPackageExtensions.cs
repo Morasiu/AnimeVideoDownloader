@@ -14,11 +14,8 @@ namespace DownloaderLibrary.Helpers {
 			IFormatter formatter = new BinaryFormatter();
 			var fileInfo = new FileInfo(formattedPath);
 			if (!fileInfo.Exists) {
-				fileInfo.Create();
-				fileInfo.Refresh();
+				fileInfo.Create().Dispose();
 			}
-
-			fileInfo.Attributes = fileInfo.Attributes.RemoveAttribute(FileAttributes.Hidden);
 
 			lock (FileLock) {
 				Stream serializedStream = null;
@@ -31,11 +28,7 @@ namespace DownloaderLibrary.Helpers {
 					serializedStream?.Close();
 					serializedStream?.Dispose();
 				}
-
-
 			}
-
-			fileInfo.Attributes = fileInfo.Attributes.AddAttribute(FileAttributes.Hidden);
 		}
 
 		public static DownloadPackage LoadPackage(this DownloadPackage package, string episodePath) {
@@ -71,7 +64,7 @@ namespace DownloaderLibrary.Helpers {
 			if (episodePath == null) return null;
 			var directoryName = Path.GetDirectoryName(episodePath);
 			var fileName = Path.GetFileNameWithoutExtension(episodePath);
-			var formattedPath = Path.Combine(directoryName ?? string.Empty, $".{fileName}-chunkInfo");
+			var formattedPath = Path.Combine(directoryName ?? string.Empty, $"{fileName}.package");
 			return formattedPath;
 		}
 	}
