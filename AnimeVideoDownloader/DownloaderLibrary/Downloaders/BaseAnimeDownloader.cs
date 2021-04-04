@@ -25,9 +25,9 @@ namespace DownloaderLibrary.Downloaders {
 			Progress = new Progress<DownloadProgressData>(p => ProgressChanged?.Invoke(this, p));
 			Config = config ?? new DownloaderConfig();
 			Episodes = new List<Episode>();
-			
+
 			Log.Logger = new LoggerConfiguration()
-			             .WriteTo.File("logs.txt", rollingInterval:RollingInterval.Infinite, shared:true)
+			             .WriteTo.File("logs.txt", rollingInterval: RollingInterval.Infinite, shared: true)
 			             .CreateLogger();
 		}
 
@@ -41,44 +41,49 @@ namespace DownloaderLibrary.Downloaders {
 			}
 
 			Driver = await ChromeDriverFactory.CreateNewAsync().ConfigureAwait(false);
+			Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
 			Driver.Url = EpisodeListUri.AbsoluteUri;
 		}
 
 		public async Task DownloadAllEpisodesAsync() {
-			var random = new Random();
 			var episodes = await GetEpisodesAsync().ConfigureAwait(false);
-			foreach (var episode in episodes) 
-			{
+			foreach (var episode in episodes) {
+				await TryDownloadEpisode(episode).ConfigureAwait(false);
+			}
+		}
+
+		private async Task TryDownloadEpisode(Episode episode) {
+			int tryCount = 0;
+			while (true) {
+				if (tryCount > 30) break;
+				tryCount = 0;
 				if (episode.IsDownloaded) {
 					Progress.Report(
 						new DownloadProgressData(episode.Number, 1.0, episode.TotalBytes, episode.TotalBytes));
-					continue;
+					break;
 				}
 
-				if (!Config.ShouldDownloadFillers && episode.EpisodeType == EpisodeType.Filler) continue;
+				if (!Config.ShouldDownloadFillers && episode.EpisodeType == EpisodeType.Filler) break;
 
 				try {
 					await DownloadEpisode(episode).ConfigureAwait(false);
 				}
 				catch (Exception e) {
-					if (IsServerReturningForbidden(e)) {
+					if (IsServerReturningForbidden(e) || IsConnectionTimeout(e) || IsServerReturningNotFound(e)) {
 						episode.DownloadUri = null;
 					}
 
-					if (IsConnectionTimeout(e)) {
-						episode.DownloadUri = null;
-					}
-					
 					ReportError(e, episode);
+					var random = new Random();
 					await Task.Delay(random.Next(800, 1500)).ConfigureAwait(false);
-					await DownloadAllEpisodesAsync().ConfigureAwait(false);
+					tryCount++;
 				}
 			}
 		}
 
 		private void ReportError(Exception e, Episode episode) {
 			var error = $"Error ({e.GetType()}: {e.Message}) Trying again... Info ({e.Source})";
-			Log.Error(e, "Error while downloading episode: {EpisodeNumber}", episode.Number);
+			Log.Error(e, "Error while downloading episode: {EpisodeNumber}.\nError: {Error}", episode.Number, error);
 			Progress.Report(new DownloadProgressData(episode.Number, 0,
 				error: error));
 		}
@@ -101,12 +106,10 @@ namespace DownloaderLibrary.Downloaders {
 				CheckDiskSizeBeforeDownload = true,
 				OnTheFlyDownload = false,
 			};
+			var downloader = new DownloadService(config);
 
-			var downloadService = new DownloadService(config);
-			long previousReceivedBytes = 0;
 			DateTime timeSinceLastSave = DateTime.Now;
-			
-			downloadService.DownloadProgressChanged += (sender, args) => {
+			downloader.DownloadProgressChanged += (sender, args) => {
 				var downloadProgressData = new DownloadProgressData(episode.Number,
 					args.ProgressPercentage / 100,
 					args.ReceivedBytesSize,
@@ -114,34 +117,35 @@ namespace DownloaderLibrary.Downloaders {
 					(long) args.BytesPerSecondSpeed);
 
 				Progress.Report(downloadProgressData);
-				previousReceivedBytes = args.ReceivedBytesSize;
 				if (DateTime.Now - timeSinceLastSave > SaveProgressConfig.SaveTime) {
-					downloadService.Package.SavePackage(episode.Path);
+					downloader.Package.SavePackage(episode.Path);
 					timeSinceLastSave = DateTime.Now;
 				}
 			};
 
-			downloadService.DownloadFileCompleted += (sender, args) => {
+			downloader.DownloadFileCompleted += (sender, args) => {
 				if (!args.Cancelled && args.Error == null) {
-					downloadService.Package.Delete(episode.Path);
 					episode.IsDownloaded = true;
 					Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+					downloader.Package.Delete(episode.Path);
+					downloader.Dispose();
 				}
 			};
-			downloadService.DownloadStarted += (sender, args) => {
+			downloader.DownloadStarted += (sender, args) => {
 				episode.TotalBytes = args.TotalBytesToReceive;
 				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
-			}; 
-			var package = downloadService.Package.LoadPackage(episode.Path);
+			};
+			var package = downloader.Package.LoadPackage(episode.Path);
+
 			if (package == null) {
-				await downloadService.DownloadFileAsync(episode.DownloadUri.AbsoluteUri, episode.Path)
-				                     .ConfigureAwait(false);
+				await downloader.DownloadFileTaskAsync(episode.DownloadUri.AbsoluteUri, episode.Path)
+				                .ConfigureAwait(false);
 			}
 			else
-				await downloadService.DownloadFileAsync(package).ConfigureAwait(false);
+				await downloader.DownloadFileTaskAsync(package).ConfigureAwait(false);
 
 			episode.IsDownloaded = true;
-			downloadService.Package.Delete(episode.Path);
+			downloader.Package.Delete(episode.Path);
 		}
 
 		public async Task<IEnumerable<Episode>> GetEpisodesAsync() {
@@ -165,23 +169,19 @@ namespace DownloaderLibrary.Downloaders {
 			catch (Exception) {
 				// ignored
 			}
-
-			Driver?.Dispose();
 		}
 
 
 		private void CheckDownloadedEpisodes(List<Episode> episodes) {
 			foreach (var episode in episodes) {
-				if (episode.IsDownloaded) {
-					episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
-				}
+				episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
 			}
 		}
 
-		protected bool IsFileDownloadCompleted(Episode episode, string filePath) {
+		private bool IsFileDownloadCompleted(Episode episode, string filePath) {
 			if (!File.Exists(filePath)) return false;
 			if (episode.TotalBytes == 0) return false;
-			
+
 			var downloadedFileTotalBytes = new FileInfo(filePath).Length;
 			if (downloadedFileTotalBytes == episode.TotalBytes) {
 				return true;
@@ -196,6 +196,10 @@ namespace DownloaderLibrary.Downloaders {
 
 		private static bool IsServerReturningForbidden(Exception e) {
 			return e.Message == "The remote server returned an error: (403) Forbidden.";
+		}
+
+		private static bool IsServerReturningNotFound(Exception e) {
+			return e.Message.Contains("404");
 		}
 	}
 }

@@ -61,7 +61,7 @@ namespace DownloaderLibrary.Downloaders {
 			foreach (var row in rows) {
 				var columns = row.FindElements(By.TagName("td"));
 				var providerName = columns[0].Text;
-				if (providerName.Equals("cda", StringComparison.InvariantCultureIgnoreCase)) {
+				if (providerName.ToLower().Contains("cda".ToLower())) {
 					var spans = columns[2].FindElements(By.TagName("span"));
 					var soundsLanguage = spans[1].GetAttribute("textContent");
 					if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
@@ -69,7 +69,7 @@ namespace DownloaderLibrary.Downloaders {
 					
 					if (playerButton == null)
 						playerButton = columns[5].FindElement(By.TagName("a"));
-					if (quality == "1080p") {
+					if (quality.Contains("1080p")) {
 						playerButton = columns[5].FindElement(By.TagName("a"));
 						break;
 					}
