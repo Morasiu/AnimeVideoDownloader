@@ -3,16 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:local="clr-namespace:Downloader;assembly=Downloader"
              xmlns:desktopDownloader="clr-namespace:DesktopDownloader"
-             xmlns:episodes="clr-namespace:DownloaderLibrary.Episodes;assembly=DownloaderLibrary"
              xmlns:converters="clr-namespace:DesktopDownloader.Converters"
              mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:NullVisibilityConverter x:Key="NullVisibilityConverter" />
     </UserControl.Resources>
-
 
     <Grid>
         <Grid.RowDefinitions>
@@ -29,6 +26,13 @@
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 </Style>
             </ListView.ItemContainerStyle>
+            
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Ignore" Click="OnListViewIgnoredClick" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+            
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <WrapPanel Orientation="Horizontal"
@@ -48,13 +52,69 @@
                                 <ColumnDefinition Width="145" />
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="15" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Status}" />
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Episode.Number}" TextAlignment="Center" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Episode.Name}" />
-                            <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding EpisodeTypeLetter}" />
-                            <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Percent, StringFormat=0%}" />
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Status}">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Episode.Number}" TextAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Episode.Name}">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding EpisodeTypeLetter}">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Percent, StringFormat=0%}">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <TextBlock Grid.Row="0" Grid.Column="5" Width="145">
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="{}{0}/{1}">
@@ -62,9 +122,42 @@
                                         <Binding Path="TotalBytes" />
                                     </MultiBinding>
                                 </TextBlock.Text>
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
                             </TextBlock>
-                            <TextBlock Grid.Row="0" Grid.Column="6" Text="{Binding BytesPerSecond}" />
-                            <TextBlock Grid.Row="0" Grid.Column="7" Text="{Binding TimeRemained}" />
+                            <TextBlock Grid.Row="0" Grid.Column="6" Text="{Binding BytesPerSecond}">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="7" Text="{Binding TimeRemained}">
+                                <TextBlock.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <CheckBox Grid.Row="0" Grid.Column="8" IsChecked="{Binding IsIgnored }" Checked="IsIgnored_OnChecked" Unchecked="IsIgnored_OnChecked"/>
                             <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="8" Foreground="Red"
                                        Text="{Binding Error}"
                                        Visibility="{Binding Path=Error , Converter={StaticResource NullVisibilityConverter}}"

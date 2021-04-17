@@ -12,6 +12,8 @@ namespace DownloaderLibrary.Episodes {
 
 		public bool IsDownloaded { get; set; }
 
+		public bool IsIgnored { get; set; } = false;
+
 		public string Path { get; set; }
 
 		public long TotalBytes { get; set; }
