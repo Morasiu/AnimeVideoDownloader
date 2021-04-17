@@ -81,6 +81,16 @@ namespace DesktopDownloader {
 			}
 		}
 
+		public bool IsIgnored {
+			get => Episode.IsIgnored;
+			set {
+				if (value == Episode.IsIgnored) return;
+				Episode.IsIgnored = value;
+				OnPropertyChanged();
+			}
+		}
+
+
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		[NotifyPropertyChangedInvocator]

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.5.0] - 17.04.2021
+
+### Added
+- Feature to ignore episode
+    - Checkbox at the end
+    - Select some rows, use Right Mouse Button and click on the context menu "Ignore" to ignore multiple episodes
+
 ## [1.4.0] - 04.04.2021
 
 ### Added

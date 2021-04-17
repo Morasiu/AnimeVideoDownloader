@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using ByteSizeLib;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
 using DownloaderLibrary.Downloaders;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
 namespace DesktopDownloader {
 	/// <summary>
@@ -17,6 +19,7 @@ namespace DesktopDownloader {
 		public ObservableCollection<EpisodeView> EpisodeViews { get; set; } = new ObservableCollection<EpisodeView>();
 		private readonly BaseAnimeDownloader _downloader;
 		private DateTime lastUpdate = DateTime.Now;
+
 		public DownloadUserControl(BaseAnimeDownloader downloader) {
 			InitializeComponent();
 			Loaded += OnLoaded;
@@ -38,13 +41,13 @@ namespace DesktopDownloader {
 				episodeView.BytesPerSecond = ByteSize.FromBytes(0).ToString("0.00") + "/s";
 				return;
 			}
-			
+
 			episodeView.Percent = data.Percent;
 			episodeView.BytesReceived = ByteSize.FromBytes(data.BytesReceived).ToString("0.00");
 			episodeView.TotalBytes = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
 			episodeView.BytesPerSecond = ByteSize.FromBytes(data.BytesPerSecond).ToString("0.00") + "/s";
 			episodeView.Error = data.Error;
-			
+
 			var timeRemained = TimeSpan.FromSeconds(
 				(data.TotalBytes - data.BytesReceived) / (data.BytesPerSecond == 0 ? 1.0 : data.BytesPerSecond));
 			episodeView.TimeRemained = $"Remained: {timeRemained:hh\\:mm\\:ss}";
@@ -64,7 +67,10 @@ namespace DesktopDownloader {
 			}
 
 			var episodes = await _downloader.GetEpisodesAsync();
-			EpisodeViews = new ObservableCollection<EpisodeView>(episodes.Select(a => new EpisodeView {Episode = a}));
+			EpisodeViews = new ObservableCollection<EpisodeView>(episodes.Select(a => new EpisodeView {
+				Episode = a,
+				IsIgnored = a.IsIgnored
+			}));
 			EpisodeListView.ItemsSource = EpisodeViews;
 			DownloadAllButton.IsEnabled = true;
 			LoadingBar.Visibility = Visibility.Collapsed;
@@ -73,8 +79,24 @@ namespace DesktopDownloader {
 		private async void DownloadAllOnClick(object sender, RoutedEventArgs e) {
 			LoadingBar.Visibility = Visibility.Visible;
 			DownloadAllButton.IsEnabled = false;
-			await  _downloader.DownloadAllEpisodesAsync();
+			await _downloader.DownloadAllEpisodesAsync();
 			LoadingBar.Visibility = Visibility.Collapsed;
+		}
+
+		private void IsIgnored_OnChecked(object sender, RoutedEventArgs e) {
+			var checkbox = (CheckBox) sender;
+			var episodeView = (EpisodeView) checkbox.DataContext;
+			episodeView.IsIgnored = checkbox.IsChecked.Value;
+			_downloader.UpdateEpisode(episodeView.Episode.Number, a => a.IsIgnored = checkbox.IsChecked.Value);
+		}
+		
+
+		private void OnListViewIgnoredClick(object sender, RoutedEventArgs e) {
+			var selectedItems = EpisodeListView.SelectedItems;
+			foreach (var item in selectedItems) {
+				var episodeView = (EpisodeView) item;
+				episodeView.IsIgnored = true;
+			}
 		}
 	}
 }

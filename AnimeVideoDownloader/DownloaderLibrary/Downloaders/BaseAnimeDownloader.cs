@@ -8,6 +8,7 @@ using Downloader;
 using DownloaderLibrary.Drivers;
 using DownloaderLibrary.Episodes;
 using DownloaderLibrary.Helpers;
+using DownloaderLibrary.Services.Mapping;
 using OpenQA.Selenium.Remote;
 using Serilog;
 
@@ -60,6 +61,12 @@ namespace DownloaderLibrary.Downloaders {
 				if (episode.IsDownloaded) {
 					Progress.Report(
 						new DownloadProgressData(episode.Number, 1.0, episode.TotalBytes, episode.TotalBytes));
+					break;
+				}
+
+				if (episode.IsIgnored) {
+					Progress.Report(
+						new DownloadProgressData(episode.Number, 0, 0, 0));
 					break;
 				}
 
@@ -158,6 +165,12 @@ namespace DownloaderLibrary.Downloaders {
 			return Episodes;
 		}
 
+		public void UpdateEpisode(int number, Action<Episode> update) {
+			var episode = Episodes.SingleOrDefault(a => a.Number == number);
+			update(episode);
+			Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+		}
+		
 		protected abstract Task<List<Episode>> GetAllEpisodesFromEpisodeListUrlAsync();
 
 		protected abstract Task<Uri> GetEpisodeDownloadUrl(Episode episode);
