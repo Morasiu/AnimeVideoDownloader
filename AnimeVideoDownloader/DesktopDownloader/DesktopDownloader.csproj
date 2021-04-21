@@ -21,4 +21,15 @@
     <ProjectReference Include="..\DownloaderLibrary\DownloaderLibrary.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\play.png" />
+    <Resource Include="Assets\play.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>

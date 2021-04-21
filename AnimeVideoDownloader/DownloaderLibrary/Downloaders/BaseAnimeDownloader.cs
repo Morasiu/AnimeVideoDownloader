@@ -19,6 +19,7 @@ namespace DownloaderLibrary.Downloaders {
 		protected List<Episode> Episodes;
 		protected readonly DownloaderConfig Config;
 		protected RemoteWebDriver Driver;
+		protected readonly Dictionary<int, DownloadService> Downloaders = new Dictionary<int, DownloadService>();
 		public event EventHandler<DownloadProgressData> ProgressChanged;
 
 		protected BaseAnimeDownloader(Uri episodeListUri, DownloaderConfig config = null) {
@@ -114,7 +115,7 @@ namespace DownloaderLibrary.Downloaders {
 				OnTheFlyDownload = false,
 			};
 			var downloader = new DownloadService(config);
-
+			Downloaders[episode.Number] = downloader;
 			DateTime timeSinceLastSave = DateTime.Now;
 			downloader.DownloadProgressChanged += (sender, args) => {
 				var downloadProgressData = new DownloadProgressData(episode.Number,
@@ -137,6 +138,9 @@ namespace DownloaderLibrary.Downloaders {
 					downloader.Package.Delete(episode.Path);
 					downloader.Dispose();
 				}
+				else if (args.Cancelled) {
+					Downloaders.Remove(episode.Number);
+				}
 			};
 			downloader.DownloadStarted += (sender, args) => {
 				episode.TotalBytes = args.TotalBytesToReceive;
@@ -153,6 +157,12 @@ namespace DownloaderLibrary.Downloaders {
 
 			episode.IsDownloaded = true;
 			downloader.Package.Delete(episode.Path);
+		}
+
+		public void CancelDownload(int episodeNumber) {
+			if (Downloaders.TryGetValue(episodeNumber, out var downloader)) {
+				downloader?.CancelAsync();
+			}
 		}
 
 		public async Task<IEnumerable<Episode>> GetEpisodesAsync() {

@@ -26,20 +26,20 @@
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 </Style>
             </ListView.ItemContainerStyle>
-            
+
             <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Ignore" Click="OnListViewIgnoredClick" />
                 </ContextMenu>
             </ListView.ContextMenu>
-            
+
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <WrapPanel Orientation="Horizontal"
                                d:DataContext="{d:DesignInstance desktopDownloader:EpisodeView }">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition />
+                                <RowDefinition Height="20"/>
                                 <RowDefinition />
                             </Grid.RowDefinitions>
 
@@ -53,6 +53,7 @@
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="110" />
                                 <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Status}">
@@ -60,20 +61,21 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </TextBlock.Style>
                             </TextBlock>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Episode.Number}" TextAlignment="Center">
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Episode.Number}"
+                                       TextAlignment="Center">
                                 <TextBlock.Style>
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -84,8 +86,8 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -96,8 +98,8 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -108,8 +110,8 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -126,8 +128,8 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -138,8 +140,8 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -150,14 +152,32 @@
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsIgnored}" Value="True">
-                                                <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextBlock.Foreground" Value="Gray" />
+                                                <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </TextBlock.Style>
                             </TextBlock>
-                            <CheckBox Grid.Row="0" Grid.Column="8" IsChecked="{Binding IsIgnored }" Checked="IsIgnored_OnChecked" Unchecked="IsIgnored_OnChecked"/>
+                            <CheckBox Grid.Row="0" Grid.Column="8" IsChecked="{Binding IsIgnored }"
+                                      Checked="IsIgnored_OnChecked" Unchecked="IsIgnored_OnChecked" />
+                            <Button Name="PauseButton" Margin="10 0 0 0" MaxHeight="15" MaxWidth="30"
+                                          Grid.Column="9" Grid.Row="0" Padding="3"
+                                          Click="PauseButton_OnClick">
+                                    <Image Source="Assets\play.png" />
+                                    <Button.Style>
+                                        <Style>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsIgnored}" Value="True">
+                                                    <Setter Property="Button.IsEnabled" Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsIgnored}" Value="False">
+                                                    <Setter Property="Button.IsEnabled" Value="True" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                            </Button>
                             <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="8" Foreground="Red"
                                        Text="{Binding Error}"
                                        Visibility="{Binding Path=Error , Converter={StaticResource NullVisibilityConverter}}"

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using ByteSizeLib;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
@@ -56,7 +56,7 @@ namespace DesktopDownloader {
 		private async void OnLoaded(object sender, RoutedEventArgs e) {
 			LoadingBar.Visibility = Visibility.Visible;
 			try {
-				await _downloader.InitAsync();
+				await Task.Run(() => _downloader.InitAsync());
 			}
 			catch (ChromeVersionException exception) {
 				Console.WriteLine(exception);
@@ -79,7 +79,7 @@ namespace DesktopDownloader {
 		private async void DownloadAllOnClick(object sender, RoutedEventArgs e) {
 			LoadingBar.Visibility = Visibility.Visible;
 			DownloadAllButton.IsEnabled = false;
-			await _downloader.DownloadAllEpisodesAsync();
+			await Task.Run(() => _downloader.DownloadAllEpisodesAsync());
 			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
@@ -96,6 +96,20 @@ namespace DesktopDownloader {
 			foreach (var item in selectedItems) {
 				var episodeView = (EpisodeView) item;
 				episodeView.IsIgnored = true;
+			}
+		}
+
+		private async void PauseButton_OnClick(object sender, RoutedEventArgs e) {
+			var button = (Button) sender;
+			// TODO HERE
+			var episodeView = (EpisodeView) button.DataContext;
+			if (episodeView.IsPaused) {
+				episodeView.IsPaused = false;
+				await Task.Run(() => _downloader.DownloadEpisode(episodeView.Episode));
+			}
+			else {
+				episodeView.IsPaused = true;
+				_downloader.CancelDownload(episodeView.Episode.Number);
 			}
 		}
 	}
