@@ -40,15 +40,16 @@ namespace DesktopDownloader {
 				episodeView.BytesPerSecond = ByteSize.FromBytes(0).ToString("0.00") + "/s";
 				return;
 			}
+
+			if (!string.IsNullOrEmpty(data.Error)) episodeView.Error = data.Error;
 			
-			if (string.IsNullOrEmpty(data.Error) || DateTime.Now - lastUpdate < TimeSpan.FromMilliseconds(100)) return;
+			if (DateTime.Now - lastUpdate < TimeSpan.FromMilliseconds(100)) return;
 			lastUpdate = DateTime.Now;
 			
 			episodeView.Percent = data.Percent;
 			episodeView.BytesReceived = ByteSize.FromBytes(data.BytesReceived).ToString("0.00");
 			episodeView.TotalBytes = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
 			episodeView.BytesPerSecond = ByteSize.FromBytes(data.BytesPerSecond).ToString("0.00") + "/s";
-			episodeView.Error = data.Error;
 
 			var timeRemained = TimeSpan.FromSeconds(
 				(data.TotalBytes - data.BytesReceived) / (data.BytesPerSecond == 0 ? 1.0 : data.BytesPerSecond));
