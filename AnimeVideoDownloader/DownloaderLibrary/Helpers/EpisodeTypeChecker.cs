@@ -1,4 +1,4 @@
-﻿using DownloaderLibrary.Episodes;
+﻿using DownloaderLibrary.Data.Episodes;
 
 namespace DownloaderLibrary.Helpers {
 	public class EpisodeTypeChecker {

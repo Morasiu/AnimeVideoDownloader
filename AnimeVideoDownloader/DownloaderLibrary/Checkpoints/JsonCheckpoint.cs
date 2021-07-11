@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using DownloaderLibrary.Episodes;
+using DownloaderLibrary.Data.Episodes;
 
 namespace DownloaderLibrary.Checkpoints {
 	public class JsonCheckpoint : ICheckpoint {

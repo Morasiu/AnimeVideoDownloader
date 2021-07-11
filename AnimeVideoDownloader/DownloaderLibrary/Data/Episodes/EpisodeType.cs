@@ -1,4 +1,4 @@
-﻿namespace DownloaderLibrary.Episodes {
+﻿namespace DownloaderLibrary.Data.Episodes {
 	public enum EpisodeType {
 		Normal,
 		Filler

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DownloaderLibrary.Episodes {
+namespace DownloaderLibrary.Data.Episodes {
 	public static class EpisodeTypeExtensions {
 		public static string GetLetter(this EpisodeType type) {
 			switch (type) {

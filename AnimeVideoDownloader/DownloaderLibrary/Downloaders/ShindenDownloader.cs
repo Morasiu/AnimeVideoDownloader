@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DownloaderLibrary.Episodes;
+using DownloaderLibrary.Data.Episodes;
+using DownloaderLibrary.Data.EpisodeSources;
+using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using Serilog.Core;
 
 namespace DownloaderLibrary.Downloaders {
 	public class ShindenDownloader : BaseAnimeDownloader {
@@ -43,9 +46,97 @@ namespace DownloaderLibrary.Downloaders {
 		}
 
 		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
+			var episodeSrcUrls = new List<string>();
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
 			AcceptCookies(wait);
+			var table = GetTable(wait);
+			var rows = table.FindElements(By.TagName("tr"));
+			var episodeSources = new List<EpisodeSource>();
+			foreach (var row in rows) {
+				var columns = row.FindElements(By.TagName("td"));
+				var providerName = columns[0].Text;
+
+				if (providerName.ToLower().Contains("cda".ToLower())) {
+					var spans = columns[2].FindElements(By.TagName("span"));
+					var soundsLanguage = spans[1].GetAttribute("textContent");
+					if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
+					var quality = columns[1].Text;
+					var button = columns[5].FindElement(By.TagName("a"));
+
+					var episodeSource = new EpisodeSource {
+						ProviderType = ProviderType.Cda,
+						Quality = QualityParser.FromString(quality),
+						Language = Language.PL,
+						Button = button
+					};
+					episodeSources.Add(episodeSource);
+				}
+			}
+
+			if (episodeSources.Count == 0) throw new NullReferenceException("Episodes with chosen criteria not found");
+
+			episodeSources = episodeSources
+			                 .OrderByDescending(a => a.Language)
+			                 .ThenByDescending(a => a.Quality)
+			                 .ToList();
+
+			foreach (var episodeSource in episodeSources) {
+				try {
+					TryClickButton(episodeSource);
+
+					IWebElement iframe;
+					try {
+						iframe = wait.Until(a =>
+							a.FindElement(By.XPath("/html/body/div[4]/div/article/div[2]/div/iframe")));
+					}
+					catch (WebDriverTimeoutException) {
+						continue;
+					}
+
+					var src = iframe.GetAttribute("src");
+					var fullSrc = $"{src}?wersja={episodeSource.Quality.GetDescription()}";
+					episodeSource.SourceUrl = fullSrc;
+				}
+				catch (InvalidOperationException) { }
+			}
+
+			Uri episodeUri = null;
+			foreach (var episodeSource in episodeSources) {
+				try {
+					episodeUri = await new ProviderFactory(Driver).GetProvider(episodeSource.ProviderType)
+					                                              .GetVideoSourceAsync(episodeSource.SourceUrl);
+					break;
+				}
+				catch (WebDriverTimeoutException) { }
+			}
+
+			if (episodeUri == null) {
+				throw new InvalidOperationException("Could not find any episode source to download");
+			} 
+			
+			return episodeUri;
+		}
+
+		private static void TryClickButton(EpisodeSource episodeSource) {
+			var tryNumber = 30;
+			while (true) {
+				tryNumber--;
+				if (tryNumber == 0) {
+					throw new InvalidOperationException("Couldn't click in button");
+				}
+
+				try {
+					episodeSource.Button.Click();
+					return;
+				}
+				catch (ElementClickInterceptedException) {
+					Thread.Sleep(500);
+				}
+			}
+		}
+
+		private static IWebElement GetTable(WebDriverWait wait) {
 			IWebElement table;
 			try {
 				table = wait.Until(a =>
@@ -55,53 +146,7 @@ namespace DownloaderLibrary.Downloaders {
 				throw new WebDriverTimeoutException("Cannot load episode providers list");
 			}
 
-			var rows = table.FindElements(By.TagName("tr"));
-			IWebElement playerButton = null;
-			var quality = string.Empty;
-			foreach (var row in rows) {
-				var columns = row.FindElements(By.TagName("td"));
-				var providerName = columns[0].Text;
-				if (providerName.ToLower().Contains("cda".ToLower())) {
-					var spans = columns[2].FindElements(By.TagName("span"));
-					var soundsLanguage = spans[1].GetAttribute("textContent");
-					if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
-					quality = columns[1].Text;
-					
-					if (playerButton == null)
-						playerButton = columns[5].FindElement(By.TagName("a"));
-					if (quality.Contains("1080p")) {
-						playerButton = columns[5].FindElement(By.TagName("a"));
-						break;
-					}
-				}
-			}
-
-			if (playerButton == null) throw new NullReferenceException("Player button did not work");
-			var tryNumber = 30;
-			while (true) {
-				tryNumber--;
-				if (tryNumber == 0) break;
-				try {
-					playerButton.Click();
-					break;
-				}
-				catch (ElementClickInterceptedException) {
-					Thread.Sleep(1000);
-				}
-			}
-
-			IWebElement iframe;
-			try {
-				iframe = wait.Until(a => a.FindElement(By.XPath("/html/body/div[4]/div/article/div[2]/div/iframe")));
-			}
-			catch (WebDriverTimeoutException) {
-				throw new WebDriverTimeoutException("Cannot load episode player");
-			}
-			
-			var src = iframe.GetAttribute("src");
-			var fullSrc = $"{src}?wersja={quality}";
-			var provider = new ProviderFactory(Driver).GetProvider(ProviderType.Cda);
-			return await provider.GetVideoSourceAsync(fullSrc);
+			return table;
 		}
 
 		private static void AcceptCookies(WebDriverWait wait) {
