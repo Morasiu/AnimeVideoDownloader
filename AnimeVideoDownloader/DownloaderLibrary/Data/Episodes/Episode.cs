@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 
-namespace DownloaderLibrary.Episodes {
+namespace DownloaderLibrary.Data.Episodes {
+	[DebuggerDisplay("{Number}: {Name} Downloaded: {IsDownloaded}")]
 	public class Episode {
 		public int Number { get; set; }
 

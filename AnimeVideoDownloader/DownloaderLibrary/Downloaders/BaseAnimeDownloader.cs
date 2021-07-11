@@ -5,10 +5,11 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Downloader;
+using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Drivers;
-using DownloaderLibrary.Episodes;
 using DownloaderLibrary.Helpers;
 using DownloaderLibrary.Services.Mapping;
+using DownloaderLibrary.Settings;
 using OpenQA.Selenium.Remote;
 using Serilog;
 
@@ -55,9 +56,9 @@ namespace DownloaderLibrary.Downloaders {
 		}
 
 		private async Task TryDownloadEpisode(Episode episode) {
-			int tryCount = 0;
+			int tryCount = 1;
 			while (true) {
-				if (tryCount > 30) break;
+				if (tryCount >= Retry.MaxTryCount) break;
 				tryCount = 0;
 				if (episode.IsDownloaded) {
 					Progress.Report(
@@ -81,7 +82,7 @@ namespace DownloaderLibrary.Downloaders {
 						episode.DownloadUri = null;
 					}
 
-					ReportError(e, episode);
+					ReportError(e, episode, tryCount);
 					var random = new Random();
 					await Task.Delay(random.Next(800, 1500)).ConfigureAwait(false);
 					tryCount++;
@@ -89,8 +90,8 @@ namespace DownloaderLibrary.Downloaders {
 			}
 		}
 
-		private void ReportError(Exception e, Episode episode) {
-			var error = $"Error ({e.GetType()}: {e.Message}) Trying again... Info ({e.Source})";
+		private void ReportError(Exception e, Episode episode, int tryCount) {
+			var error = $"Error ({e.GetType()}: {e.Message}) Retry({tryCount}/{Retry.MaxTryCount}) - Info ({e.StackTrace})";
 			Log.Error(e, "Error while downloading episode: {EpisodeNumber}.\nError: {Error}", episode.Number, error);
 			Progress.Report(new DownloadProgressData(episode.Number, 0,
 				error: error));

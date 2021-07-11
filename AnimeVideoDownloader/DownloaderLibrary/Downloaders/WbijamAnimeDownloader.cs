@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using DownloaderLibrary.Episodes;
+using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Helpers;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
@@ -72,7 +72,8 @@ namespace DownloaderLibrary.Downloaders {
 			var cdaVideoViewUrl = cdaUrlButton.GetAttribute("href");
 
 			var provider = new ProviderFactory(Driver).GetProvider(providerType);
-			return await provider.GetVideoSourceAsync(providerUrl);
+			
+			return  await provider.GetVideoSourceAsync(providerUrl);
 		}
 	}
 }

@@ -30,8 +30,7 @@ namespace DesktopDownloader {
 		}
 
 		private void OnProgress(object sender, DownloadProgressData data) {
-			if (DateTime.Now - lastUpdate < TimeSpan.FromMilliseconds(100)) return;
-			lastUpdate = DateTime.Now;
+
 			var episodeView = EpisodeViews.Single(a => a.Episode.Number == data.EpisodeNumber);
 			if (Math.Abs(data.Percent - 1) < 0.001) {
 				episodeView.Status = Emoji.Done;
@@ -41,7 +40,10 @@ namespace DesktopDownloader {
 				episodeView.BytesPerSecond = ByteSize.FromBytes(0).ToString("0.00") + "/s";
 				return;
 			}
-
+			
+			if (string.IsNullOrEmpty(data.Error) || DateTime.Now - lastUpdate < TimeSpan.FromMilliseconds(100)) return;
+			lastUpdate = DateTime.Now;
+			
 			episodeView.Percent = data.Percent;
 			episodeView.BytesReceived = ByteSize.FromBytes(data.BytesReceived).ToString("0.00");
 			episodeView.TotalBytes = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
