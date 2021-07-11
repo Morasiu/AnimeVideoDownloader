@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using ByteSizeLib;
 using DesktopDownloader.Annotations;
 using DesktopDownloader.Data;
-using DownloaderLibrary.Episodes;
+using DownloaderLibrary.Data.Episodes;
 
 namespace DesktopDownloader {
 	public class EpisodeView : INotifyPropertyChanged{
@@ -14,6 +14,7 @@ namespace DesktopDownloader {
 		private string _bytesPerSecond = ByteSize.FromBytes(0).ToString("0.00") + "/s";
 		private string _timeRemained = "Remained: 00:00:00" ;
 		private string _error = null;
+		private bool _isPaused = true;
 		public Episode Episode { get; set; }
 
 		public string Status {
@@ -90,6 +91,14 @@ namespace DesktopDownloader {
 			}
 		}
 
+		public bool IsPaused {
+			get => _isPaused;
+			set {
+				if (value == _isPaused) return;
+				_isPaused = value;
+				OnPropertyChanged();
+			}
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 

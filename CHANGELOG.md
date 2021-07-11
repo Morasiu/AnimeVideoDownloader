@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.6.0] - 11.07.2021
+
+### Added
+- Better source link finding. Now Downloader checks all available links to find working one.
+
 ## [1.5.0] - 17.04.2021
 
 ### Added

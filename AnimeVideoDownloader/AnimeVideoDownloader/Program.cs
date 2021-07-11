@@ -5,8 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using ByteSizeLib;
 using DownloaderLibrary;
+using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Downloaders;
-using DownloaderLibrary.Episodes;
 
 namespace ConsoleApp {
 	class Program {

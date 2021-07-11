@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using DownloaderLibrary.Episodes;
+using DownloaderLibrary.Data.Episodes;
 
 namespace DownloaderLibrary.Checkpoints {
 	public interface ICheckpoint {

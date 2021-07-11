@@ -5,7 +5,7 @@
               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
               xmlns:controls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
               mc:Ignorable="d"
-              Title="Anime Downloader" Height="450" Width="820">
+              Title="Anime Downloader" Height="450" MinWidth="300" Width="850">
 	<Window.Style>
 		<Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
 	</Window.Style>
