@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.6.1] - 11.07.2021
+
+### Fixed
+- Refreshing episode info
+
 ## [1.6.0] - 11.07.2021
 
 ### Added
