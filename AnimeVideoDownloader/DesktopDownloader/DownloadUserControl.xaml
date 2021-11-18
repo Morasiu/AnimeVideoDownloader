@@ -10,8 +10,13 @@
     <UserControl.Resources>
         <converters:NullVisibilityConverter x:Key="NullVisibilityConverter" />
     </UserControl.Resources>
-
-    <Grid>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Options">
+                <MenuItem Header="Update episode list" Click="UpdateEpisodeList"/>
+            </MenuItem>
+        </Menu>
+         <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="5" />
             <RowDefinition Height="35" />
@@ -188,4 +193,5 @@
             </ListView.ItemTemplate>
         </ListView>
     </Grid>
+    </DockPanel>
 </UserControl>

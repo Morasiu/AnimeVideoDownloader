@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ByteSizeLib;
-using DesktopDownloader.Annotations;
 using DesktopDownloader.Data;
+using DesktopDownloader.Properties;
 using DownloaderLibrary.Data.Episodes;
 
 namespace DesktopDownloader {

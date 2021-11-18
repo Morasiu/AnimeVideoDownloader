@@ -24,15 +24,15 @@ namespace DownloaderLibrary.Providers {
 				throw new WebDriverTimeoutException("Cannot load CDA player.");
 			}
 			
-			// var attribute = source.GetAttribute("class");
-			// if (attribute == "pb-ad-video-player") {
-			// 	var adClick = Driver.FindElement(By.ClassName("pb-vid-click"));
-			// 	adClick.Click();
-			// 	var adTimeText = Driver.FindElement(By.ClassName("pb-max-time")).Text;
-			// 	var adTime = TimeSpan.Parse(adTimeText).Add(TimeSpan.FromSeconds(10));
-			// 	wait.Timeout = adTime;
-			// 	source = wait.Until(ExpectedConditions.ElementExists(By.ClassName("pb-video-player")));
-			// }
+			var attribute = source.GetAttribute("class");
+			if (attribute == "pb-ad-video-player") {
+				var adClick = Driver.FindElement(By.ClassName("pb-vid-click"));
+				adClick.Click();
+				var adTimeText = Driver.FindElement(By.ClassName("pb-max-time")).Text;
+				var adTime = TimeSpan.Parse(adTimeText).Add(TimeSpan.FromSeconds(10));
+				wait.Timeout = adTime;
+				source = wait.Until(ExpectedConditions.ElementExists(By.ClassName("pb-video-player")));
+			}
 
 			var sourceUrl = source.GetAttribute("src");
 			return Task.FromResult(new Uri(sourceUrl));

@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Windows;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
-using DownloaderLibrary.Checkpoints;
+using DownloaderLibrary.CheckpointManagers;
 using DownloaderLibrary.Downloaders;
 using DownloaderLibrary.Drivers;
 
@@ -46,7 +46,7 @@ namespace DesktopDownloader {
 			var factory = new DownloaderFactory();
 			var downloaderConfig = new DownloaderConfig {
 				ShouldDownloadFillers = DownloadFillersCheckbox.IsChecked.Value,
-				Checkpoint = new JsonCheckpoint(),
+				CheckpointManager = new JsonCheckpoint(),
 				DownloadDirectory = downloadDirectory,
 			};
 			var downloader = factory.GetDownloaderForSite(uri, downloaderConfig);

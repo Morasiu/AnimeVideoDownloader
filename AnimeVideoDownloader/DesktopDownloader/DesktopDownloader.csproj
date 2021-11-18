@@ -7,7 +7,7 @@
     <ApplicationIcon>Anime (1).ico</ApplicationIcon>
     <Version>1.0.0</Version>
     <PackageVersion>1.0.0</PackageVersion>
-    <AssemblyVersion>1.6.1</AssemblyVersion>
+    <AssemblyVersion>1.7.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

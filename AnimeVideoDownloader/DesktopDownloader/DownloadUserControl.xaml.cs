@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using System.Windows.Controls;
 using ByteSizeLib;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
+using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Downloaders;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -70,13 +72,17 @@ namespace DesktopDownloader {
 			}
 
 			var episodes = await _downloader.GetEpisodesAsync();
+			SetEpisodesView(episodes);
+			DownloadAllButton.IsEnabled = true;
+			LoadingBar.Visibility = Visibility.Collapsed;
+		}
+
+		private void SetEpisodesView(IEnumerable<Episode> episodes) {
 			EpisodeViews = new ObservableCollection<EpisodeView>(episodes.Select(a => new EpisodeView {
 				Episode = a,
 				IsIgnored = a.IsIgnored
 			}));
 			EpisodeListView.ItemsSource = EpisodeViews;
-			DownloadAllButton.IsEnabled = true;
-			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
 		private async void DownloadAllOnClick(object sender, RoutedEventArgs e) {
@@ -114,6 +120,17 @@ namespace DesktopDownloader {
 				episodeView.IsPaused = true;
 				_downloader.CancelDownload(episodeView.Episode.Number);
 			}
+		}
+
+		private async void UpdateEpisodeList(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
+			DownloadAllButton.IsEnabled = false;
+			
+			var newEpisodes = await Task.Run(() => _downloader.SyncEpisodeList());
+			SetEpisodesView(newEpisodes);
+			
+			LoadingBar.Visibility = Visibility.Collapsed;
+			DownloadAllButton.IsEnabled = true;
 		}
 	}
 }

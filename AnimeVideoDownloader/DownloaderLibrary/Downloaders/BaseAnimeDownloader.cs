@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Downloader;
+using DownloaderLibrary.Data.Checkpoints;
 using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Drivers;
 using DownloaderLibrary.Helpers;
@@ -17,7 +18,7 @@ namespace DownloaderLibrary.Downloaders {
 	public abstract class BaseAnimeDownloader : IDisposable {
 		protected readonly Uri EpisodeListUri;
 		protected readonly IProgress<DownloadProgressData> Progress;
-		protected List<Episode> Episodes;
+		protected Checkpoint Checkpoint;
 		protected readonly DownloaderConfig Config;
 		protected RemoteWebDriver Driver;
 		protected readonly Dictionary<int, DownloadService> Downloaders = new Dictionary<int, DownloadService>();
@@ -27,20 +28,22 @@ namespace DownloaderLibrary.Downloaders {
 			EpisodeListUri = episodeListUri;
 			Progress = new Progress<DownloadProgressData>(p => ProgressChanged?.Invoke(this, p));
 			Config = config ?? new DownloaderConfig();
-			Episodes = new List<Episode>();
-
+			Checkpoint = new Checkpoint() {
+				EpisodeListUrl = episodeListUri.ToString(),
+			};
+			
 			Log.Logger = new LoggerConfiguration()
 			             .WriteTo.File("logs.txt", rollingInterval: RollingInterval.Infinite, shared: true)
 			             .CreateLogger();
 		}
 
 		public virtual async Task InitAsync() {
-			if (!Config.Checkpoint.Exist(Config.DownloadDirectory)) {
-				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+			if (!Config.CheckpointManager.Exist(Config.DownloadDirectory)) {
+				Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			}
 			else {
-				Episodes = Config.Checkpoint.Load(Config.DownloadDirectory).ToList();
-				CheckDownloadedEpisodes(Episodes);
+				Checkpoint = Config.CheckpointManager.Load(Config.DownloadDirectory);
+				CheckDownloadedEpisodes(Checkpoint.Episodes);
 			}
 
 			Driver = await ChromeDriverFactory.CreateNewAsync().ConfigureAwait(false);
@@ -106,7 +109,7 @@ namespace DownloaderLibrary.Downloaders {
 				if (episode.EpisodeUri is null)
 					throw new InvalidOperationException($"{nameof(episode.EpisodeUri)} was null.");
 				episode.DownloadUri = await GetEpisodeDownloadUrl(episode);
-				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+				Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			}
 
 			if (episode.Path == null) episode.Path = Path.Combine(Config.DownloadDirectory, $"{episode.Number}.mp4");
@@ -135,7 +138,7 @@ namespace DownloaderLibrary.Downloaders {
 			downloader.DownloadFileCompleted += (sender, args) => {
 				if (!args.Cancelled && args.Error == null) {
 					episode.IsDownloaded = true;
-					Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+					Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 					downloader.Package.Delete(episode.Path);
 					downloader.Dispose();
 				}
@@ -145,7 +148,7 @@ namespace DownloaderLibrary.Downloaders {
 			};
 			downloader.DownloadStarted += (sender, args) => {
 				episode.TotalBytes = args.TotalBytesToReceive;
-				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+				Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			};
 			var package = downloader.Package.LoadPackage(episode.Path);
 
@@ -167,19 +170,29 @@ namespace DownloaderLibrary.Downloaders {
 		}
 
 		public async Task<IEnumerable<Episode>> GetEpisodesAsync() {
-			if (Episodes.Count == 0) {
+			if (!Checkpoint.Episodes.Any()) {
 				var episodes = await GetAllEpisodesFromEpisodeListUrlAsync().ConfigureAwait(false);
-				Episodes = episodes.OrderBy(e => e.Number).ToList();
-				Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+				Checkpoint.Episodes = episodes.OrderBy(e => e.Number).ToList();
+				Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			}
 
-			return Episodes;
+			return Checkpoint.Episodes;
+		}
+
+		public async Task<IEnumerable<Episode>> SyncEpisodeList() {
+			var newEpisodes = await GetAllEpisodesFromEpisodeListUrlAsync().ConfigureAwait(false);
+			foreach (var newEpisode in newEpisodes) {
+				if (!Checkpoint.Episodes.Contains(newEpisode)) Checkpoint.Episodes.Add(newEpisode);
+			}
+			
+			Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
+			return Checkpoint.Episodes;
 		}
 
 		public void UpdateEpisode(int number, Action<Episode> update) {
-			var episode = Episodes.SingleOrDefault(a => a.Number == number);
+			var episode = Checkpoint.Episodes.SingleOrDefault(a => a.Number == number);
 			update(episode);
-			Config.Checkpoint.Save(Config.DownloadDirectory, Episodes);
+			Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 		}
 		
 		protected abstract Task<List<Episode>> GetAllEpisodesFromEpisodeListUrlAsync();
@@ -196,7 +209,7 @@ namespace DownloaderLibrary.Downloaders {
 		}
 
 
-		private void CheckDownloadedEpisodes(List<Episode> episodes) {
+		private void CheckDownloadedEpisodes(IEnumerable<Episode> episodes) {
 			foreach (var episode in episodes) {
 				episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
 			}

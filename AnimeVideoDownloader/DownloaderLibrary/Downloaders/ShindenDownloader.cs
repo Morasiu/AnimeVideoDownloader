@@ -9,7 +9,7 @@ using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using Serilog.Core;
+using SeleniumExtras.WaitHelpers;
 
 namespace DownloaderLibrary.Downloaders {
 	public class ShindenDownloader : BaseAnimeDownloader {
@@ -17,10 +17,12 @@ namespace DownloaderLibrary.Downloaders {
 
 		protected override Task<List<Episode>> GetAllEpisodesFromEpisodeListUrlAsync() {
 			var list = new List<Episode>();
-			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(10));
-			AcceptCookies(wait);
-			var table = wait.Until(a =>
-				a.FindElement(By.XPath("/html/body/div[4]/div/article/section[2]/div[2]/table/tbody")));
+			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
+
+			AcceptAll(wait);
+
+			IWebElement table = TryToGetTable(wait);
+
 			var rows = table.FindElements(By.TagName("tr"));
 			foreach (var row in rows) {
 				var columns = row.FindElements(By.TagName("td"));
@@ -45,13 +47,32 @@ namespace DownloaderLibrary.Downloaders {
 			return Task.FromResult(list);
 		}
 
+		private static IWebElement TryToGetTable(WebDriverWait wait) {
+			IWebElement table;
+			try {
+				table = wait.Until(
+					ExpectedConditions.ElementExists(
+						By.TagName("tbody")));
+			}
+			catch (WebDriverTimeoutException) {
+				table = wait.Until(
+					ExpectedConditions.ElementExists(
+						By.XPath("/html/body/div[6]/div/article/section[2]/div[2]/table/tbody")));
+			}
+
+			return table;
+		}
+
 		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
 			var episodeSrcUrls = new List<string>();
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
-			AcceptCookies(wait);
+
+			AcceptAll(wait);
+
 			var table = GetTable(wait);
 			var rows = table.FindElements(By.TagName("tr"));
+
 			var episodeSources = new List<EpisodeSource>();
 			foreach (var row in rows) {
 				var columns = row.FindElements(By.TagName("td"));
@@ -81,14 +102,16 @@ namespace DownloaderLibrary.Downloaders {
 			                 .ThenByDescending(a => a.Quality)
 			                 .ToList();
 
+			Uri episodeUri = null;
 			foreach (var episodeSource in episodeSources) {
 				try {
 					TryClickButton(episodeSource);
 
 					IWebElement iframe;
 					try {
-						iframe = wait.Until(a =>
-							a.FindElement(By.XPath("/html/body/div[4]/div/article/div[2]/div/iframe")));
+						wait.Timeout = TimeSpan.FromSeconds(60);
+						iframe = wait.Until(
+							ExpectedConditions.ElementIsVisible((By.XPath("//*[@id=\"player-block\"]/iframe"))));
 					}
 					catch (WebDriverTimeoutException) {
 						continue;
@@ -99,10 +122,7 @@ namespace DownloaderLibrary.Downloaders {
 					episodeSource.SourceUrl = fullSrc;
 				}
 				catch (InvalidOperationException) { }
-			}
 
-			Uri episodeUri = null;
-			foreach (var episodeSource in episodeSources) {
 				try {
 					episodeUri = await new ProviderFactory(Driver).GetProvider(episodeSource.ProviderType)
 					                                              .GetVideoSourceAsync(episodeSource.SourceUrl);
@@ -113,9 +133,21 @@ namespace DownloaderLibrary.Downloaders {
 
 			if (episodeUri == null) {
 				throw new InvalidOperationException("Could not find any episode source to download");
-			} 
-			
+			}
+
 			return episodeUri;
+		}
+
+		private void AcceptAdult(WebDriverWait wait) {
+			wait.Timeout = TimeSpan.FromSeconds(5);
+			try {
+				var adult = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"plus18\"]/div/button")));
+				adult.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+			finally {
+				wait.Timeout = TimeSpan.FromSeconds(30);
+			}
 		}
 
 		private static void TryClickButton(EpisodeSource episodeSource) {
@@ -139,29 +171,59 @@ namespace DownloaderLibrary.Downloaders {
 		private static IWebElement GetTable(WebDriverWait wait) {
 			IWebElement table;
 			try {
-				table = wait.Until(a =>
-					a.FindElement(By.XPath("/html/body/div[4]/div/article/section[3]/div/table/tbody")));
+				table = wait.Until(ExpectedConditions.ElementExists(By.XPath("/html/body/div[4]/div/article/section[3]/div/table/tbody")));
+				return table;
+			}
+			catch (WebDriverTimeoutException) { }
+			
+			try {
+				table = wait.Until(ExpectedConditions.ElementExists(By.XPath("/html/body/div[6]/div/article/section[3]/div[3]/table/tbody")));
+				return table;
+
 			}
 			catch (WebDriverTimeoutException) {
 				throw new WebDriverTimeoutException("Cannot load episode providers list");
 			}
-
-			return table;
 		}
 
 		private static void AcceptCookies(WebDriverWait wait) {
 			wait.Timeout = TimeSpan.FromSeconds(5);
 			try {
-				var cookies = wait.Until(a =>
-					a.FindElement(By.XPath("/html/body/div[14]/div[1]/div[2]/div/div[2]/button[2]")));
+				var cookies =
+					wait.Until(ExpectedConditions.ElementExists(
+						By.XPath("/html/body/div[14]/div[1]/div[2]/div/div[2]/button[2]")));
 				cookies.Click();
+
 				var cookies2 = wait.Until(a => a.FindElement(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
 				cookies2.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+
+			try {
+				var otherPossibleCookies =
+					wait.Until(ExpectedConditions.ElementExists(
+						By.XPath("/html/body/div[16]/div[1]/div[2]/div/div[2]/button[2]")));
+				otherPossibleCookies.Click();
 			}
 			catch (WebDriverTimeoutException) { }
 			finally {
 				wait.Timeout = TimeSpan.FromSeconds(30);
 			}
+		}
+
+		private void AcceptOtherCookies(WebDriverWait wait) {
+			wait.Timeout = TimeSpan.FromSeconds(5);
+			try {
+				var cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
+				cookies.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+		}
+
+		private void AcceptAll(WebDriverWait wait) {
+			AcceptCookies(wait);
+			AcceptAdult(wait);
+			AcceptOtherCookies(wait);
 		}
 	}
 }
