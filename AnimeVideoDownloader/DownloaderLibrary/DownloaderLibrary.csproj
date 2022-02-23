@@ -15,5 +15,4 @@
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
     <PackageReference Include="WebDriverManager" Version="2.11.0" />
   </ItemGroup>
-
 </Project>

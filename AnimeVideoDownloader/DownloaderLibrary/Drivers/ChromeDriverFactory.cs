@@ -19,7 +19,11 @@ namespace DownloaderLibrary.Drivers {
 			chromeOptions.AddArgument("headless");
 #endif
 			try {
-				return await Task.Run(() => new ChromeDriver(service, chromeOptions)).ConfigureAwait(false);
+				return await Task.Run(() => {
+					var driver = new ChromeDriver(service, chromeOptions);
+					driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+					return driver;
+				}).ConfigureAwait(false);
 			}
 			catch (InvalidOperationException e) {
 				throw new ChromeVersionException(e.Message);

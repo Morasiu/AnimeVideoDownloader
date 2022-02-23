@@ -18,7 +18,7 @@ namespace DownloaderLibrary {
 			else if (episodeListUri.AbsoluteUri.Contains("https://ogladajanime.pl/")) {
 				return new OgladajAnimeDownloader(episodeListUri, config);
 			}
-			else if (episodeListUri.AbsoluteUri.Contains("https://shinden.pl/")) {
+			else if (episodeListUri.AbsoluteUri.Contains("https://shinden.pl/") && episodeListUri.AbsoluteUri.EndsWith("episodes")) {
 				return new ShindenDownloader(episodeListUri, config);
 			}
 			else {

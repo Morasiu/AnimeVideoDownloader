@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using Downloader;
 using DownloaderLibrary.Data.Checkpoints;
 using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Drivers;
+using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Helpers;
-using DownloaderLibrary.Services.Mapping;
 using DownloaderLibrary.Settings;
 using OpenQA.Selenium.Remote;
 using Serilog;
@@ -28,13 +27,7 @@ namespace DownloaderLibrary.Downloaders {
 			EpisodeListUri = episodeListUri;
 			Progress = new Progress<DownloadProgressData>(p => ProgressChanged?.Invoke(this, p));
 			Config = config ?? new DownloaderConfig();
-			Checkpoint = new Checkpoint() {
-				EpisodeListUrl = episodeListUri.ToString(),
-			};
-			
-			Log.Logger = new LoggerConfiguration()
-			             .WriteTo.File("logs.txt", rollingInterval: RollingInterval.Infinite, shared: true)
-			             .CreateLogger();
+			Checkpoint = new Checkpoint { EpisodeListUrl = episodeListUri.ToString() };
 		}
 
 		public virtual async Task InitAsync() {
@@ -47,7 +40,6 @@ namespace DownloaderLibrary.Downloaders {
 			}
 
 			Driver = await ChromeDriverFactory.CreateNewAsync().ConfigureAwait(false);
-			Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
 			Driver.Url = EpisodeListUri.AbsoluteUri;
 		}
 
@@ -62,73 +54,68 @@ namespace DownloaderLibrary.Downloaders {
 			int tryCount = 1;
 			while (true) {
 				if (tryCount >= Retry.MaxTryCount) break;
-				tryCount = 0;
-				if (episode.IsDownloaded) {
-					Progress.Report(
-						new DownloadProgressData(episode.Number, 1.0, episode.TotalBytes, episode.TotalBytes));
-					break;
-				}
-
 				if (episode.IsIgnored) {
-					Progress.Report(
-						new DownloadProgressData(episode.Number, 0, 0, 0));
+					Progress.Report(DownloadProgressData.Zero(episode.Number));
 					break;
 				}
 
-				if (!Config.ShouldDownloadFillers && episode.EpisodeType == EpisodeType.Filler) break;
+				if (!Config.ShouldDownloadFillers && episode.EpisodeType == EpisodeType.Filler) {
+					Progress.Report(DownloadProgressData.Zero(episode.Number));
+					break;
+				}
 
 				try {
+					Progress.Report(DownloadProgressData.Start(episode.Number, episode.TotalBytes));
 					await DownloadEpisode(episode).ConfigureAwait(false);
 				}
 				catch (Exception e) {
-					if (IsServerReturningForbidden(e) || IsConnectionTimeout(e) || IsServerReturningNotFound(e)) {
+					if (DownloadExceptionHelper.IsServerError(e)) {
 						episode.DownloadUri = null;
 					}
 
 					ReportError(e, episode, tryCount);
-					var random = new Random();
-					await Task.Delay(random.Next(800, 1500)).ConfigureAwait(false);
+					await Task.Delay(new Random().Next(800, 1500)).ConfigureAwait(false);
 					tryCount++;
 				}
 			}
 		}
 
 		private void ReportError(Exception e, Episode episode, int tryCount) {
-			var error = $"Error ({e.GetType()}: {e.Message}) Retry({tryCount}/{Retry.MaxTryCount}) - Info ({e.StackTrace})";
+			var error =
+				$"Error ({e.GetType()}: {e.Message}) Retry({tryCount}/{Retry.MaxTryCount}) - Info ({e.StackTrace})";
 			Log.Error(e, "Error while downloading episode: {EpisodeNumber}.\nError: {Error}", episode.Number, error);
-			Progress.Report(new DownloadProgressData(episode.Number, 0,
-				error: error));
+			Progress.Report(new DownloadProgressData(episode.Number, 0, error: error));
 		}
 
 		public async Task DownloadEpisode(Episode episode) {
 			if (episode.IsDownloaded) {
-				Progress?.Report(new DownloadProgressData(episode.Number, 1.0, episode.TotalBytes, episode.TotalBytes));
+				Progress.Report(DownloadProgressData.Done(episode.Number, episode.TotalBytes));
+				return;
 			}
 
 			if (episode.DownloadUri is null) {
 				if (episode.EpisodeUri is null)
 					throw new InvalidOperationException($"{nameof(episode.EpisodeUri)} was null.");
-				episode.DownloadUri = await GetEpisodeDownloadUrl(episode);
+				episode.DownloadUri = await GetEpisodeDownloadUrlAsync(episode);
 				Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			}
 
 			if (episode.Path == null) episode.Path = Path.Combine(Config.DownloadDirectory, $"{episode.Number}.mp4");
 			
-			var config = new DownloadConfiguration {
-				CheckDiskSizeBeforeDownload = true,
-				OnTheFlyDownload = false,
-			};
-			var downloader = new DownloadService(config);
-			Downloaders[episode.Number] = downloader;
+			var downloader = DownloadServiceFactory.Create();
+			Downloaders.Add(episode.Number, downloader);
 			DateTime timeSinceLastSave = DateTime.Now;
+			
 			downloader.DownloadProgressChanged += (sender, args) => {
-				var downloadProgressData = new DownloadProgressData(episode.Number,
+				var downloadProgressData = new DownloadProgressData(
+					episode.Number,
 					args.ProgressPercentage / 100,
 					args.ReceivedBytesSize,
 					args.TotalBytesToReceive,
-					(long) args.BytesPerSecondSpeed);
+					(long)args.BytesPerSecondSpeed);
 
 				Progress.Report(downloadProgressData);
+				
 				if (DateTime.Now - timeSinceLastSave > SaveProgressConfig.SaveTime) {
 					downloader.Package.SavePackage(episode.Path);
 					timeSinceLastSave = DateTime.Now;
@@ -146,20 +133,21 @@ namespace DownloaderLibrary.Downloaders {
 					Downloaders.Remove(episode.Number);
 				}
 			};
+			
 			downloader.DownloadStarted += (sender, args) => {
 				episode.TotalBytes = args.TotalBytesToReceive;
 				Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			};
-			var package = downloader.Package.LoadPackage(episode.Path);
 
+			var package = downloader.Package.LoadPackage(episode.Path);
 			if (package == null) {
 				await downloader.DownloadFileTaskAsync(episode.DownloadUri.AbsoluteUri, episode.Path)
 				                .ConfigureAwait(false);
 			}
-			else
+			else {
 				await downloader.DownloadFileTaskAsync(package).ConfigureAwait(false);
+			}
 
-			episode.IsDownloaded = true;
 			downloader.Package.Delete(episode.Path);
 		}
 
@@ -181,10 +169,11 @@ namespace DownloaderLibrary.Downloaders {
 
 		public async Task<IEnumerable<Episode>> SyncEpisodeList() {
 			var newEpisodes = await GetAllEpisodesFromEpisodeListUrlAsync().ConfigureAwait(false);
+			
 			foreach (var newEpisode in newEpisodes) {
 				if (!Checkpoint.Episodes.Contains(newEpisode)) Checkpoint.Episodes.Add(newEpisode);
 			}
-			
+
 			Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 			return Checkpoint.Episodes;
 		}
@@ -194,49 +183,23 @@ namespace DownloaderLibrary.Downloaders {
 			update(episode);
 			Config.CheckpointManager.Save(Config.DownloadDirectory, Checkpoint);
 		}
-		
+
 		protected abstract Task<List<Episode>> GetAllEpisodesFromEpisodeListUrlAsync();
 
-		protected abstract Task<Uri> GetEpisodeDownloadUrl(Episode episode);
+		protected abstract Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode);
 
 		public virtual void Dispose() {
 			try {
 				Driver.Close();
 			}
-			catch (Exception) {
-				// ignored
+			catch (Exception e) {
+				Log.Error(e, "Exception during disposing");
 			}
 		}
-
-
 		private void CheckDownloadedEpisodes(IEnumerable<Episode> episodes) {
 			foreach (var episode in episodes) {
-				episode.IsDownloaded = IsFileDownloadCompleted(episode, episode.Path);
+				episode.IsDownloaded = episode.IsFileDownloadCompleted();
 			}
-		}
-
-		private bool IsFileDownloadCompleted(Episode episode, string filePath) {
-			if (!File.Exists(filePath)) return false;
-			if (episode.TotalBytes == 0) return false;
-
-			var downloadedFileTotalBytes = new FileInfo(filePath).Length;
-			if (downloadedFileTotalBytes == episode.TotalBytes) {
-				return true;
-			}
-
-			return false;
-		}
-
-		private static bool IsConnectionTimeout(Exception e) {
-			return (e.GetBaseException() as SocketException)?.SocketErrorCode == SocketError.TimedOut;
-		}
-
-		private static bool IsServerReturningForbidden(Exception e) {
-			return e.Message == "The remote server returned an error: (403) Forbidden.";
-		}
-
-		private static bool IsServerReturningNotFound(Exception e) {
-			return e.Message.Contains("404");
 		}
 	}
 }

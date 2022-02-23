@@ -36,7 +36,7 @@ namespace DownloaderLibrary.Downloaders {
 			return Task.FromResult(episodes);
 		}
 
-		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
+		protected override async Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode) {
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var videoProviders = Driver.FindElements(By.ClassName("lista_hover"));
 			var providerType = ProviderType.Cda;

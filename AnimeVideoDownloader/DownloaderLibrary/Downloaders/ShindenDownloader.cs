@@ -63,7 +63,7 @@ namespace DownloaderLibrary.Downloaders {
 			return table;
 		}
 
-		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
+		protected override async Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode) {
 			var episodeSrcUrls = new List<string>();
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
@@ -177,7 +177,7 @@ namespace DownloaderLibrary.Downloaders {
 			catch (WebDriverTimeoutException) { }
 			
 			try {
-				table = wait.Until(ExpectedConditions.ElementExists(By.XPath("/html/body/div[6]/div/article/section[3]/div[3]/table/tbody")));
+				table = wait.Until(ExpectedConditions.ElementExists(By.CssSelector("body > div.l-global-width.l-container-primary > div > article > section.box.episode-player-list > div > table > tbody")));
 				return table;
 
 			}
