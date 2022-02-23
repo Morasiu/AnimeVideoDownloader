@@ -14,6 +14,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Options">
                 <MenuItem Header="Update episode list" Click="UpdateEpisodeList"/>
+                <MenuItem Header="Open episode directory" Click="OpenEpisodeDirectory"/>
             </MenuItem>
         </Menu>
          <Grid>
