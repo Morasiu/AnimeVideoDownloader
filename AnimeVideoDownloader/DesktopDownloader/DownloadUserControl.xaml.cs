@@ -46,7 +46,7 @@ namespace DesktopDownloader {
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(data.Error)) episodeView.Error = data.Error;
+			episodeView.Error = !string.IsNullOrWhiteSpace(data.Error) ? data.Error : null;
 
 			if (DateTime.Now - lastUpdate < TimeSpan.FromMilliseconds(100)) return;
 			lastUpdate = DateTime.Now;

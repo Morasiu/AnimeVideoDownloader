@@ -13,6 +13,8 @@ namespace DownloaderLibrary.Providers {
 			switch (type) {
 				case ProviderType.Cda:
 					return new CdaProvider(_driver);
+				case ProviderType.GDrive:
+					return new GDriveProvider(_driver);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(type), type, null);
 			}

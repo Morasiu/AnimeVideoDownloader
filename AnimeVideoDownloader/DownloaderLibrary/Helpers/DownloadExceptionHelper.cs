@@ -7,6 +7,8 @@ namespace DownloaderLibrary.Helpers {
 			return IsServerReturningForbidden(e) || IsConnectionTimeout(e) || IsServerReturningNotFound(e);
 		}
 		
+		
+		
 		private static bool IsConnectionTimeout(Exception e) {
 			return (e.GetBaseException() as SocketException)?.SocketErrorCode == SocketError.TimedOut;
 		}

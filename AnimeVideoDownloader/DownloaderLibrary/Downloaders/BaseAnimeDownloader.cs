@@ -40,6 +40,7 @@ namespace DownloaderLibrary.Downloaders {
 			}
 
 			Driver = await ChromeDriverFactory.CreateNewAsync().ConfigureAwait(false);
+			Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
 			Driver.Url = EpisodeListUri.AbsoluteUri;
 		}
 
@@ -67,14 +68,22 @@ namespace DownloaderLibrary.Downloaders {
 				try {
 					Progress.Report(DownloadProgressData.Start(episode.Number, episode.TotalBytes));
 					await DownloadEpisode(episode).ConfigureAwait(false);
+					return;
 				}
 				catch (Exception e) {
 					if (DownloadExceptionHelper.IsServerError(e)) {
 						episode.DownloadUri = null;
 					}
-
+					
 					ReportError(e, episode, tryCount);
-					await Task.Delay(new Random().Next(800, 1500)).ConfigureAwait(false);
+					TimeSpan delay;
+					if (tryCount % 10 == 0) {
+						delay = TimeSpan.FromMinutes(30);
+					}
+					else {
+						delay = TimeSpan.FromMilliseconds(new Random().Next(800, 1500));
+					}
+					await Task.Delay(delay).ConfigureAwait(false);
 					tryCount++;
 				}
 			}
@@ -103,7 +112,7 @@ namespace DownloaderLibrary.Downloaders {
 			if (episode.Path == null) episode.Path = Path.Combine(Config.DownloadDirectory, $"{episode.Number}.mp4");
 			
 			var downloader = DownloadServiceFactory.Create();
-			Downloaders.Add(episode.Number, downloader);
+			Downloaders[episode.Number] = downloader;
 			DateTime timeSinceLastSave = DateTime.Now;
 			
 			downloader.DownloadProgressChanged += (sender, args) => {

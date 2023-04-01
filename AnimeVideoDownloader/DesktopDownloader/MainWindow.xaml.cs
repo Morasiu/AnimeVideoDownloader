@@ -57,7 +57,7 @@ namespace DesktopDownloader {
 				return;
 			}
 			LoadingBar.Visibility = Visibility.Collapsed;
-			this.Content = new DownloadUserControl(downloader);
+			this.Content = new DownloadUserControl(downloader, downloaderConfig);
 		}
 
 		private void DownloadDirectoryOpenDialogButton_OnClick(object sender, RoutedEventArgs e) {
