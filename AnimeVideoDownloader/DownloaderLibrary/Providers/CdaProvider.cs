@@ -11,7 +11,7 @@ namespace DownloaderLibrary.Providers {
 	public class CdaProvider : BaseProvider {
 		public CdaProvider(WebDriver driver) : base(driver) { }
 
-		public override async Task<Uri> GetVideoSourceAsync(string url) {
+		public override Task<Uri> GetVideoSourceAsync(string url) {
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
 
 			// Go to CDA page
@@ -33,7 +33,7 @@ namespace DownloaderLibrary.Providers {
 			var sourceUrl = video.GetAttribute("src");
 
 			var uri = new Uri(sourceUrl);
-			return uri;
+			return Task.FromResult(uri);
 		}
 
 		private static void ChangeQuality(WebDriverWait wait) {
