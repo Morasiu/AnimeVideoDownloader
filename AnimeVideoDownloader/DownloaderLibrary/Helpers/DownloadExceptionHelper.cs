@@ -14,7 +14,7 @@ namespace DownloaderLibrary.Helpers {
 		}
 
 		private static bool IsServerReturningForbidden(Exception e) {
-			return e.Message == "The remote server returned an error: (403) Forbidden.";
+			return e.Message.Contains("(403) Forbidden");
 		}
 
 		private static bool IsServerReturningNotFound(Exception e) {

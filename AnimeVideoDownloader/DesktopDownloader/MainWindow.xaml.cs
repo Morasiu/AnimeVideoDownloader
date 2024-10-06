@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO.Packaging;
 using System.Reflection;
 using System.Windows;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
 using DownloaderLibrary.CheckpointManagers;
 using DownloaderLibrary.Downloaders;
-using DownloaderLibrary.Drivers;
 
 namespace DesktopDownloader {
 	/// <summary>

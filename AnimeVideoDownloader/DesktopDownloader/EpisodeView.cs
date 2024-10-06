@@ -8,12 +8,12 @@ using DownloaderLibrary.Data.Episodes;
 namespace DesktopDownloader {
 	public class EpisodeView : INotifyPropertyChanged{
 		private string _status = Emoji.InProgress;
-		private double _percent = 0;
+		private double _percent;
 		private string _bytesReceived = ByteSize.FromBytes(0).ToString("0.00 MB");
 		private string _totalBytes = ByteSize.FromBytes(0).ToString("0.00 MB");
 		private string _bytesPerSecond = ByteSize.FromBytes(0).ToString("0.00") + "/s";
 		private string _timeRemained = "Remained: 00:00:00" ;
-		private string _error = null;
+		private string _error;
 		private bool _isPaused = true;
 		public Episode Episode { get; set; }
 

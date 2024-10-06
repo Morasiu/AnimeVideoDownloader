@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using DownloaderLibrary.CheckpointManagers;
+﻿using DownloaderLibrary.CheckpointManagers;
 using DownloaderLibrary.Helpers;
 
 namespace DownloaderLibrary.Downloaders {

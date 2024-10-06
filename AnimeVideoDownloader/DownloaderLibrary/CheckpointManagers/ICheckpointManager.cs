@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using DownloaderLibrary.Data.Checkpoints;
-using DownloaderLibrary.Data.Episodes;
+﻿using DownloaderLibrary.Data.Checkpoints;
 
 namespace DownloaderLibrary.CheckpointManagers {
 	public interface ICheckpoint {

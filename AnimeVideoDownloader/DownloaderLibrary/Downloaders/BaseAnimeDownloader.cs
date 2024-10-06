@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using DownloaderLibrary.Drivers;
 using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Helpers;
 using DownloaderLibrary.Settings;
-using OpenQA.Selenium.Remote;
+using OpenQA.Selenium;
 using Serilog;
 
 namespace DownloaderLibrary.Downloaders {
@@ -19,7 +20,7 @@ namespace DownloaderLibrary.Downloaders {
 		protected readonly IProgress<DownloadProgressData> Progress;
 		protected Checkpoint Checkpoint;
 		protected readonly DownloaderConfig Config;
-		protected RemoteWebDriver Driver;
+		protected WebDriver Driver;
 		protected readonly Dictionary<int, DownloadService> Downloaders = new Dictionary<int, DownloadService>();
 		public event EventHandler<DownloadProgressData> ProgressChanged;
 
@@ -94,6 +95,8 @@ namespace DownloaderLibrary.Downloaders {
 				$"Error ({e.GetType()}: {e.Message}) Retry({tryCount}/{Retry.MaxTryCount}) - Info ({e.StackTrace})";
 			Log.Error(e, "Error while downloading episode: {EpisodeNumber}.\nError: {Error}", episode.Number, error);
 			Progress.Report(new DownloadProgressData(episode.Number, 0, error: error));
+			
+			Debugger.Break();
 		}
 
 		public async Task DownloadEpisode(Episode episode) {
@@ -200,6 +203,7 @@ namespace DownloaderLibrary.Downloaders {
 		public virtual void Dispose() {
 			try {
 				Driver.Close();
+				Driver.Dispose();
 			}
 			catch (Exception e) {
 				Log.Error(e, "Exception during disposing");

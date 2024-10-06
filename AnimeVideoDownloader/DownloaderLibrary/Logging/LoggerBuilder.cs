@@ -5,6 +5,7 @@ namespace DownloaderLibrary.Logging {
 		static LoggerBuilder() {
 			Log.Logger = new LoggerConfiguration()
 			             .WriteTo.File("logs.txt", rollingInterval: RollingInterval.Infinite, shared: true)
+			             .WriteTo.Console()
 			             .CreateLogger();
 		}
 	}

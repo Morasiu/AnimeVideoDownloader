@@ -7,6 +7,8 @@ using DownloaderLibrary.Data.EpisodeSources;
 using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
+using OpenQA.Selenium.DevTools.V116.FedCm;
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 
@@ -19,6 +21,7 @@ namespace DownloaderLibrary.Downloaders {
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
 
 			AcceptAll(wait);
+			Login(wait);
 
 			IWebElement table = TryToGetTable(wait);
 
@@ -46,6 +49,9 @@ namespace DownloaderLibrary.Downloaders {
 			return Task.FromResult(list);
 		}
 
+		private void Login(WebDriverWait wait) {
+		}
+
 		private static IWebElement TryToGetTable(WebDriverWait wait) {
 			IWebElement table;
 			try {
@@ -65,9 +71,8 @@ namespace DownloaderLibrary.Downloaders {
 		protected override async Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode) {
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
-
-			AcceptAll(wait);
 			RemoveFuckingAnnoyingAds();
+			AcceptAll(wait);
 
 			var table = GetTable(wait);
 			var rows = table.FindElements(By.TagName("tr"));
@@ -155,6 +160,8 @@ namespace DownloaderLibrary.Downloaders {
 		}
 
 		private void RemoveFuckingAnnoyingAds() {
+			Actions actions = new Actions(Driver);
+			actions.Click().Build().Perform();
 			try {
 				Driver.RemoveElementById("spolSticky");
 			}
@@ -168,6 +175,22 @@ namespace DownloaderLibrary.Downloaders {
 			catch (WebDriverException) {
 				// IGNORE
 			}
+			
+			try {
+				Driver.RemoveElementByClassName("ipprtcnt");
+			}
+			catch (WebDriverException) {
+				// IGNORE
+			}
+
+			var iframes = Driver.FindElements(By.TagName("iframe"));
+
+			foreach (var iframe in iframes) {
+				if (iframe.GetAttribute("src").Contains("ads")) {
+					Driver.RemoveElementById(iframe.GetAttribute("id"));
+				}
+			}
+
 		}
 
 		private void AcceptAdult(WebDriverWait wait) {
@@ -220,8 +243,7 @@ namespace DownloaderLibrary.Downloaders {
 			catch (WebDriverTimeoutException) { }
 
 			try {
-				table = wait.Until(ExpectedConditions.ElementExists(By.CssSelector(
-					"body > div.l-global-width.l-container-primary > div > article > section.box.episode-player-list > div > table > tbody")));
+				table = wait.Until(ExpectedConditions.ElementExists(By.CssSelector("section.box.episode-player-list > div > table > tbody")));
 				return table;
 			}
 			catch (WebDriverTimeoutException) {
@@ -235,32 +257,51 @@ namespace DownloaderLibrary.Downloaders {
 		}
 
 		private static void TryClickCookies(string xPath, WebDriverWait wait) {
+			IWebElement cookies = null;
 			try {
-				var cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath(xPath)));
+				cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath(xPath)));
 				cookies.Click();
 			}
 			catch (WebDriverTimeoutException) { }
 			catch (ElementClickInterceptedException) {
-				
+				cookies?.Click();
 			}
 			catch (ElementNotInteractableException) {
-				
+				// IGNORE
 			}
 		}
 
 		private void AcceptOtherCookies(WebDriverWait wait) {
 			wait.Timeout = TimeSpan.FromSeconds(5);
+			IWebElement cookies = null;
 			try {
-				var cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
+				cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
 				cookies.Click();
 			}
 			catch (WebDriverTimeoutException) { }
+			catch (ElementClickInterceptedException) {
+				cookies?.Click();
+			}
 		}
 
 		private void AcceptAll(WebDriverWait wait) {
 			AcceptCookies();
 			AcceptAdult(wait);
 			AcceptOtherCookies(wait);
+			
+		}
+		
+		private void AcceptPrivacyPolicy(WebDriverWait wait) {
+			wait.Timeout = TimeSpan.FromSeconds(5);
+			IWebElement privacyPolicy = null;
+			try {
+				privacyPolicy = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"cookie-bar\"]/p/a[2]")));
+				privacyPolicy.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+			catch (ElementClickInterceptedException) {
+				privacyPolicy?.Click();
+			}
 		}
 	}
 }

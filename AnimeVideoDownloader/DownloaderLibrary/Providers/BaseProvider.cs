@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using OpenQA.Selenium.Remote;
+using OpenQA.Selenium;
 
 namespace DownloaderLibrary.Providers {
 	public abstract class BaseProvider {
-		protected readonly RemoteWebDriver Driver;
+		protected readonly WebDriver Driver;
 
-		protected BaseProvider(RemoteWebDriver driver) {
+		protected BaseProvider(WebDriver driver) {
 			Driver = driver;
 		}
 

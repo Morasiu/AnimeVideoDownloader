@@ -1,11 +1,11 @@
 ﻿using System;
-using OpenQA.Selenium.Remote;
+using OpenQA.Selenium;
 
 namespace DownloaderLibrary.Providers {
 	public class ProviderFactory {
-		private readonly RemoteWebDriver _driver;
+		private readonly WebDriver _driver;
 
-		public ProviderFactory(RemoteWebDriver driver) {
+		public ProviderFactory(WebDriver driver) {
 			_driver = driver;
 		}
 

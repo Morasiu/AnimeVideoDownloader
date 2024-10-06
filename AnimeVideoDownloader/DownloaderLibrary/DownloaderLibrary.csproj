@@ -6,13 +6,14 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.1.1" />
-    <PackageReference Include="ByteSize" Version="2.0.0" />
+    <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
     <PackageReference Include="Downloader" Version="2.2.8" />
-    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    <PackageReference Include="WebDriverManager" Version="2.11.0" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.14.1" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+    <PackageReference Include="WebDriverManager" Version="2.17.1" />
   </ItemGroup>
 </Project>
