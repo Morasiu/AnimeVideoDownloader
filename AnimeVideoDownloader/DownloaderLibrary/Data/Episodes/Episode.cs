@@ -21,5 +21,21 @@ namespace DownloaderLibrary.Data.Episodes {
 		public long TotalBytes { get; set; }
 
 		public EpisodeType EpisodeType { get; set; }
+
+		public override bool Equals(object obj) {
+			if (obj is Episode episode) {
+				return this.Number.Equals(episode.Number);
+			}
+
+			return false;
+		}
+
+		protected bool Equals(Episode other) {
+			return Number.Equals(other.Number);
+		}
+
+		public override int GetHashCode() {
+			return Number.GetHashCode();
+		}
 	}
 }

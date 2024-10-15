@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -7,6 +9,7 @@ using System.Windows.Controls;
 using ByteSizeLib;
 using DesktopDownloader.Data;
 using DownloaderLibrary;
+using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Downloaders;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -18,19 +21,20 @@ namespace DesktopDownloader {
 	public partial class DownloadUserControl {
 		public ObservableCollection<EpisodeView> EpisodeViews { get; set; } = new ObservableCollection<EpisodeView>();
 		private readonly BaseAnimeDownloader _downloader;
+		private readonly DownloaderConfig _config;
 		private DateTime lastUpdate = DateTime.Now;
 
-		public DownloadUserControl(BaseAnimeDownloader downloader) {
+		public DownloadUserControl(BaseAnimeDownloader downloader, DownloaderConfig config) {
 			InitializeComponent();
 			Loaded += OnLoaded;
 			_downloader = downloader;
+			_config = config;
 			_downloader.ProgressChanged += OnProgress;
 			Application.Current.MainWindow.Closed += (sender, args) => _downloader.Dispose();
 			Application.Current.MainWindow.Closing += (sender, args) => _downloader.Dispose();
 		}
 
 		private void OnProgress(object sender, DownloadProgressData data) {
-
 			var episodeView = EpisodeViews.Single(a => a.Episode.Number == data.EpisodeNumber);
 			if (Math.Abs(data.Percent - 1) < 0.001) {
 				episodeView.Status = Emoji.Done;
@@ -41,11 +45,11 @@ namespace DesktopDownloader {
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(data.Error)) episodeView.Error = data.Error;
-			
+			episodeView.Error = !string.IsNullOrWhiteSpace(data.Error) ? data.Error : null;
+
 			if (DateTime.Now - lastUpdate < TimeSpan.FromMilliseconds(100)) return;
 			lastUpdate = DateTime.Now;
-			
+
 			episodeView.Percent = data.Percent;
 			episodeView.BytesReceived = ByteSize.FromBytes(data.BytesReceived).ToString("0.00");
 			episodeView.TotalBytes = ByteSize.FromBytes(data.TotalBytes).ToString("0.00");
@@ -70,13 +74,17 @@ namespace DesktopDownloader {
 			}
 
 			var episodes = await _downloader.GetEpisodesAsync();
+			SetEpisodesView(episodes);
+			DownloadAllButton.IsEnabled = true;
+			LoadingBar.Visibility = Visibility.Collapsed;
+		}
+
+		private void SetEpisodesView(IEnumerable<Episode> episodes) {
 			EpisodeViews = new ObservableCollection<EpisodeView>(episodes.Select(a => new EpisodeView {
 				Episode = a,
 				IsIgnored = a.IsIgnored
 			}));
 			EpisodeListView.ItemsSource = EpisodeViews;
-			DownloadAllButton.IsEnabled = true;
-			LoadingBar.Visibility = Visibility.Collapsed;
 		}
 
 		private async void DownloadAllOnClick(object sender, RoutedEventArgs e) {
@@ -114,6 +122,25 @@ namespace DesktopDownloader {
 				episodeView.IsPaused = true;
 				_downloader.CancelDownload(episodeView.Episode.Number);
 			}
+		}
+
+		private async void UpdateEpisodeList(object sender, RoutedEventArgs e) {
+			LoadingBar.Visibility = Visibility.Visible;
+			DownloadAllButton.IsEnabled = false;
+
+			var newEpisodes = await Task.Run(() => _downloader.SyncEpisodeList());
+			SetEpisodesView(newEpisodes);
+
+			LoadingBar.Visibility = Visibility.Collapsed;
+			DownloadAllButton.IsEnabled = true;
+		}
+
+		private void OpenEpisodeDirectory(object sender, RoutedEventArgs e) {
+			Process.Start(new ProcessStartInfo() {
+				FileName = _config.DownloadDirectory,
+				UseShellExecute = true,
+				Verb = "open"
+			});
 		}
 	}
 }

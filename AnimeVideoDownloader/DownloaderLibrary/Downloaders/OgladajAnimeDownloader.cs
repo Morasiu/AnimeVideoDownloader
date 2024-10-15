@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AngleSharp.Html;
 using DownloaderLibrary.Data.Episodes;
-using DownloaderLibrary.Helpers;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -48,7 +46,7 @@ namespace DownloaderLibrary.Downloaders {
 			return Task.FromResult(episodes);
 		}
 
-		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
+		protected override async Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode) {
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
 			var episodeTable = wait.Until(driver => driver.FindElement(By.XPath("//*[@id=\"animemenu_player\"]/div/table/tbody")));

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Linq;
 
 namespace DownloaderLibrary.Data.EpisodeSources {
 	public enum Quality {
@@ -10,6 +9,11 @@ namespace DownloaderLibrary.Data.EpisodeSources {
 		/// </summary>
 		[Description("240p")]
 		P240, 
+		/// <summary>
+		/// 480P
+		/// </summary>
+		[Description("360p")]
+		P360, 
 		/// <summary>
 		/// 480P
 		/// </summary>
@@ -36,6 +40,7 @@ namespace DownloaderLibrary.Data.EpisodeSources {
 		public static Quality FromString(string s) {
 			var formatted = s.ToLower();
 			if (formatted.Contains("240")) return Quality.P240;
+			if (formatted.Contains("360")) return Quality.P360;
 			if (formatted.Contains("480")) return Quality.P480;
 			if (formatted.Contains("720")) return Quality.P720;
 			if (formatted.Contains("1080")) return Quality.P1080;

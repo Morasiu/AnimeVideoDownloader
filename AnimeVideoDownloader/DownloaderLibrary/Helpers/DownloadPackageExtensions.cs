@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices.ComTypes;
+﻿using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+using System.Threading.Tasks;
 using Downloader;
 
 namespace DownloaderLibrary.Helpers {
@@ -57,7 +57,8 @@ namespace DownloaderLibrary.Helpers {
 		public static void Delete(this DownloadPackage package, string episodePath) {
 			var formattedPath = GetFilePath(episodePath);
 			if (!File.Exists(formattedPath)) return;
-			File.Delete(formattedPath);
+			Thread.Sleep(1000);
+			Task.Run(() => File.Delete(formattedPath));
 		}
 
 		private static string GetFilePath(string episodePath) {

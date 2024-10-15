@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [x.x.x] - xxxxxxxxx
 
+## [1.7.0] - 18.11.2021
+
+### Added
+- Now you can update episode list using menu: Options->Update episode list
+
 ## [1.6.1] - 11.07.2021
 
 ### Fixed

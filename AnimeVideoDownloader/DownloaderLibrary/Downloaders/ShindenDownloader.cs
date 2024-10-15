@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using DownloaderLibrary.Data.Episodes;
 using DownloaderLibrary.Data.EpisodeSources;
 using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
+using OpenQA.Selenium.DevTools.V116.FedCm;
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
-using Serilog.Core;
+using SeleniumExtras.WaitHelpers;
 
 namespace DownloaderLibrary.Downloaders {
 	public class ShindenDownloader : BaseAnimeDownloader {
@@ -17,10 +18,13 @@ namespace DownloaderLibrary.Downloaders {
 
 		protected override Task<List<Episode>> GetAllEpisodesFromEpisodeListUrlAsync() {
 			var list = new List<Episode>();
-			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(10));
-			AcceptCookies(wait);
-			var table = wait.Until(a =>
-				a.FindElement(By.XPath("/html/body/div[4]/div/article/section[2]/div[2]/table/tbody")));
+			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
+
+			AcceptAll(wait);
+			Login(wait);
+
+			IWebElement table = TryToGetTable(wait);
+
 			var rows = table.FindElements(By.TagName("tr"));
 			foreach (var row in rows) {
 				var columns = row.FindElements(By.TagName("td"));
@@ -45,27 +49,56 @@ namespace DownloaderLibrary.Downloaders {
 			return Task.FromResult(list);
 		}
 
-		protected override async Task<Uri> GetEpisodeDownloadUrl(Episode episode) {
-			var episodeSrcUrls = new List<string>();
+		private void Login(WebDriverWait wait) {
+		}
+
+		private static IWebElement TryToGetTable(WebDriverWait wait) {
+			IWebElement table;
+			try {
+				table = wait.Until(
+					ExpectedConditions.ElementExists(
+						By.TagName("tbody")));
+			}
+			catch (WebDriverTimeoutException) {
+				table = wait.Until(
+					ExpectedConditions.ElementExists(
+						By.XPath("/html/body/div[6]/div/article/section[2]/div[2]/table/tbody")));
+			}
+
+			return table;
+		}
+
+		protected override async Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode) {
 			Driver.Url = episode.EpisodeUri.AbsoluteUri;
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
-			AcceptCookies(wait);
+			RemoveFuckingAnnoyingAds();
+			AcceptAll(wait);
+
 			var table = GetTable(wait);
 			var rows = table.FindElements(By.TagName("tr"));
+
 			var episodeSources = new List<EpisodeSource>();
 			foreach (var row in rows) {
 				var columns = row.FindElements(By.TagName("td"));
+				var spans = columns[2].FindElements(By.TagName("span"));
+				var soundsLanguage = spans[1].GetAttribute("textContent");
+				if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
+
 				var providerName = columns[0].Text;
-
+				var quality = columns[1].Text;
+				var button = columns[5].FindElement(By.TagName("a"));
 				if (providerName.ToLower().Contains("cda".ToLower())) {
-					var spans = columns[2].FindElements(By.TagName("span"));
-					var soundsLanguage = spans[1].GetAttribute("textContent");
-					if (!soundsLanguage.Equals("japoński", StringComparison.InvariantCultureIgnoreCase)) continue;
-					var quality = columns[1].Text;
-					var button = columns[5].FindElement(By.TagName("a"));
-
 					var episodeSource = new EpisodeSource {
 						ProviderType = ProviderType.Cda,
+						Quality = QualityParser.FromString(quality),
+						Language = Language.PL,
+						Button = button
+					};
+					episodeSources.Add(episodeSource);
+				}
+				else if (providerName.ToLower().Contains("Gdrive".ToLower())) {
+					var episodeSource = new EpisodeSource {
+						ProviderType = ProviderType.GDrive,
 						Quality = QualityParser.FromString(quality),
 						Language = Language.PL,
 						Button = button
@@ -81,57 +114,120 @@ namespace DownloaderLibrary.Downloaders {
 			                 .ThenByDescending(a => a.Quality)
 			                 .ToList();
 
+			Uri episodeUri = null;
 			foreach (var episodeSource in episodeSources) {
 				try {
-					TryClickButton(episodeSource);
+					await TryClickPlayButton(episodeSource);
 
 					IWebElement iframe;
 					try {
-						iframe = wait.Until(a =>
-							a.FindElement(By.XPath("/html/body/div[4]/div/article/div[2]/div/iframe")));
+						wait.Timeout = TimeSpan.FromSeconds(60);
+						iframe = wait.Until(
+							ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"player-block\"]/iframe")));
 					}
 					catch (WebDriverTimeoutException) {
 						continue;
 					}
 
+
 					var src = iframe.GetAttribute("src");
-					var fullSrc = $"{src}?wersja={episodeSource.Quality.GetDescription()}";
-					episodeSource.SourceUrl = fullSrc;
+					if (episodeSource.ProviderType == ProviderType.Cda) {
+						src = $"{src}?wersja={episodeSource.Quality.GetDescription()}";
+					}
+
+					episodeSource.SourceUrl = src;
 				}
 				catch (InvalidOperationException) { }
 			}
 
-			Uri episodeUri = null;
+
 			foreach (var episodeSource in episodeSources) {
 				try {
 					episodeUri = await new ProviderFactory(Driver).GetProvider(episodeSource.ProviderType)
 					                                              .GetVideoSourceAsync(episodeSource.SourceUrl);
 					break;
 				}
-				catch (WebDriverTimeoutException) { }
+				catch (WebDriverTimeoutException) {
+					Driver.Url = EpisodeListUri.AbsoluteUri;
+				}
 			}
 
 			if (episodeUri == null) {
 				throw new InvalidOperationException("Could not find any episode source to download");
-			} 
-			
+			}
+
 			return episodeUri;
 		}
 
-		private static void TryClickButton(EpisodeSource episodeSource) {
+		private void RemoveFuckingAnnoyingAds() {
+			Actions actions = new Actions(Driver);
+			actions.Click().Build().Perform();
+			try {
+				Driver.RemoveElementById("spolSticky");
+			}
+			catch (WebDriverException) {
+				// IGNORE
+			}
+
+			try {
+				Driver.RemoveElementByClassName("ipprtcnt");
+			}
+			catch (WebDriverException) {
+				// IGNORE
+			}
+			
+			try {
+				Driver.RemoveElementByClassName("ipprtcnt");
+			}
+			catch (WebDriverException) {
+				// IGNORE
+			}
+
+			var iframes = Driver.FindElements(By.TagName("iframe"));
+
+			foreach (var iframe in iframes) {
+				if (iframe.GetAttribute("src").Contains("ads")) {
+					Driver.RemoveElementById(iframe.GetAttribute("id"));
+				}
+			}
+
+		}
+
+		private void AcceptAdult(WebDriverWait wait) {
+			wait.Timeout = TimeSpan.FromSeconds(3);
+			try {
+				var adult = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"plus18\"]/div/button")));
+				adult.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+			finally {
+				wait.Timeout = TimeSpan.FromSeconds(30);
+			}
+		}
+
+		private async Task TryClickPlayButton(EpisodeSource episodeSource) {
 			var tryNumber = 30;
 			while (true) {
 				tryNumber--;
 				if (tryNumber == 0) {
-					throw new InvalidOperationException("Couldn't click in button");
+					throw new InvalidOperationException("Couldn't click in play button");
 				}
 
 				try {
+					RemoveFuckingAnnoyingAds();
 					episodeSource.Button.Click();
+					try {
+						// Check if video is loading (5 second countdown)
+						new WebDriverWait(Driver, TimeSpan.FromSeconds(2))
+							.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"circle-counter\"]")));
+					}
+					catch (WebDriverTimeoutException) {
+						continue;
+					}
 					return;
 				}
 				catch (ElementClickInterceptedException) {
-					Thread.Sleep(500);
+					await Task.Delay(500);
 				}
 			}
 		}
@@ -139,28 +235,72 @@ namespace DownloaderLibrary.Downloaders {
 		private static IWebElement GetTable(WebDriverWait wait) {
 			IWebElement table;
 			try {
-				table = wait.Until(a =>
-					a.FindElement(By.XPath("/html/body/div[4]/div/article/section[3]/div/table/tbody")));
+				table = wait.Until(
+					ExpectedConditions.ElementExists(
+						By.XPath("/html/body/div[4]/div/article/section[3]/div/table/tbody")));
+				return table;
+			}
+			catch (WebDriverTimeoutException) { }
+
+			try {
+				table = wait.Until(ExpectedConditions.ElementExists(By.CssSelector("section.box.episode-player-list > div > table > tbody")));
+				return table;
 			}
 			catch (WebDriverTimeoutException) {
 				throw new WebDriverTimeoutException("Cannot load episode providers list");
 			}
-
-			return table;
 		}
 
-		private static void AcceptCookies(WebDriverWait wait) {
-			wait.Timeout = TimeSpan.FromSeconds(5);
+		private void AcceptCookies() {
+			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(3));
+			TryClickCookies("//span[text()='Zaakceptuj wszystko']", wait);
+		}
+
+		private static void TryClickCookies(string xPath, WebDriverWait wait) {
+			IWebElement cookies = null;
 			try {
-				var cookies = wait.Until(a =>
-					a.FindElement(By.XPath("/html/body/div[14]/div[1]/div[2]/div/div[2]/button[2]")));
+				cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath(xPath)));
 				cookies.Click();
-				var cookies2 = wait.Until(a => a.FindElement(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
-				cookies2.Click();
 			}
 			catch (WebDriverTimeoutException) { }
-			finally {
-				wait.Timeout = TimeSpan.FromSeconds(30);
+			catch (ElementClickInterceptedException) {
+				cookies?.Click();
+			}
+			catch (ElementNotInteractableException) {
+				// IGNORE
+			}
+		}
+
+		private void AcceptOtherCookies(WebDriverWait wait) {
+			wait.Timeout = TimeSpan.FromSeconds(5);
+			IWebElement cookies = null;
+			try {
+				cookies = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"cookie-bar\"]/p/a[1]")));
+				cookies.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+			catch (ElementClickInterceptedException) {
+				cookies?.Click();
+			}
+		}
+
+		private void AcceptAll(WebDriverWait wait) {
+			AcceptCookies();
+			AcceptAdult(wait);
+			AcceptOtherCookies(wait);
+			
+		}
+		
+		private void AcceptPrivacyPolicy(WebDriverWait wait) {
+			wait.Timeout = TimeSpan.FromSeconds(5);
+			IWebElement privacyPolicy = null;
+			try {
+				privacyPolicy = wait.Until(ExpectedConditions.ElementExists(By.XPath("//*[@id=\"cookie-bar\"]/p/a[2]")));
+				privacyPolicy.Click();
+			}
+			catch (WebDriverTimeoutException) { }
+			catch (ElementClickInterceptedException) {
+				privacyPolicy?.Click();
 			}
 		}
 	}

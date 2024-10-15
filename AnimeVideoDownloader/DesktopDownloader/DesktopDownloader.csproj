@@ -1,24 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Anime (1).ico</ApplicationIcon>
     <Version>1.0.0</Version>
     <PackageVersion>1.0.0</PackageVersion>
-    <AssemblyVersion>1.6.1</AssemblyVersion>
+    <AssemblyVersion>1.9.1</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AdonisUI" Version="1.17.0" />
     <PackageReference Include="AdonisUI.ClassicTheme" Version="1.17.0" />
-    <PackageReference Include="ByteSize" Version="2.0.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf.NETCore" Version="2.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DownloaderLibrary\DownloaderLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +25,10 @@
     <Resource Include="Assets\play.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DownloaderLibrary\DownloaderLibrary.csproj" />
   </ItemGroup>
 
 </Project>

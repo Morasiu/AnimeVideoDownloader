@@ -6,3 +6,5 @@
 /contentModel.xml
 /.idea.AnimeVideoDownloader.iml
 /projectSettingsUpdater.xml
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions

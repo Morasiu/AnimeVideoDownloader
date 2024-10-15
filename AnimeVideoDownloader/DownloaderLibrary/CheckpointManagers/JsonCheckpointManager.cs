@@ -1,30 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using DownloaderLibrary.Data.Episodes;
+using DownloaderLibrary.Data.Checkpoints;
 
-namespace DownloaderLibrary.Checkpoints {
+namespace DownloaderLibrary.CheckpointManagers {
 	public class JsonCheckpoint : ICheckpoint {
 		private static readonly object Lock = new object();
 
-		public IEnumerable<Episode> Load(string downloadDirectoryPath) {
+		public Checkpoint Load(string downloadDirectoryPath) {
 			CheckDirectory(downloadDirectoryPath);
 
 			var path = GetCheckpointPath(downloadDirectoryPath);
 			var json = File.ReadAllText(path, Encoding.UTF8);
-			var episodes = JsonSerializer.Deserialize<List<Episode>>(json);
-			return episodes;
+			var checkpoint = JsonSerializer.Deserialize<Checkpoint>(json);
+			return checkpoint;
 		}
 
-		public void Save(string downloadDirectoryPath, IEnumerable<Episode> episodes) {
+		public void Save(string downloadDirectoryPath, Checkpoint checkpoint) {
 			CheckDirectory(downloadDirectoryPath);
 
 			var jsonSerializerOptions = new JsonSerializerOptions {
 				WriteIndented = true,
 			};
-			var json = JsonSerializer.Serialize(episodes, jsonSerializerOptions);
+			var json = JsonSerializer.Serialize(checkpoint, jsonSerializerOptions);
 			var path = GetCheckpointPath(downloadDirectoryPath);
 			lock (Lock) {
 				File.WriteAllText(path, json, Encoding.UTF8);

@@ -16,5 +16,16 @@
 		public long TotalBytes { get; }
 		public long BytesPerSecond { get; }
 		public string Error { get; }
+
+		public static DownloadProgressData Done(int episodeNumber, long totalBytes) {
+			return new DownloadProgressData(episodeNumber, 1.0, totalBytes, totalBytes);
+		}
+		
+		public static DownloadProgressData Zero(int episodeNumber) {
+			return new DownloadProgressData(episodeNumber, 0, 0, 0);
+		}
+		public static DownloadProgressData Start(int episodeNumber, long totalBytes) {
+			return new DownloadProgressData(episodeNumber, 0, 0, totalBytes);
+		}
 	}
 }

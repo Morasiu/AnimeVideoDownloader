@@ -1,11 +1,11 @@
 ﻿using System;
-using OpenQA.Selenium.Remote;
+using OpenQA.Selenium;
 
 namespace DownloaderLibrary.Providers {
 	public class ProviderFactory {
-		private readonly RemoteWebDriver _driver;
+		private readonly WebDriver _driver;
 
-		public ProviderFactory(RemoteWebDriver driver) {
+		public ProviderFactory(WebDriver driver) {
 			_driver = driver;
 		}
 
@@ -13,6 +13,8 @@ namespace DownloaderLibrary.Providers {
 			switch (type) {
 				case ProviderType.Cda:
 					return new CdaProvider(_driver);
+				case ProviderType.GDrive:
+					return new GDriveProvider(_driver);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(type), type, null);
 			}

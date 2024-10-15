@@ -1,6 +1,5 @@
 ﻿
 using System.Windows;
-using Serilog;
 
 namespace DesktopDownloader {
 	/// <summary>
