@@ -7,7 +7,7 @@ using DownloaderLibrary.Data.EpisodeSources;
 using DownloaderLibrary.Extensions;
 using DownloaderLibrary.Providers;
 using OpenQA.Selenium;
-using OpenQA.Selenium.DevTools.V116.FedCm;
+using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
@@ -21,7 +21,6 @@ namespace DownloaderLibrary.Downloaders {
 			var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(30));
 
 			AcceptAll(wait);
-			Login(wait);
 
 			IWebElement table = TryToGetTable(wait);
 
@@ -49,23 +48,25 @@ namespace DownloaderLibrary.Downloaders {
 			return Task.FromResult(list);
 		}
 
-		private void Login(WebDriverWait wait) {
-		}
-
 		private static IWebElement TryToGetTable(WebDriverWait wait) {
-			IWebElement table;
 			try {
-				table = wait.Until(
+				return wait.Until(
 					ExpectedConditions.ElementExists(
 						By.TagName("tbody")));
 			}
 			catch (WebDriverTimeoutException) {
-				table = wait.Until(
+				// Failure
+			}
+
+			try {
+				return wait.Until(
 					ExpectedConditions.ElementExists(
 						By.XPath("/html/body/div[6]/div/article/section[2]/div[2]/table/tbody")));
 			}
-
-			return table;
+			catch (WebDriverTimeoutException e) {
+				// Failure
+				throw new WebDriverTimeoutException("Cannot load episode list", e);
+			}
 		}
 
 		protected override async Task<Uri> GetEpisodeDownloadUrlAsync(Episode episode) {
@@ -186,8 +187,13 @@ namespace DownloaderLibrary.Downloaders {
 			var iframes = Driver.FindElements(By.TagName("iframe"));
 
 			foreach (var iframe in iframes) {
-				if (iframe.GetAttribute("src").Contains("ads")) {
-					Driver.RemoveElementById(iframe.GetAttribute("id"));
+				try {
+					if (iframe.GetAttribute("src").Contains("ads")) {
+						Driver.RemoveElementById(iframe.GetAttribute("id"));
+					}
+				}
+				catch (Exception) {
+					// Failure
 				}
 			}
 
