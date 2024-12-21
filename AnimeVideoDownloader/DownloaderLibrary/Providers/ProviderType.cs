@@ -2,6 +2,7 @@
 	public enum ProviderType {
 		Unknown,
 		Cda,
-		GDrive
+		GDrive,
+		Vk,
 	}
 }

@@ -15,6 +15,8 @@ namespace DownloaderLibrary.Providers {
 					return new CdaProvider(_driver);
 				case ProviderType.GDrive:
 					return new GDriveProvider(_driver);
+				case ProviderType.Vk:
+					return new VkVideoProvider(_driver);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(type), type, null);
 			}
