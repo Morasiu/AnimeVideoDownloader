@@ -105,6 +105,14 @@ namespace DownloaderLibrary.Downloaders {
 						Button = button
 					};
 					episodeSources.Add(episodeSource);
+				} else if (providerName.ToLower().Contains("Vk".ToLower())) {
+					var episodeSource = new EpisodeSource {
+						ProviderType = ProviderType.Vk,
+						Quality = QualityParser.FromString(quality),
+						Language = Language.PL,
+						Button = button
+					};
+					episodeSources.Add(episodeSource);
 				}
 			}
 
