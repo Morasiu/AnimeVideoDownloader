@@ -1,0 +1,3 @@
+﻿namespace BlazorComponents;
+
+public interface IBlazorComponentsMarker;
