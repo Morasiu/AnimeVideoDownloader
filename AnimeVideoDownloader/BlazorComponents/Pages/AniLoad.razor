@@ -1,0 +1,244 @@
+@page "/"
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">📺</div>
+                <span class="logo-text">AniLoad</span>
+            </div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-item @(selectedMenuItem == "home" ? "active" : "")" @onclick='() => SelectMenuItem("home")'>
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Strona Główna</span>
+            </div>
+            <div class="nav-item @(selectedMenuItem == "kolejka" ? "active" : "")" @onclick='() => SelectMenuItem("kolejka")'>
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Kolejka</span>
+            </div>
+            <div class="nav-item @(selectedMenuItem == "ustawienia" ? "active" : "")" @onclick='() => SelectMenuItem("ustawienia")'>
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Ustawienia</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search" @bind="searchQuery" @oninput="OnSearchInput" />
+                </div>
+            </div>
+            <div class="filter-container">
+                <button class="filter-btn">
+                    <span class="filter-icon">🔽</span>
+                    <span>Filter</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Anime Cards -->
+            <div class="anime-grid">
+                @foreach (var anime in animeList.Where(a => string.IsNullOrEmpty(searchQuery) || a.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+                {
+                    <div class="anime-card @(selectedAnime?.Id == anime.Id ? "selected" : "")" @onclick="() => SelectAnime(anime)">
+                        <div class="anime-cover">
+                            <img src="@anime.CoverUrl" alt="@anime.Title" />
+                        </div>
+                        <div class="anime-info">
+                            <h3 class="anime-title">@anime.Title</h3>
+                            <div class="anime-meta">
+                                <span class="genre">@anime.Genre</span>
+                                <span class="year">@anime.Year</span>
+                            </div>
+                            <button class="details-btn" @onclick:stopPropagation="true" @onclick="() => ShowDetails(anime)">
+                                Rozwiń szczegóły
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Episode List Panel -->
+            @if (selectedAnime != null)
+            {
+                <div class="episode-panel">
+                    <div class="panel-header">
+                        <h2>@selectedAnime.Title</h2>
+                        <div class="season-info">
+                            <span>Season, sezon</span>
+                            <span class="tags">Tags: @selectedAnime.Tags</span>
+                        </div>
+                    </div>
+                    
+                    <div class="episode-list">
+                        @foreach (var episode in selectedAnime.Episodes)
+                        {
+                            <div class="episode-item @GetEpisodeStatusClass(episode.Status)">
+                                <div class="episode-number">@episode.Number</div>
+                                <div class="episode-title">@episode.Title</div>
+                                <div class="episode-status">@GetStatusText(episode.Status)</div>
+                                <div class="episode-actions">
+                                    @if (episode.Status == EpisodeStatus.Error)
+                                    {
+                                        <span class="error-icon">⚠️</span>
+                                    }
+                                    <span class="chevron">›</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="download-progress">
+                        <div class="progress-info">
+                            <span>@selectedAnime.Title @selectedAnime.CurrentSeason — @downloadProgress%</span>
+                            <span class="download-speed">@downloadSpeed MB/s</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @downloadProgress%"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+    </main>
+</div>
+
+@code {
+    private string selectedMenuItem = "home";
+    private string searchQuery = "";
+    private string chatMessage = "";
+    private AnimeModel? selectedAnime;
+    private int downloadProgress = 48;
+    private decimal downloadSpeed = 2.3m;
+    
+    private List<AnimeModel> animeList = new()
+    {
+        new AnimeModel
+        {
+            Id = 1,
+            Title = "Solo Leveling",
+            Genre = "Action, Fantasy",
+            Year = "Rok: 2024",
+            Tags = "Ojseasons",
+            CoverUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzJkM2E0ZiIvPjx0ZXh0IHg9IjUwIiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U29sbyBMZXZlbGluZzwvdGV4dD48L3N2Zz4=",
+            CurrentSeason = "S2",
+            Episodes = new List<EpisodeModel>
+            {
+                new() { Number = 1, Title = "Meeting Giyu", Status = EpisodeStatus.Downloaded },
+                new() { Number = 2, Title = "Final Selection", Status = EpisodeStatus.InProgress },
+                new() { Number = 3, Title = "Sabito & Makomo", Status = EpisodeStatus.Error }
+            }
+        },
+        new AnimeModel
+        {
+            Id = 2,
+            Title = "Demon Slayer",
+            Genre = "Action, Drama",
+            Year = "Roc 21",
+            Tags = "Ojseasons",
+            CoverUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzNkNGY2NiIvPjx0ZXh0IHg9IjUwIiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGVtb24gU2xheWVyPC90ZXh0Pjwvc3ZnPg==",
+            CurrentSeason = "S3",
+            Episodes = new List<EpisodeModel>
+            {
+                new() { Number = 1, Title = "Tanjiro's Journey", Status = EpisodeStatus.Downloaded },
+                new() { Number = 2, Title = "First Mission", Status = EpisodeStatus.InProgress }
+            }
+        }
+    };
+
+    private void SelectMenuItem(string item)
+    {
+        selectedMenuItem = item;
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? "";
+    }
+
+    private void SelectAnime(AnimeModel anime)
+    {
+        selectedAnime = selectedAnime?.Id == anime.Id ? null : anime;
+    }
+
+    private void ShowDetails(AnimeModel anime)
+    {
+        selectedAnime = anime;
+    }
+
+    private string GetEpisodeStatusClass(EpisodeStatus status)
+    {
+        return status switch
+        {
+            EpisodeStatus.Downloaded => "downloaded",
+            EpisodeStatus.InProgress => "in-progress",
+            EpisodeStatus.Error => "error",
+            _ => ""
+        };
+    }
+
+    private string GetStatusText(EpisodeStatus status)
+    {
+        return status switch
+        {
+            EpisodeStatus.Downloaded => "Pobrany",
+            EpisodeStatus.InProgress => "W trakcie",
+            EpisodeStatus.Error => "Błąd",
+            _ => ""
+        };
+    }
+
+    private void HandleChatKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SendChatMessage();
+        }
+    }
+
+    private void SendChatMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(chatMessage))
+        {
+            // Handle chat message
+            chatMessage = "";
+        }
+    }
+
+    public class AnimeModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Genre { get; set; } = "";
+        public string Year { get; set; } = "";
+        public string Tags { get; set; } = "";
+        public string CoverUrl { get; set; } = "";
+        public string CurrentSeason { get; set; } = "";
+        public List<EpisodeModel> Episodes { get; set; } = new();
+    }
+
+    public class EpisodeModel
+    {
+        public int Number { get; set; }
+        public string Title { get; set; } = "";
+        public EpisodeStatus Status { get; set; }
+    }
+
+    public enum EpisodeStatus
+    {
+        Downloaded,
+        InProgress,
+        Error
+    }
+}
