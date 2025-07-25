@@ -1,0 +1,106 @@
+﻿.episodes-section {
+    background: #202433;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    flex: 1;
+}
+
+.episodes-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #E2E8F0;
+}
+
+.episode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.episode-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+    background: rgba(26, 32, 44, 0.4);
+}
+
+.episode-item:hover {
+    background: rgba(45, 55, 72, 0.5);
+}
+
+.episode-item.downloaded {
+    background: rgba(72, 187, 120, 0.1);
+}
+
+.episode-item.in-progress {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.episode-item.error {
+    background: rgba(245, 101, 101, 0.1);
+}
+
+.episode-number {
+    min-width: 2rem;
+    font-weight: 600;
+    color: #a0aec0;
+}
+
+.episode-title {
+    flex: 1;
+    margin-left: 1rem;
+    color: #E2E8F0;
+}
+
+.episode-status {
+    color: #E2E8F0;
+    font-size: 0.85rem;
+    margin-right: 1rem;
+}
+
+.episode-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.retry-btn, .play-btn, .download-btn {
+    background: rgba(45, 55, 72, 0.8);
+    color: #E2E8F0;
+    border: none;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.retry-btn:hover, .play-btn:hover, .download-btn:hover {
+    background: rgba(45, 55, 72, 1);
+    transform: translateY(-1px);
+}
+
+.play-btn {
+    background: rgba(72, 187, 120, 0.3);
+}
+
+.play-btn:hover {
+    background: rgba(72, 187, 120, 0.5);
+}
+
+.download-btn {
+    background: rgba(66, 153, 225, 0.3);
+}
+
+.download-btn:hover {
+    background: rgba(66, 153, 225, 0.5);
+}

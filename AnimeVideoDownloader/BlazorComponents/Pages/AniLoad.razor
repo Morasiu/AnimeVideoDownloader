@@ -1,218 +1,84 @@
-@page "/"
-
-<PageHead>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-</PageHead>
+﻿@page "/"
+@using BlazorComponents.Components.Layout
+@using BlazorComponents.Components.Anime
+@using BlazorComponents.Components.Anime.Models
+@using BlazorComponents.Components.Anime.Services
+@inject IAnimeService AnimeService
 
 <div class="app-container">
-    <nav class="top-nav">
-        <div class="left-section">
-            <div class="logo">
-                <div class="logo-icon"><i class="fas fa-tv"></i></div>
-                <span class="logo-text">AniLoad</span>
-            </div>
+    <TopNavbar
+        SelectedMenuItem="@selectedMenuItem"
+        SelectedMenuItemChanged="@SelectMenuItem"
+        SearchQuery="@searchQuery"
+        SearchQueryChanged="@OnSearchInput"
+        DebugConsoleToggled="@OnDebugConsoleToggled" />
 
-            <div class="search-container">
-                <div class="search-box">
-                    <span class="search-icon"><i class="fas fa-search"></i></span>
-                    <input type="text" placeholder="Search" @bind="searchQuery" @oninput="OnSearchInput" />
-                </div>
-            </div>
+    <div class="main-layout">
+        <AnimeSidebar
+            SelectedAnime="@selectedAnime"
+            OnAnimeSelected="@SelectAnime" />
 
-            <div class="nav-menu">
-                <div class="nav-item @(selectedMenuItem == "home" ? "active" : "")" @onclick='() => SelectMenuItem("home")'>
-                    <span class="nav-icon"><i class="fas fa-home"></i></span>
-                    <span class="nav-text">Home</span>
-                </div>
-                <div class="nav-item @(selectedMenuItem == "kolejka" ? "active" : "")" @onclick='() => SelectMenuItem("kolejka")'>
-                    <span class="nav-icon"><i class="fas fa-list-check"></i></span>
-                    <span class="nav-text">Queue</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="right-section">
-            <div class="nav-item @(selectedMenuItem == "ustawienia" ? "active" : "")" @onclick='() => SelectMenuItem("ustawienia")'>
-                <span class="nav-icon"><i class="fas fa-cog"></i></span>
-                <span class="nav-text">Settings</span>
-            </div>
-        </div>
-    </nav>
-
-    <main class="main-content">
-        <div class="content-area">
-            <div class="anime-grid">
-                @foreach (var anime in animeList.Where(a => string.IsNullOrEmpty(searchQuery) || a.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
-                {
-                    <div class="anime-card @(selectedAnime?.Id == anime.Id ? "selected" : "")" @onclick="() => SelectAnime(anime)">
-                        <div class="anime-cover">
-                            <img src="@anime.CoverUrl" alt="@anime.Title" />
-                        </div>
-                        <div class="anime-info">
-                            <h3 class="anime-title">@anime.Title</h3>
-                            <div class="anime-meta">
-                                <span class="genre">@anime.Genre</span>
-                                <span class="year">@anime.Year</span>
-                            </div>
-                            <button class="details-btn" @onclick:stopPropagation="true" @onclick="() => ShowDetails(anime)">
-                                Show details
-                            </button>
-                        </div>
-                    </div>
-                }
-            </div>
-
+        <main class="content-area">
             @if (selectedAnime != null)
             {
-                <div class="episode-panel">
-                    <div class="panel-header">
-                        <h2>@selectedAnime.Title</h2>
-                        <div class="season-info">
-                            <span>Season</span>
-                            <span class="tags">Tags: @selectedAnime.Tags</span>
-                        </div>
-                    </div>
-
-                    <div class="episode-list">
-                        @foreach (var episode in selectedAnime.Episodes)
-                        {
-                            <div class="episode-item @GetEpisodeStatusClass(episode.Status)">
-                                <div class="episode-number">@episode.Number</div>
-                                <div class="episode-title">@episode.Title</div>
-                                <div class="episode-status">@GetStatusText(episode.Status)</div>
-                                <div class="episode-actions">
-                                    @if (episode.Status == EpisodeStatus.Error)
-                                    {
-                                        <span class="error-icon"><i class="fas fa-exclamation-triangle"></i></span>
-                                    }
-                                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="download-progress">
-                        <div class="progress-info">
-                            <span>@selectedAnime.Title @selectedAnime.CurrentSeason — @downloadProgress%</span>
-                            <span class="download-speed">@downloadSpeed MB/s</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: @downloadProgress%"></div>
-                        </div>
-                    </div>
-                </div>
+                <AnimeDetails
+                    Anime="@selectedAnime"
+                    OnAnimeUpdated="@OnAnimeUpdated" />
             }
-        </div>
-    </main>
+            else
+            {
+                <NoAnimeSelected
+                    OnSelectFirstAnime="@SelectFirstAnime" />
+            }
+        </main>
+    </div>
 </div>
 
 @code {
     private string selectedMenuItem = "home";
     private string searchQuery = "";
     private AnimeModel? selectedAnime;
-    private int downloadProgress = 48;
-    private decimal downloadSpeed = 2.3m;
-
-    private List<AnimeModel> animeList = new()
-    {
-        new AnimeModel
-        {
-            Id = 1,
-            Title = "Solo Leveling",
-            Genre = "Action, Fantasy",
-            Year = "Year: 2024",
-            Tags = "Ojseasons",
-            CoverUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzJkM2E0ZiIvPjx0ZXh0IHg9IjUwIiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U29sbyBMZXZlbGluZzwvdGV4dD48L3N2Zz4=",
-            CurrentSeason = "S2",
-            Episodes = new List<EpisodeModel>
-            {
-                new() { Number = 1, Title = "Meeting Giyu", Status = EpisodeStatus.Downloaded },
-                new() { Number = 2, Title = "Final Selection", Status = EpisodeStatus.InProgress },
-                new() { Number = 3, Title = "Sabito & Makomo", Status = EpisodeStatus.Error }
-            }
-        },
-        new AnimeModel
-        {
-            Id = 2,
-            Title = "Demon Slayer",
-            Genre = "Action, Drama",
-            Year = "Year: 21",
-            Tags = "Ojseasons",
-            CoverUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzNkNGY2NiIvPjx0ZXh0IHg9IjUwIiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGVtb24gU2xheWVyPC90ZXh0Pjwvc3ZnPg==",
-            CurrentSeason = "S3",
-            Episodes = new List<EpisodeModel>
-            {
-                new() { Number = 1, Title = "Tanjiro's Journey", Status = EpisodeStatus.Downloaded },
-                new() { Number = 2, Title = "First Mission", Status = EpisodeStatus.InProgress }
-            }
-        }
-    };
+    private bool debugConsole = false;
 
     private void SelectMenuItem(string item)
     {
         selectedMenuItem = item;
     }
 
-    private void OnSearchInput(ChangeEventArgs e)
+    private void OnSearchInput(string query)
     {
-        searchQuery = e.Value?.ToString() ?? "";
+        searchQuery = query;
+    }
+
+    private void OnDebugConsoleToggled(bool value)
+    {
+        debugConsole = !debugConsole;
     }
 
     private void SelectAnime(AnimeModel anime)
     {
-        selectedAnime = selectedAnime?.Id == anime.Id ? null : anime;
-    }
-
-    private void ShowDetails(AnimeModel anime)
-    {
         selectedAnime = anime;
     }
 
-    private string GetEpisodeStatusClass(EpisodeStatus status)
+    private void OnAnimeUpdated(AnimeModel anime)
     {
-        return status switch
+        // Handle anime updates if needed
+    }
+
+    private void SelectFirstAnime()
+    {
+        var animeList = AnimeService.GetAnimeList();
+        if (animeList.Count > 0)
         {
-            EpisodeStatus.Downloaded => "downloaded",
-            EpisodeStatus.InProgress => "in-progress",
-            EpisodeStatus.Error => "error",
-            _ => ""
-        };
+            selectedAnime = animeList[0];
+        }
     }
 
-    private string GetStatusText(EpisodeStatus status)
+    protected override void OnInitialized()
     {
-        return status switch
-        {
-            EpisodeStatus.Downloaded => "Downloaded",
-            EpisodeStatus.InProgress => "In Progress",
-            EpisodeStatus.Error => "Error",
-            _ => ""
-        };
-    }
+        base.OnInitialized();
 
-    public class AnimeModel
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = "";
-        public string Genre { get; set; } = "";
-        public string Year { get; set; } = "";
-        public string Tags { get; set; } = "";
-        public string CoverUrl { get; set; } = "";
-        public string CurrentSeason { get; set; } = "";
-        public List<EpisodeModel> Episodes { get; set; } = new();
-    }
-
-    public class EpisodeModel
-    {
-        public int Number { get; set; }
-        public string Title { get; set; } = "";
-        public EpisodeStatus Status { get; set; }
-    }
-
-    public enum EpisodeStatus
-    {
-        Downloaded,
-        InProgress,
-        Error
+        // Pre-select the first anime on load if there are any
+        SelectFirstAnime();
     }
 }

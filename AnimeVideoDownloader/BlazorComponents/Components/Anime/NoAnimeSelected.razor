@@ -1,0 +1,20 @@
+﻿@using BlazorComponents.Components.Anime.Models
+
+<div class="no-selection">
+    <div class="no-selection-content">
+        <i class="fas fa-tv no-selection-icon"></i>
+        <h2>Select an anime from the sidebar</h2>
+        <p>View details and manage episodes</p>
+        <button class="select-first-btn" @onclick="SelectFirstAnime">Select First Anime</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<AnimeModel> OnSelectFirstAnime { get; set; }
+
+    private async Task SelectFirstAnime()
+    {
+        await OnSelectFirstAnime.InvokeAsync(null);
+    }
+}

@@ -1,0 +1,46 @@
+﻿.no-selection {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.no-selection-content {
+    text-align: center;
+    padding: 2rem;
+    max-width: 400px;
+}
+
+.no-selection-icon {
+    font-size: 4rem;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+}
+
+.no-selection-content h2 {
+    font-size: 1.5rem;
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+
+.no-selection-content p {
+    color: #a0aec0;
+    margin-bottom: 1.5rem;
+}
+
+.select-first-btn {
+    background: linear-gradient(90deg, #4299E1 0%, #667EEA 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.select-first-btn:hover {
+    background: linear-gradient(90deg, #3182ce 0%, #5a67d8 100%);
+    transform: translateY(-1px);
+}

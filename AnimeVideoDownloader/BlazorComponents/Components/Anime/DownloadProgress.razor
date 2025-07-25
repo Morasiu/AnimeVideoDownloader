@@ -1,0 +1,23 @@
+﻿@using BlazorComponents.Components.Anime.Models
+
+<div class="download-progress">
+    <h3>Download Progress</h3>
+    <div class="progress-info">
+        <span>@Anime.Title @Anime.CurrentSeason — @ProgressPercent%</span>
+        <span class="download-speed">@DownloadSpeed MB/s</span>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: @ProgressPercent%"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public AnimeModel Anime { get; set; } = null!;
+
+    [Parameter]
+    public int ProgressPercent { get; set; } = 48;
+
+    [Parameter]
+    public decimal DownloadSpeed { get; set; } = 2.3m;
+}

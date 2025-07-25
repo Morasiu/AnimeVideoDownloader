@@ -1,0 +1,57 @@
+﻿@using BlazorComponents.Components.Anime.Models
+@using BlazorComponents.Components.Anime.Services
+@inject IAnimeService AnimeService
+
+<div class="episodes-section">
+    <h3>Episodes</h3>
+    <div class="episode-list">
+        @foreach (var episode in Anime.Episodes)
+        {
+            <div class="episode-item @AnimeService.GetEpisodeStatusClass(episode.Status)">
+                <div class="episode-number">@episode.Number</div>
+                <div class="episode-title">@episode.Title</div>
+                <div class="episode-status">@AnimeService.GetStatusText(episode.Status)</div>
+                <div class="episode-actions">
+                    @if (episode.Status == EpisodeStatus.Error)
+                    {
+                        <button class="retry-btn" @onclick="() => RetryDownload(episode)"><i class="fas fa-redo"></i> Retry</button>
+                    }
+                    @if (episode.Status == EpisodeStatus.Downloaded)
+                    {
+                        <button class="play-btn" @onclick="() => PlayEpisode(episode)"><i class="fas fa-play"></i> Play</button>
+                    }
+                    else if (episode.Status != EpisodeStatus.InProgress)
+                    {
+                        <button class="download-btn" @onclick="() => DownloadEpisode(episode)"><i class="fas fa-download"></i> Download</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public AnimeModel Anime { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<EpisodeModel> OnEpisodeAction { get; set; }
+
+    private async Task RetryDownload(EpisodeModel episode)
+    {
+        // Implement retry functionality
+        await OnEpisodeAction.InvokeAsync(episode);
+    }
+
+    private async Task PlayEpisode(EpisodeModel episode)
+    {
+        // Implement play functionality
+        await OnEpisodeAction.InvokeAsync(episode);
+    }
+
+    private async Task DownloadEpisode(EpisodeModel episode)
+    {
+        // Implement download functionality
+        await OnEpisodeAction.InvokeAsync(episode);
+    }
+}

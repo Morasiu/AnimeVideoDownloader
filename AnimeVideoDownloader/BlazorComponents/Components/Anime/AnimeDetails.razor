@@ -1,0 +1,62 @@
+﻿@using BlazorComponents.Components.Anime.Models
+@using BlazorComponents.Components.Anime.Services
+@inject IAnimeService AnimeService
+
+<div class="anime-details">
+    <div class="details-header">
+        <div class="anime-info">
+            <div class="title-row">
+                <h2 class="anime-title">@Anime.Title</h2>
+                <span class="anime-season-badge">@Anime.CurrentSeason</span>
+            </div>
+            <div class="anime-meta">
+                <div class="meta-item">
+                    <span class="meta-label"><i class="fas fa-film"></i> Genre:</span>
+                    <span class="meta-value">@Anime.Genre</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label"><i class="fas fa-calendar"></i> Year:</span>
+                    <span class="meta-value">@Anime.Year</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label"><i class="fas fa-tags"></i> Tags:</span>
+                    <span class="meta-value">@Anime.Tags</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn download-all-btn" @onclick="DownloadAll"><i class="fas fa-download"></i> Download All</button>
+                <button class="action-btn refresh-btn" @onclick="RefreshAnime"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="details-content">
+        <EpisodeList Anime="Anime" />
+
+        @if (AnimeService.HasDownloadingEpisodes(Anime))
+        {
+            <DownloadProgress Anime="Anime" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public AnimeModel Anime { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<AnimeModel> OnAnimeUpdated { get; set; }
+
+    private async Task DownloadAll()
+    {
+        // Implement download all functionality
+        await OnAnimeUpdated.InvokeAsync(Anime);
+    }
+
+    private async Task RefreshAnime()
+    {
+        // Implement refresh functionality
+        await OnAnimeUpdated.InvokeAsync(Anime);
+    }
+}

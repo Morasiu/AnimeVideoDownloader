@@ -1,0 +1,77 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+<nav class="top-nav">
+    <div class="left-section">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-tv"></i></div>
+            <span class="logo-text">AniLoad</span>
+        </div>
+
+        <div class="nav-menu">
+            <div class="nav-item @(SelectedMenuItem == "home" ? "active" : "")" @onclick='() => SelectMenuItem("home")'>
+                <span class="nav-icon"><i class="fas fa-home"></i></span>
+                <span class="nav-text">Home</span>
+            </div>
+            <div class="nav-item @(SelectedMenuItem == "kolejka" ? "active" : "")" @onclick='() => SelectMenuItem("kolejka")'>
+                <span class="nav-icon"><i class="fas fa-list-check"></i></span>
+                <span class="nav-text">Queue</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-section">
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon"><i class="fas fa-search"></i></span>
+                <input type="text" placeholder="Search" @bind="SearchQuery" @oninput="OnSearchInput" />
+            </div>
+        </div>
+
+        <div class="nav-item @(SelectedMenuItem == "ustawienia" ? "active" : "")" @onclick='() => SelectMenuItem("ustawienia")'>
+            <span class="nav-icon"><i class="fas fa-cog"></i></span>
+            <span class="nav-text">Settings</span>
+        </div>
+
+        <div class="nav-item" @onclick="ToggleDebugConsole">
+            <span class="nav-icon"><i class="fas fa-bug"></i></span>
+            <span class="nav-text">Debug</span>
+        </div>
+    </div>
+</nav>
+
+@code {
+    [Parameter]
+    public string SelectedMenuItem { get; set; } = "home";
+
+    [Parameter]
+    public EventCallback<string> SelectedMenuItemChanged { get; set; }
+
+    [Parameter]
+    public string SearchQuery { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> SearchQueryChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> DebugConsoleToggled { get; set; }
+
+    private async Task SelectMenuItem(string item)
+    {
+        if (SelectedMenuItem != item)
+        {
+            SelectedMenuItem = item;
+            await SelectedMenuItemChanged.InvokeAsync(item);
+        }
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        string? value = e.Value?.ToString() ?? "";
+        await SearchQueryChanged.InvokeAsync(value);
+    }
+
+    private async Task ToggleDebugConsole()
+    {
+        await DebugConsoleToggled.InvokeAsync(true);
+    }
+}
