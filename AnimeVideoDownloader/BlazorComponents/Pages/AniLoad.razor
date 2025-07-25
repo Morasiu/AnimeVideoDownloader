@@ -2,13 +2,6 @@
 @inject IAnimeService AnimeService
 
 <div class="app-container">
-    <TopNavbar
-        SelectedMenuItem="@selectedMenuItem"
-        SelectedMenuItemChanged="@SelectMenuItem"
-        SearchQuery="@searchQuery"
-        SearchQueryChanged="@OnSearchInput"
-        DebugConsoleToggled="@OnDebugConsoleToggled" />
-
     <div class="main-layout">
         <AnimeSidebar
             SelectedAnime="@selectedAnime"
@@ -31,26 +24,8 @@
 </div>
 
 @code {
-    private string selectedMenuItem = "home";
-    private string searchQuery = "";
     private AnimeModel? selectedAnime;
-    private bool debugConsole = false;
-
-    private void SelectMenuItem(string item)
-    {
-        selectedMenuItem = item;
-    }
-
-    private void OnSearchInput(string query)
-    {
-        searchQuery = query;
-    }
-
-    private void OnDebugConsoleToggled(bool value)
-    {
-        debugConsole = !debugConsole;
-    }
-
+    
     private void SelectAnime(AnimeModel anime)
     {
         selectedAnime = anime;
