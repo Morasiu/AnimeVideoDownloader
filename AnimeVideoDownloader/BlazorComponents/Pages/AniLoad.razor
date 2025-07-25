@@ -1,52 +1,46 @@
 @page "/"
 
+<PageHead>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</PageHead>
+
 <div class="app-container">
-    <!-- Sidebar -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
+    <nav class="top-nav">
+        <div class="left-section">
             <div class="logo">
-                <div class="logo-icon">📺</div>
+                <div class="logo-icon"><i class="fas fa-tv"></i></div>
                 <span class="logo-text">AniLoad</span>
             </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon"><i class="fas fa-search"></i></span>
+                    <input type="text" placeholder="Search" @bind="searchQuery" @oninput="OnSearchInput" />
+                </div>
+            </div>
+
+            <div class="nav-menu">
+                <div class="nav-item @(selectedMenuItem == "home" ? "active" : "")" @onclick='() => SelectMenuItem("home")'>
+                    <span class="nav-icon"><i class="fas fa-home"></i></span>
+                    <span class="nav-text">Home</span>
+                </div>
+                <div class="nav-item @(selectedMenuItem == "kolejka" ? "active" : "")" @onclick='() => SelectMenuItem("kolejka")'>
+                    <span class="nav-icon"><i class="fas fa-list-check"></i></span>
+                    <span class="nav-text">Queue</span>
+                </div>
+            </div>
         </div>
-        
-        <div class="nav-menu">
-            <div class="nav-item @(selectedMenuItem == "home" ? "active" : "")" @onclick='() => SelectMenuItem("home")'>
-                <span class="nav-icon">🏠</span>
-                <span class="nav-text">Strona Główna</span>
-            </div>
-            <div class="nav-item @(selectedMenuItem == "kolejka" ? "active" : "")" @onclick='() => SelectMenuItem("kolejka")'>
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">Kolejka</span>
-            </div>
+
+        <div class="right-section">
             <div class="nav-item @(selectedMenuItem == "ustawienia" ? "active" : "")" @onclick='() => SelectMenuItem("ustawienia")'>
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-text">Ustawienia</span>
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                <span class="nav-text">Settings</span>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="search-container">
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" placeholder="Search" @bind="searchQuery" @oninput="OnSearchInput" />
-                </div>
-            </div>
-            <div class="filter-container">
-                <button class="filter-btn">
-                    <span class="filter-icon">🔽</span>
-                    <span>Filter</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Content Area -->
         <div class="content-area">
-            <!-- Anime Cards -->
             <div class="anime-grid">
                 @foreach (var anime in animeList.Where(a => string.IsNullOrEmpty(searchQuery) || a.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -61,25 +55,24 @@
                                 <span class="year">@anime.Year</span>
                             </div>
                             <button class="details-btn" @onclick:stopPropagation="true" @onclick="() => ShowDetails(anime)">
-                                Rozwiń szczegóły
+                                Show details
                             </button>
                         </div>
                     </div>
                 }
             </div>
 
-            <!-- Episode List Panel -->
             @if (selectedAnime != null)
             {
                 <div class="episode-panel">
                     <div class="panel-header">
                         <h2>@selectedAnime.Title</h2>
                         <div class="season-info">
-                            <span>Season, sezon</span>
+                            <span>Season</span>
                             <span class="tags">Tags: @selectedAnime.Tags</span>
                         </div>
                     </div>
-                    
+
                     <div class="episode-list">
                         @foreach (var episode in selectedAnime.Episodes)
                         {
@@ -90,14 +83,14 @@
                                 <div class="episode-actions">
                                     @if (episode.Status == EpisodeStatus.Error)
                                     {
-                                        <span class="error-icon">⚠️</span>
+                                        <span class="error-icon"><i class="fas fa-exclamation-triangle"></i></span>
                                     }
-                                    <span class="chevron">›</span>
+                                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
                                 </div>
                             </div>
                         }
                     </div>
-                    
+
                     <div class="download-progress">
                         <div class="progress-info">
                             <span>@selectedAnime.Title @selectedAnime.CurrentSeason — @downloadProgress%</span>
@@ -110,18 +103,16 @@
                 </div>
             }
         </div>
-        
     </main>
 </div>
 
 @code {
     private string selectedMenuItem = "home";
     private string searchQuery = "";
-    private string chatMessage = "";
     private AnimeModel? selectedAnime;
     private int downloadProgress = 48;
     private decimal downloadSpeed = 2.3m;
-    
+
     private List<AnimeModel> animeList = new()
     {
         new AnimeModel
@@ -129,7 +120,7 @@
             Id = 1,
             Title = "Solo Leveling",
             Genre = "Action, Fantasy",
-            Year = "Rok: 2024",
+            Year = "Year: 2024",
             Tags = "Ojseasons",
             CoverUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzJkM2E0ZiIvPjx0ZXh0IHg9IjUwIiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U29sbyBMZXZlbGluZzwvdGV4dD48L3N2Zz4=",
             CurrentSeason = "S2",
@@ -145,7 +136,7 @@
             Id = 2,
             Title = "Demon Slayer",
             Genre = "Action, Drama",
-            Year = "Roc 21",
+            Year = "Year: 21",
             Tags = "Ojseasons",
             CoverUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzNkNGY2NiIvPjx0ZXh0IHg9IjUwIiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGVtb24gU2xheWVyPC90ZXh0Pjwvc3ZnPg==",
             CurrentSeason = "S3",
@@ -192,28 +183,11 @@
     {
         return status switch
         {
-            EpisodeStatus.Downloaded => "Pobrany",
-            EpisodeStatus.InProgress => "W trakcie",
-            EpisodeStatus.Error => "Błąd",
+            EpisodeStatus.Downloaded => "Downloaded",
+            EpisodeStatus.InProgress => "In Progress",
+            EpisodeStatus.Error => "Error",
             _ => ""
         };
-    }
-
-    private void HandleChatKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            SendChatMessage();
-        }
-    }
-
-    private void SendChatMessage()
-    {
-        if (!string.IsNullOrWhiteSpace(chatMessage))
-        {
-            // Handle chat message
-            chatMessage = "";
-        }
     }
 
     public class AnimeModel
