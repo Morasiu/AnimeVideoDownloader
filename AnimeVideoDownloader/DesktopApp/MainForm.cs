@@ -10,7 +10,8 @@ public partial class MainForm : Form
         InitializeComponent();
         var services = new ServiceCollection();
         services.AddWindowsFormsBlazorWebView();
-        BlazorWebView blazor = new BlazorWebView()
+        services.AddBlazorWebViewDeveloperTools();
+        BlazorWebView blazor = new BlazorWebView
         {
             Dock = DockStyle.Fill,
             HostPage = "wwwroot/index.html",

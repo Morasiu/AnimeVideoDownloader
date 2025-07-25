@@ -22,12 +22,7 @@ namespace DesktopApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var services = new ServiceCollection();
-            services.AddWindowsFormsBlazorWebView();
-            services.AddBlazorWebViewDeveloperTools();
-            services.AddBlazorComponentsServices();
-
-            var form1 = new Form1(services.BuildServiceProvider());
+            var form1 = new MainForm();
             Application.Run(form1);
         }
     }

@@ -1,6 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Web
-
-<nav class="top-nav">
+﻿<nav class="top-nav">
     <div class="left-section">
         <div class="logo">
             <div class="logo-icon"><i class="fas fa-tv"></i></div>
@@ -12,22 +10,12 @@
                 <span class="nav-icon"><i class="fas fa-home"></i></span>
                 <span class="nav-text">Home</span>
             </div>
-            <div class="nav-item @(SelectedMenuItem == "kolejka" ? "active" : "")" @onclick='() => SelectMenuItem("kolejka")'>
-                <span class="nav-icon"><i class="fas fa-list-check"></i></span>
-                <span class="nav-text">Queue</span>
-            </div>
         </div>
     </div>
 
     <div class="right-section">
-        <div class="search-container">
-            <div class="search-box">
-                <span class="search-icon"><i class="fas fa-search"></i></span>
-                <input type="text" placeholder="Search" @bind="SearchQuery" @oninput="OnSearchInput" />
-            </div>
-        </div>
 
-        <div class="nav-item @(SelectedMenuItem == "ustawienia" ? "active" : "")" @onclick='() => SelectMenuItem("ustawienia")'>
+        <div class="nav-item @(SelectedMenuItem == "settings" ? "active" : "")" @onclick='() => SelectMenuItem("settings")'>
             <span class="nav-icon"><i class="fas fa-cog"></i></span>
             <span class="nav-text">Settings</span>
         </div>
@@ -62,12 +50,6 @@
             SelectedMenuItem = item;
             await SelectedMenuItemChanged.InvokeAsync(item);
         }
-    }
-
-    private async Task OnSearchInput(ChangeEventArgs e)
-    {
-        string? value = e.Value?.ToString() ?? "";
-        await SearchQueryChanged.InvokeAsync(value);
     }
 
     private async Task ToggleDebugConsole()
