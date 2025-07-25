@@ -1,0 +1,38 @@
+﻿@page "/settings"
+
+<h1>Settings</h1>
+
+<div class="settings-container">
+    <div class="settings-section">
+        <h2>Application Settings</h2>
+
+        <div class="setting-group">
+            <h3>General</h3>
+            <div class="setting-item">
+                <label>Theme</label>
+                <select>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">System Default</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>Playback</h3>
+            <div class="setting-item">
+                <label>Default Quality</label>
+                <select>
+                    <option value="auto">Auto</option>
+                    <option value="1080p">1080p</option>
+                    <option value="720p">720p</option>
+                    <option value="480p">480p</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Settings page logic will go here
+}

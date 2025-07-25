@@ -2,12 +2,7 @@
 @inject IAnimeService AnimeService
 
 <div class="app-container">
-    <TopNavbar
-        SelectedMenuItem="@selectedMenuItem"
-        SelectedMenuItemChanged="@SelectMenuItem"
-        SearchQuery="@searchQuery"
-        SearchQueryChanged="@OnSearchInput"
-        DebugConsoleToggled="@OnDebugConsoleToggled" />
+    <TopNavbar />
 
     <div class="main-layout">
         
@@ -24,40 +19,5 @@
 </div>
 
 @code {
-    private string selectedMenuItem = "home";
-    private string searchQuery = "";
-    private AnimeModel? selectedAnime;
-    private bool debugConsole = false;
-
-    private void SelectMenuItem(string item)
-    {
-        selectedMenuItem = item;
-    }
-
-    private void OnSearchInput(string query)
-    {
-        searchQuery = query;
-    }
-
-    private void OnDebugConsoleToggled(bool value)
-    {
-        debugConsole = !debugConsole;
-    }
-
-    private void SelectAnime(AnimeModel anime)
-    {
-        selectedAnime = anime;
-    }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        // Pre-select the first anime on load if there are any
-        var animeList = AnimeService.GetAnimeList();
-        if (animeList.Count > 0)
-        {
-            selectedAnime = animeList[0];
-        }
-    }
+    
 }

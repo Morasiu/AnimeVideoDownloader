@@ -51,7 +51,7 @@
     gap: 0.5rem;
 }
 
-.nav-item {
+::deep .nav-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -60,14 +60,15 @@
     cursor: pointer;
     transition: all 0.2s ease;
     color: #a0aec0;
+    text-decoration: none;
 }
 
-.nav-item:hover {
+::deep .nav-item:hover {
     background: #2d3748;
     color: white;
 }
 
-.nav-item.active {
+::deep .nav-item.active {
     background: #4c51bf;
     color: white;
 }

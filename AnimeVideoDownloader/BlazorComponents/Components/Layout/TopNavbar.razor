@@ -6,54 +6,25 @@
         </div>
 
         <div class="nav-menu">
-            <div class="nav-item @(SelectedMenuItem == "home" ? "active" : "")" @onclick='() => SelectMenuItem("home")'>
+            <NavLink class="nav-item" href="" Match="NavLinkMatch.All" ActiveClass="active">
                 <span class="nav-icon"><i class="fas fa-home"></i></span>
                 <span class="nav-text">Home</span>
-            </div>
+            </NavLink>
         </div>
     </div>
 
     <div class="right-section">
-
-        <div class="nav-item @(SelectedMenuItem == "settings" ? "active" : "")" @onclick='() => SelectMenuItem("settings")'>
+        <NavLink class="nav-item" href="settings" ActiveClass="active">
             <span class="nav-icon"><i class="fas fa-cog"></i></span>
             <span class="nav-text">Settings</span>
-        </div>
-
-        <div class="nav-item" @onclick="ToggleDebugConsole">
+        </NavLink>
+        
+        <NavLink class="nav-item" href="debug" ActiveClass="active">
             <span class="nav-icon"><i class="fas fa-bug"></i></span>
             <span class="nav-text">Debug</span>
-        </div>
+        </NavLink>
     </div>
 </nav>
 
 @code {
-    [Parameter]
-    public string SelectedMenuItem { get; set; } = "home";
-
-    [Parameter]
-    public EventCallback<string> SelectedMenuItemChanged { get; set; }
-
-    [Parameter]
-    public string SearchQuery { get; set; } = "";
-
-    [Parameter]
-    public EventCallback<string> SearchQueryChanged { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> DebugConsoleToggled { get; set; }
-
-    private async Task SelectMenuItem(string item)
-    {
-        if (SelectedMenuItem != item)
-        {
-            SelectedMenuItem = item;
-            await SelectedMenuItemChanged.InvokeAsync(item);
-        }
-    }
-
-    private async Task ToggleDebugConsole()
-    {
-        await DebugConsoleToggled.InvokeAsync(true);
-    }
 }

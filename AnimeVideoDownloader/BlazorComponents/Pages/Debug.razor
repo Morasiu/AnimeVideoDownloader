@@ -1,0 +1,43 @@
+﻿@page "/debug"
+
+<h1>Debug Console</h1>
+
+<div class="debug-container">
+    <div class="debug-console">
+        <div class="console-header">
+            <h2>Application Log</h2>
+            <button class="clear-button">Clear Console</button>
+        </div>
+
+        <div class="console-output">
+            <pre id="console-log">
+// Debug information will appear here
+System initialized
+UI components loaded
+            </pre>
+        </div>
+
+        <div class="console-input">
+            <input type="text" placeholder="Enter debug command..." @bind="debugCommand" @bind:event="oninput" @onkeydown="HandleKeyDown" />
+            <button @onclick="ExecuteCommand">Execute</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string debugCommand = "";
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ExecuteCommand();
+        }
+    }
+
+    private void ExecuteCommand()
+    {
+        // Debug command execution logic
+        debugCommand = "";
+    }
+}
