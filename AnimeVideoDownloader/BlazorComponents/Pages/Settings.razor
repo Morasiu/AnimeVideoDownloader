@@ -38,14 +38,14 @@
 @code {
     [Inject]
     private ILogger<Settings> Logger { get; set; } = null!;
-    
+
     [Inject]
     private IBrowser Browser { get; set; } = null!;
 
     protected override void OnInitialized()
     {
-        Logger.LogInformation("Settings page initialized");
         base.OnInitialized();
+        Logger.LogCritical("Settings page initialized");
     }
 
     protected override async Task OnInitializedAsync()
@@ -54,11 +54,4 @@
         await page.GotoAsync("https://google.com");
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        Logger.LogInformation("ETT");
-        var page = await Browser.NewPageAsync();
-        await page.GotoAsync("google.com");
-        await base.OnAfterRenderAsync(firstRender);
-    }
 }

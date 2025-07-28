@@ -1,5 +1,6 @@
 ﻿using BlazorComponents.Components.Anime.Services;
 using BlazorComponents.Drivers;
+using BlazorComponents.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
@@ -23,7 +24,7 @@ namespace BlazorComponents.Extensions
                 var memoryLoggerProvider = new MemoryLoggerProvider(memoryLogService);
                 loggingBuilder.AddProvider(memoryLoggerProvider);
             });
-            
+            services.AddTransient<PlaywrightInitBackgroundService>();
             return services;
         }
     }

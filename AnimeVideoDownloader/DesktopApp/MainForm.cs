@@ -1,8 +1,10 @@
+using System.Text;
 using BlazorComponents;
 using BlazorComponents.Extensions;
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NReco.Logging.File;
 
 namespace DesktopApp;
 public partial class MainForm : Form
@@ -12,6 +14,13 @@ public partial class MainForm : Form
         InitializeComponent();
         var services = new ServiceCollection();
         services.AddBlazorComponentsServices();
+        services.AddLogging(l => l
+            .AddConsole()
+            .AddFile("anime_downloader.log", o =>
+            {
+                o.Append = true;
+                o.FileSizeLimitBytes = 1024 * 1024 * 10;
+            }));
         services.AddWindowsFormsBlazorWebView();
         services.AddBlazorWebViewDeveloperTools();
         

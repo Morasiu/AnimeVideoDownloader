@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Components.WebView.WindowsForms;
-using BlazorComponents;
-using BlazorComponents.Extensions;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace DesktopApp
 {
