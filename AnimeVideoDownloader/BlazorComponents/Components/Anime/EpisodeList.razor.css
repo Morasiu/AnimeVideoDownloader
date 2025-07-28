@@ -23,7 +23,8 @@
 .episode-item {
     display: flex;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 0.5rem 1rem;
+    min-height: 3rem;
     border-radius: 8px;
     transition: background 0.2s ease;
     cursor: pointer;

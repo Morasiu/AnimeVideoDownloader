@@ -1,4 +1,8 @@
 ﻿@page "/debug"
+@using Microsoft.Extensions.Logging
+@using BlazorComponents.Services
+@inject ILogger<Debug> Logger
+@implements IDisposable
 
 <h1>Debug Console</h1>
 
@@ -6,38 +10,73 @@
     <div class="debug-console">
         <div class="console-header">
             <h2>Application Log</h2>
-            <button class="clear-button">Clear Console</button>
+            <div class="console-actions">
+                <button class="btn btn-sm btn-outline-danger" @onclick="ClearLogs">Clear Logs</button>
+            </div>
         </div>
-
         <div class="console-output">
-            <pre id="console-log">
-// Debug information will appear here
-System initialized
-UI components loaded
-            </pre>
-        </div>
-
-        <div class="console-input">
-            <input type="text" placeholder="Enter debug command..." @bind="debugCommand" @bind:event="oninput" @onkeydown="HandleKeyDown" />
-            <button @onclick="ExecuteCommand">Execute</button>
+            @foreach (var entry in DebugLoggerProvider.LogEntries)
+            {
+                <div class="@GetLogLevelClass(entry.Level)">@entry.FormattedMessage</div>
+            }
         </div>
     </div>
 </div>
 
 @code {
-    private string debugCommand = "";
+    [Inject]
+    private DebugLoggerProvider LoggerProvider { get; set; } = null!;
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    protected override void OnInitialized()
     {
-        if (e.Key == "Enter")
+        // Set the static action to capture logs
+        DebugLoggerProvider.LogMessageAction = CaptureLog;
+
+        // Log initialization message if this is the first time
+        if (DebugLoggerProvider.LogEntries.Count == 0)
         {
-            ExecuteCommand();
+            LogMessage(LogLevel.Information, "Debug console initialized.", "Debug");
         }
     }
 
-    private void ExecuteCommand()
+    private void CaptureLog(LogLevel logLevel, string category, string message)
     {
-        // Debug command execution logic
-        debugCommand = "";
+        InvokeAsync(() => {
+            LogMessage(logLevel, message, category);
+            StateHasChanged();
+        });
+    }
+
+    private void LogMessage(LogLevel logLevel, string message, string? category = null)
+    {
+        var categoryDisplay = !string.IsNullOrEmpty(category) ? $"[{category}] " : "";
+        var formattedMessage = $"{DateTime.Now:T} [{logLevel.ToString().ToUpper()}] {categoryDisplay}{message}";
+        DebugLoggerProvider.AddLogEntry(logLevel, category ?? "", message, formattedMessage);
+    }
+
+    private string GetLogLevelClass(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Information => "text-info",
+            LogLevel.Warning => "text-warning",
+            LogLevel.Error => "text-danger",
+            LogLevel.Critical => "text-danger fw-bold",
+            LogLevel.Debug => "text-secondary",
+            LogLevel.Trace => "text-muted",
+            _ => "text-light"
+        };
+    }
+
+    private void ClearLogs()
+    {
+        DebugLoggerProvider.LogEntries.Clear();
+        LogMessage(LogLevel.Information, "Logs cleared", "Debug");
+    }
+
+    public void Dispose()
+    {
+        // Only dispose the provider when the application is shutting down, not when navigating
+        // We're keeping this empty to prevent provider disposal during navigation
     }
 }

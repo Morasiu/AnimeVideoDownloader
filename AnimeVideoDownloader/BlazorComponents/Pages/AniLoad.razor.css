@@ -1,13 +1,4 @@
-﻿.app-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-    color: #e2e8f0;
-    background: #111827;
-}
-
-.main-layout {
+﻿.main-layout {
     display: flex;
     flex: 1;
     overflow: hidden;
