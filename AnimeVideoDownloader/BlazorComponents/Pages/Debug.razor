@@ -1,82 +1,234 @@
 ﻿@page "/debug"
-@using Microsoft.Extensions.Logging
-@using BlazorComponents.Services
+@inject MemoryLogService LogService
 @inject ILogger<Debug> Logger
+@using Microsoft.Extensions.Logging
 @implements IDisposable
+@rendermode InteractiveServer
 
-<h1>Debug Console</h1>
+<PageTitle>Logs Viewer</PageTitle>
 
-<div class="debug-container">
-    <div class="debug-console">
-        <div class="console-header">
-            <h2>Application Log</h2>
-            <div class="console-actions">
-                <button class="btn btn-sm btn-outline-danger" @onclick="ClearLogs">Clear Logs</button>
-            </div>
-        </div>
-        <div class="console-output">
-            @foreach (var entry in DebugLoggerProvider.LogEntries)
-            {
-                <div class="@GetLogLevelClass(entry.Level)">@entry.FormattedMessage</div>
-            }
+<div class="container mt-4">
+    <h3>Application Logs</h3>
+    
+    <div class="mb-3">
+        <button class="btn btn-primary me-2" @onclick="RefreshLogs">Refresh</button>
+        <button class="btn btn-warning me-2" @onclick="ClearLogs">Clear Logs</button>
+        <button class="btn btn-success me-2" @onclick="TestLog">Test Log</button>
+        <button class="btn btn-success me-2" @onclick="() => Console.WriteLine('a')">TestClick</button>
+        
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" @bind="autoRefresh" id="autoRefresh">
+            <label class="form-check-label" for="autoRefresh">
+                Auto-refresh
+            </label>
         </div>
     </div>
+
+    <div class="mb-3">
+        <label for="logLevelFilter" class="form-label">Filter by level:</label>
+        <select class="form-select" @bind="selectedLogLevel" @bind:after="FilterLogs">
+            <option value="">All</option>
+            <option value="Trace">Trace</option>
+            <option value="Debug">Debug</option>
+            <option value="Information">Information</option>
+            <option value="Warning">Warning</option>
+            <option value="Error">Error</option>
+            <option value="Critical">Critical</option>
+        </select>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Level</th>
+                    <th>Category</th>
+                    <th>Message</th>
+                    <th>Exception</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in filteredLogs.OrderByDescending(l => l.Timestamp))
+                {
+                    <tr class="@GetRowClass(log.Level)">
+                        <td>@log.Timestamp.ToString("HH:mm:ss.fff")</td>
+                        <td>
+                            <span class="badge @GetLogLevelBadgeClass(log.Level)">
+                                @log.Level
+                            </span>
+                        </td>
+                        <td>@log.Category</td>
+                        <td>@log.Message</td>
+                        <td>
+                            @if (log.Exception != null)
+                            {
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        @onclick="() => ShowException(log.Exception)">
+                                    Show
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (logs.Count == 0)
+    {
+        <div class="alert alert-info">
+            No logs to display
+        </div>
+    }
 </div>
 
+<!-- Modal for exception -->
+@if (selectedException != null)
+{
+    <div class="modal show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Exception Details</h5>
+                    <button type="button" class="btn-close" @onclick="CloseExceptionModal"></button>
+                </div>
+                <div class="modal-body">
+                    <pre>@selectedException.ToString()</pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseExceptionModal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show"></div>
+}
+
 @code {
-    [Inject]
-    private DebugLoggerProvider LoggerProvider { get; set; } = null!;
+    private List<LogEntry> logs = new();
+    private List<LogEntry> filteredLogs = new();
+    private string selectedLogLevel = "";
+    private bool autoRefresh = false;
+    private Exception? selectedException;
+    private Timer? refreshTimer;
 
     protected override void OnInitialized()
     {
-        // Set the static action to capture logs
-        DebugLoggerProvider.LogMessageAction = CaptureLog;
-
-        // Log initialization message if this is the first time
-        if (DebugLoggerProvider.LogEntries.Count == 0)
+        LogService.LogsChanged += OnLogsChanged;
+        RefreshLogs();
+        
+        // Setup timer for auto-refresh
+        refreshTimer = new Timer(async _ =>
         {
-            LogMessage(LogLevel.Information, "Debug console initialized.", "Debug");
-        }
+            if (autoRefresh)
+            {
+                await InvokeAsync(() =>
+                {
+                    RefreshLogs();
+                    StateHasChanged();
+                });
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
     }
 
-    private void CaptureLog(LogLevel logLevel, string category, string message)
+    private void OnLogsChanged()
     {
-        InvokeAsync(() => {
-            LogMessage(logLevel, message, category);
-            StateHasChanged();
+        InvokeAsync(() =>
+        {
+            if (autoRefresh)
+            {
+                RefreshLogs();
+                StateHasChanged();
+            }
         });
     }
 
-    private void LogMessage(LogLevel logLevel, string message, string? category = null)
+    private void RefreshLogs()
     {
-        var categoryDisplay = !string.IsNullOrEmpty(category) ? $"[{category}] " : "";
-        var formattedMessage = $"{DateTime.Now:T} [{logLevel.ToString().ToUpper()}] {categoryDisplay}{message}";
-        DebugLoggerProvider.AddLogEntry(logLevel, category ?? "", message, formattedMessage);
+        logs = LogService.GetLogs();
+        FilterLogs();
     }
 
-    private string GetLogLevelClass(LogLevel level)
+    private void FilterLogs()
     {
-        return level switch
+        if (string.IsNullOrEmpty(selectedLogLevel))
         {
-            LogLevel.Information => "text-info",
-            LogLevel.Warning => "text-warning",
-            LogLevel.Error => "text-danger",
-            LogLevel.Critical => "text-danger fw-bold",
-            LogLevel.Debug => "text-secondary",
-            LogLevel.Trace => "text-muted",
-            _ => "text-light"
-        };
+            filteredLogs = logs;
+        }
+        else
+        {
+            if (Enum.TryParse<LogLevel>(selectedLogLevel, out var level))
+            {
+                filteredLogs = logs.Where(l => l.Level == level).ToList();
+            }
+        }
     }
 
     private void ClearLogs()
     {
-        DebugLoggerProvider.LogEntries.Clear();
-        LogMessage(LogLevel.Information, "Logs cleared", "Debug");
+        LogService.ClearLogs();
+        RefreshLogs();
+    }
+
+    private void TestLog()
+    {
+        Console.WriteLine("Test");
+        Logger.LogInformation("Test log message at {Time}", DateTime.Now);
+        Logger.LogWarning("Test warning message");
+        Logger.LogError("Test error message");
+        
+        try
+        {
+            throw new InvalidOperationException("Test exception");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Test exception log");
+        }
+        StateHasChanged();
+    }
+
+    private string GetRowClass(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Error or LogLevel.Critical => "table-danger",
+            LogLevel.Warning => "table-warning",
+            LogLevel.Information => "table-info",
+            _ => ""
+        };
+    }
+
+    private string GetLogLevelBadgeClass(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Trace => "bg-secondary",
+            LogLevel.Debug => "bg-info",
+            LogLevel.Information => "bg-primary",
+            LogLevel.Warning => "bg-warning",
+            LogLevel.Error => "bg-danger",
+            LogLevel.Critical => "bg-dark",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    private void ShowException(Exception exception)
+    {
+        selectedException = exception;
+    }
+
+    private void CloseExceptionModal()
+    {
+        selectedException = null;
     }
 
     public void Dispose()
     {
-        // Only dispose the provider when the application is shutting down, not when navigating
-        // We're keeping this empty to prevent provider disposal during navigation
+        LogService.LogsChanged -= OnLogsChanged;
+        refreshTimer?.Dispose();
     }
 }

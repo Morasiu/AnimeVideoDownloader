@@ -16,6 +16,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.7"/>
+        <PackageReference Include="Microsoft.Playwright" Version="1.54.0" />
     </ItemGroup>
 
     <ItemGroup>
