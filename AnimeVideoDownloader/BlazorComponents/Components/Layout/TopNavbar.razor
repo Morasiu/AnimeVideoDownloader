@@ -1,4 +1,6 @@
-﻿<nav class="top-nav">
+﻿@using System.Linq
+
+<nav class="top-nav">
     <div class="left-section">
         <div class="logo">
             <div class="logo-icon"><i class="fas fa-tv"></i></div>
@@ -22,9 +24,49 @@
         <NavLink class="nav-item" href="debug" ActiveClass="active">
             <span class="nav-icon"><i class="fas fa-bug"></i></span>
             <span class="nav-text">Debug</span>
+            @if (HasExceptions)
+            {
+                <span class="error-badge"><i class="fas fa-exclamation-circle"></i></span>
+            }
         </NavLink>
     </div>
 </nav>
 
+<style>
+    .error-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: #ff4444;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 0.8em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-item {
+        position: relative;
+    }
+</style>
+
 @code {
+    [Inject] private MemoryLogService LogService { get; set; } = default!;
+
+    private bool HasExceptions => LogService.GetLogs().Any(log => log.Exception != null);
+
+    protected override void OnInitialized()
+    {
+        LogService.LogsChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LogService.LogsChanged -= StateHasChanged;
+    }
 }
+
+@implements IDisposable

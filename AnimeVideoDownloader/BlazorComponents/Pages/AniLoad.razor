@@ -1,5 +1,7 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Logging
 @inject IAnimeService AnimeService
+@inject ILogger<AniLoad> Logger
 
 <div class="app-container">
     <div class="main-layout">
