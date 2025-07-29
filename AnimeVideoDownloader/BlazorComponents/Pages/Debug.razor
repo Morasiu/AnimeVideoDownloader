@@ -1,6 +1,5 @@
 ﻿@page "/debug"
-@inject MemoryLogService LogService
-@inject ILogger<Debug> Logger
+
 @using System.Diagnostics
 @using BlazorComponents.Services
 @using Microsoft.Extensions.Logging
@@ -104,6 +103,11 @@
 }
 
 @code {
+    [Inject]
+    private MemoryLogService LogService { get; set; } = null!;
+    [Inject]
+    private ILogger<Debug> Logger { get; set; } = null!;
+
     private List<LogEntry> logs = new();
     private List<LogEntry> filteredLogs = new();
     private string selectedLogLevel = "";

@@ -1,6 +1,5 @@
 ﻿@page "/settings"
 @using Microsoft.Extensions.Logging
-@using Microsoft.Playwright
 
 <h1>Settings</h1>
 
@@ -38,19 +37,4 @@
 @code {
     [Inject]
     private ILogger<Settings> Logger { get; set; } = null!;
-
-    [Inject]
-    private IBrowser Browser { get; set; } = null!;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        var page = await Browser.NewPageAsync();
-        await page.GotoAsync("https://google.com");
-    }
-
 }

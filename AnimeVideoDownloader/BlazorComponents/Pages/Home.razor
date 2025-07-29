@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using Microsoft.Extensions.Logging
 @inject IAnimeService AnimeService
-@inject ILogger<Home> Logger
+
 
 <div class="app-container">
     <div class="main-layout">
@@ -26,6 +26,8 @@
 </div>
 
 @code {
+    [Inject]
+    private ILogger<Home> Logger { get; set; } = null!;
     private AnimeModel? selectedAnime;
     
     private void SelectAnime(AnimeModel anime)

@@ -14,8 +14,6 @@ namespace BlazorComponents.Extensions
         public static IServiceCollection AddBlazorComponentsServices(this IServiceCollection services)
         {
             // Register component services
-            services.AddSingleton<IAnimeService, AnimeService>();
-            services.AddSingleton<IBrowser>(_ => ChromeDriverFactory.CreateNewAsync().GetAwaiter().GetResult());
             services.AddSingleton<MemoryLogService>();
             services.AddLogging(loggingBuilder =>
             {
@@ -24,6 +22,8 @@ namespace BlazorComponents.Extensions
                 var memoryLoggerProvider = new MemoryLoggerProvider(memoryLogService);
                 loggingBuilder.AddProvider(memoryLoggerProvider);
             });
+            services.AddSingleton<IAnimeService, AnimeService>();
+            services.AddSingleton<IBrowser>(_ => ChromeDriverFactory.CreateNewAsync().GetAwaiter().GetResult());
             services.AddTransient<PlaywrightInitBackgroundService>();
             return services;
         }
