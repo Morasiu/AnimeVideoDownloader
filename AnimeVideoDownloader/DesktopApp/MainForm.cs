@@ -1,4 +1,3 @@
-using System.Text;
 using BlazorComponents;
 using BlazorComponents.Extensions;
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;

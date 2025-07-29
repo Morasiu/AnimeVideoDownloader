@@ -1,6 +1,5 @@
 using BlazorComponents;
 using BlazorComponents.Extensions;
-using Microsoft.Playwright;
 
 var builder = WebApplication.CreateBuilder(args);
 

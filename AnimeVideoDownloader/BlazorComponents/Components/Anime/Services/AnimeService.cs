@@ -10,10 +10,6 @@ namespace BlazorComponents.Components.Anime.Services
             {
                 Id = 1,
                 Title = "Solo Leveling",
-                Genre = "Action, Fantasy",
-                Year = "2024",
-                Tags = "Ojseasons",
-                CurrentSeason = "S2",
                 Episodes = new List<EpisodeModel>
                 {
                     new() { Number = 1, Title = "Meeting Giyu", Status = EpisodeStatus.Downloaded },
@@ -25,10 +21,6 @@ namespace BlazorComponents.Components.Anime.Services
             {
                 Id = 2,
                 Title = "Demon Slayer",
-                Genre = "Action, Drama",
-                Year = "2021",
-                Tags = "Ojseasons",
-                CurrentSeason = "S3",
                 Episodes = new List<EpisodeModel>
                 {
                     new() { Number = 1, Title = "Tanjiro's Journey", Status = EpisodeStatus.Downloaded },
@@ -39,10 +31,6 @@ namespace BlazorComponents.Components.Anime.Services
             {
                 Id = 3,
                 Title = "Attack on Titan",
-                Genre = "Action, Drama, Fantasy",
-                Year = "2023",
-                Tags = "Ojseasons, Completed",
-                CurrentSeason = "Final",
                 Episodes = new List<EpisodeModel>
                 {
                     new() { Number = 1, Title = "The Final Battle", Status = EpisodeStatus.Downloaded },
