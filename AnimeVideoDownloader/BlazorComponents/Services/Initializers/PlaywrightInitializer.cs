@@ -2,23 +2,22 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
-namespace BlazorComponents.Services;
+namespace BlazorComponents.Services.Initializers;
 
-public sealed class PlaywrightInitBackgroundService
+public sealed class PlaywrightInitializer : IInitializer
 {
-    private readonly ILogger<PlaywrightInitBackgroundService> _logger;
+    private readonly ILogger<PlaywrightInitializer> _logger;
     private readonly IServiceProvider _serviceProvider;
 
 
-    public PlaywrightInitBackgroundService(ILogger<PlaywrightInitBackgroundService> logger, IServiceProvider serviceProvider)
+    public PlaywrightInitializer(ILogger<PlaywrightInitializer> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
     
-    public async Task InitAsync(CancellationToken cancellationToken)
+    public Task InitAsync()
     {
-        await Task.Delay(1000, cancellationToken);
         _logger.LogInformation("Installing Playwright");
         int exitCode = Program.Main(["install", "chromium"]);
         if (exitCode != 0)
@@ -30,5 +29,6 @@ public sealed class PlaywrightInitBackgroundService
         _logger.LogInformation("Creating Playwright Browser");
         _serviceProvider.GetRequiredService<IBrowser>();
         _logger.LogInformation("Creating Playwright Browser finished");
+        return Task.CompletedTask;
     }
 }

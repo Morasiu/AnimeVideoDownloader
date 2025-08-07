@@ -3,6 +3,9 @@
 @using System.Diagnostics
 @using BlazorComponents.Services
 @using Microsoft.Extensions.Logging
+@using System.Text
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
 @implements IDisposable
 
 <PageTitle>Logs Viewer</PageTitle>
@@ -13,6 +16,7 @@
     <div class="button-group">
         <button class="btn-refresh" @onclick="RefreshLogs">Refresh</button>
         <button class="btn-clear" @onclick="ClearLogs">Clear Logs</button>
+        <button class="btn-export" @onclick="ExportLogs">Export Logs</button>
         @if (Debugger.IsAttached)
         {
             <button class="btn-test" @onclick="TestLog">Test Log</button>
@@ -32,15 +36,15 @@
         </select>
     </div>
 
-    <div class="table-container">
+            <div class="table-container" style="max-height: 500px; overflow-y: auto;">
         <table class="log-table">
             <thead>
             <tr>
-                <th style="color: #212529; background-color: #e9ecef;">Time</th>
-                <th style="color: #212529; background-color: #e9ecef;">Level</th>
-                <th style="color: #212529; background-color: #e9ecef;">Category</th>
-                <th style="color: #212529; background-color: #e9ecef;">Message</th>
-                <th style="color: #212529; background-color: #e9ecef;">Exception</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Time</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Level</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Category</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Message</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Exception</th>
             </tr>
             </thead>
             <tbody>
@@ -190,6 +194,48 @@
     private void CloseExceptionModal()
     {
         selectedException = null;
+    }
+
+    private void ExportLogs()
+    {
+        try
+        {
+            // Create a formatted log text
+            var sb = new StringBuilder();
+
+            // Add each log entry in a readable format
+            foreach (var log in filteredLogs.OrderBy(l => l.Timestamp))
+            {
+                sb.AppendLine($"[{log.Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{log.Level}] [{log.Category}] {log.Message}");
+
+                // Add exception details if available
+                if (log.Exception != null)
+                {
+                    sb.AppendLine($"Exception: {log.Exception}");
+                    sb.AppendLine();
+                }
+            }
+
+            var fileName = $"application_logs_{DateTime.Now:yyyyMMdd_HHmmss}.log";
+            var logContent = sb.ToString();
+
+            // In a pure Blazor WebAssembly or Server app, we need to implement a file download
+            // through the server side, or we'd need a minimal JS Interop. 
+            // Let's add a method to save logs to a specific directory on the server.
+
+            // Save to a file in the logs directory
+            var logsDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+            Directory.CreateDirectory(logsDirectory); // Ensure directory exists
+
+            var filePath = Path.Combine(logsDirectory, fileName);
+            File.WriteAllText(filePath, logContent);
+
+            Logger.LogInformation("Logs exported to file: {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting logs to file");
+        }
     }
 
     public void Dispose()

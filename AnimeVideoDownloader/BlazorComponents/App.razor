@@ -1,5 +1,5 @@
-﻿@using BlazorComponents.Services
-@inject PlaywrightInitBackgroundService PlaywrightInitBackgroundService;
+﻿@using BlazorComponents.Services.Initializers
+@inject AppInitializer AppInitializer;
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,15 +26,11 @@
 </html>
 
 @code {
-
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await Task.Run(() => PlaywrightInitBackgroundService.InitAsync(CancellationToken.None));
+            await Task.Run(() => AppInitializer.InitAsync());
         }
     }
-
-
 }

@@ -1,4 +1,8 @@
-﻿@inject IAnimeService AnimeService
+﻿@using BlazorComponents.Services.AppData
+@using BlazorComponents.Services.YoutubeDLService
+@using Microsoft.Extensions.Logging
+@using YoutubeDLSharp
+@inject IAnimeService AnimeService
 
 <div class="episodes-section">
     <h3>Episodes</h3>
@@ -12,15 +16,20 @@
                 <div class="episode-actions">
                     @if (episode.Status == EpisodeStatus.Error)
                     {
-                        <button class="retry-btn" @onclick="() => RetryDownload(episode)"><i class="fas fa-redo"></i> Retry</button>
+                        <button class="retry-btn" @onclick="() => RetryDownload(episode)"><i class="fas fa-redo"></i>
+                            Retry
+                        </button>
                     }
                     @if (episode.Status == EpisodeStatus.Downloaded)
                     {
-                        <button class="play-btn" @onclick="() => PlayEpisode(episode)"><i class="fas fa-play"></i> Play</button>
+                        <button class="play-btn" @onclick="() => PlayEpisode(episode)"><i class="fas fa-play"></i> Play
+                        </button>
                     }
                     else if (episode.Status != EpisodeStatus.InProgress)
                     {
-                        <button class="download-btn" @onclick="() => DownloadEpisode(episode)"><i class="fas fa-download"></i> Download</button>
+                        <button class="download-btn" @onclick="() => DownloadEpisode(episode)"><i
+                                class="fas fa-download"></i> Download
+                        </button>
                     }
                 </div>
             </div>
@@ -34,6 +43,14 @@
 
     [Parameter]
     public EventCallback<EpisodeModel> OnEpisodeAction { get; set; }
+
+    [Inject]
+    public DownloaderService DownloaderService { get; set; }
+
+    [Inject]
+    public ILogger<EpisodeList> Logger { get; set; }
+
+    private CancellationTokenSource cts = new CancellationTokenSource();
 
     private async Task RetryDownload(EpisodeModel episode)
     {
@@ -49,7 +66,11 @@
 
     private async Task DownloadEpisode(EpisodeModel episode)
     {
-        // Implement download functionality
-        await OnEpisodeAction.InvokeAsync(episode);
+        var downloadProgress = new Progress<AnimeDownloadDownloadProgress>(p => 
+            Logger.LogInformation("Download progress - Status: {Status}, Progress: {Progress:P}, Speed: {Speed}, ETA: {Eta}, TotalBytes: {TotalBytes}, Error: {Error}", 
+                p.Status, p.Progress, p.DownloadSpeed, p.ETA, p.TotalBytes, p.Error ?? "None")
+            );
+         await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress, ct: cts.Token);
     }
+
 }
