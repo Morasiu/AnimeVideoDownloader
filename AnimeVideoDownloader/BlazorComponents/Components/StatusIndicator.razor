@@ -28,12 +28,6 @@
                 <div class="status-item-detail">
                     <strong>Application:</strong> Running
                 </div>
-                <div class="status-item-detail">
-                    <strong>Logs:</strong> @LogService.GetLogs().Count() entries
-                </div>
-                <div class="status-item-detail">
-                    <strong>Exceptions:</strong> @LogService.GetLogs().Count(log => log.Exception != null)
-                </div>
                 @foreach (var initResult in _results)
                 {
                     <div class="status-item-detail">
@@ -61,7 +55,6 @@
 </div>
 
 @code {
-    [Inject] private MemoryLogService LogService { get; set; } = default!;
     [Inject] private AppInitializer AppInitializer { get; set; } = default!;
 
     private IReadOnlyCollection<InitResult> _results => AppInitializer.Results;
@@ -89,16 +82,13 @@
 
     protected override void OnInitialized()
     {
-        LogService.LogsChanged += StateHasChanged;
         AppInitializer.StatusChanged += OnStatusChanged;
     }
 
     public void Dispose()
     {
-        LogService.LogsChanged -= StateHasChanged;
         AppInitializer.StatusChanged -= OnStatusChanged;
     }
-
 }
 
 @implements IDisposable

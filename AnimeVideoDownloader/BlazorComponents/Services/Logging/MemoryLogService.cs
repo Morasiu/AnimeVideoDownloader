@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorComponents.Services.Logging;
 
@@ -14,42 +15,23 @@ public class LogEntry
 
 public class MemoryLogService
 {
-    private static readonly List<LogEntry> _logs = new();
-    private static readonly object _lock = new();
-    private readonly int _maxLogs = 1000; 
+    private static readonly ObservableCollection<LogEntry> _logs = new();
+    private readonly int _maxLogs = 1000;
+    public ObservableCollection<LogEntry> Logs => _logs;
 
-    public event Action? LogsChanged;
 
     public void AddLog(LogEntry logEntry)
     {
-        lock (_lock)
+        _logs.Add(logEntry);
+        if (_logs.Count > _maxLogs)
         {
-            _logs.Add(logEntry);
-            
-            if (_logs.Count > _maxLogs)
-            {
-                _logs.RemoveAt(0);
-            }
-        }
-        
-        LogsChanged?.Invoke();
-    }
-
-    public List<LogEntry> GetLogs()
-    {
-        lock (_lock)
-        {
-            return new List<LogEntry>(_logs);
+            _logs.RemoveAt(0);
         }
     }
 
     public void ClearLogs()
     {
-        lock (_lock)
-        {
-            _logs.Clear();
-        }
-        LogsChanged?.Invoke();
+        _logs.Clear();
     }
 }
 
@@ -72,7 +54,6 @@ public class MemoryLogger : ILogger
     {
         if (!IsEnabled(logLevel))
             return;
-
         var logEntry = new LogEntry
         {
             Timestamp = DateTime.Now,
@@ -82,7 +63,6 @@ public class MemoryLogger : ILogger
             Exception = exception,
             EventId = eventId
         };
-
         _logService.AddLog(logEntry);
     }
 }
@@ -101,5 +81,5 @@ public class MemoryLoggerProvider : ILoggerProvider
         return new MemoryLogger(categoryName, _logService);
     }
 
-    public void Dispose() { }
+    public void Dispose() {}
 }
