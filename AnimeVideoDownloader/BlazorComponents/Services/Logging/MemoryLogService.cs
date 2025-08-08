@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace BlazorComponents.Services;
+namespace BlazorComponents.Services.Logging;
 
 public class LogEntry
 {
@@ -14,10 +14,9 @@ public class LogEntry
 
 public class MemoryLogService
 {
-    // Using static collection to persist logs between page navigations
     private static readonly List<LogEntry> _logs = new();
     private static readonly object _lock = new();
-    private readonly int _maxLogs = 1000; // Ograniczenie ilości logów
+    private readonly int _maxLogs = 1000; 
 
     public event Action? LogsChanged;
 
@@ -27,7 +26,6 @@ public class MemoryLogService
         {
             _logs.Add(logEntry);
             
-            // Usuń najstarsze logi jeśli przekroczono limit
             if (_logs.Count > _maxLogs)
             {
                 _logs.RemoveAt(0);
@@ -66,7 +64,7 @@ public class MemoryLogger : ILogger
         _logService = logService;
     }
 
-    public IDisposable BeginScope<TState>(TState state) => null!;
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => null!;
 
     public bool IsEnabled(LogLevel logLevel) => true;
 

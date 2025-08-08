@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using BlazorComponents.Services.Initializers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
-namespace BlazorComponents.Services.Initializers;
+namespace BlazorComponents.Services.Playwright;
 
 public sealed class PlaywrightInitializer : IInitializer
 {

@@ -1,5 +1,6 @@
 ﻿@using System.Linq
-@using BlazorComponents.Services
+@using BlazorComponents.Services.Logging
+
 
 <nav class="top-nav">
     <div class="left-section">
@@ -17,11 +18,14 @@
     </div>
 
     <div class="right-section">
+        
+        <StatusIndicator />
+
         <NavLink class="nav-item" href="settings" ActiveClass="active">
             <span class="nav-icon"><i class="fas fa-cog"></i></span>
             <span class="nav-text">Settings</span>
         </NavLink>
-        
+
         <NavLink class="nav-item" href="debug" ActiveClass="active">
             <span class="nav-icon"><i class="fas fa-bug"></i></span>
             <span class="nav-text">Debug</span>
@@ -32,27 +36,6 @@
         </NavLink>
     </div>
 </nav>
-
-<style>
-    .error-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background-color: #ff4444;
-        color: white;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        font-size: 0.8em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .nav-item {
-        position: relative;
-    }
-</style>
 
 @code {
     [Inject] private MemoryLogService LogService { get; set; } = default!;

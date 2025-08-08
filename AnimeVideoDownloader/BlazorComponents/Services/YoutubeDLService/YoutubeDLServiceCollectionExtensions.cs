@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using YoutubeDLSharp;
 
 namespace BlazorComponents.Services.YoutubeDLService;
 

@@ -4,3 +4,4 @@ public interface IInitializer
 {
     Task InitAsync();
 }
+

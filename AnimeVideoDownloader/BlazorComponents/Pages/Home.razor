@@ -26,8 +26,7 @@
 </div>
 
 @code {
-    [Inject]
-    private ILogger<Home> Logger { get; set; } = null!;
+    [Inject] private ILogger<Home> Logger { get; set; } = null!;
     private AnimeModel? selectedAnime;
     
     private void SelectAnime(AnimeModel anime)
