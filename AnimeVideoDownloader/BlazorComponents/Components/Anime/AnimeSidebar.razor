@@ -70,7 +70,7 @@
     private List<AnimeModel> AnimeList { get; set; } = new();
 
     // Modal state
-    private bool isAddModalOpen = false;
+    private bool isAddModalOpen;
     private string AddUrl { get; set; } = string.Empty;
     private string AddTitle { get; set; } = string.Empty;
     private string? AddError { get; set; }
@@ -101,7 +101,7 @@
     private async Task AddAnimeFromModalAsync()
     {
         AddError = null;
-        var url = AddUrl?.Trim();
+        var url = AddUrl.Trim();
         if (string.IsNullOrWhiteSpace(url))
         {
             AddError = "Please provide a valid URL.";

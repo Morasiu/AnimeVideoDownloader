@@ -26,7 +26,7 @@
                     }
                     else if (episode.Status != EpisodeStatus.InProgress)
                     {
-                        <button class="download-btn" @onclick="() => DownloadEpisode(episode)"><i
+                        <button class="download-btn" @onclick="() => DownloadEpisode()"><i
                                 class="fas fa-download"></i> Download
                         </button>
                     }
@@ -44,10 +44,10 @@
     public EventCallback<EpisodeModel> OnEpisodeAction { get; set; }
 
     [Inject]
-    public DownloaderService DownloaderService { get; set; }
+    public required DownloaderService DownloaderService { get; set; }
 
     [Inject]
-    public ILogger<EpisodeList> Logger { get; set; }
+    public required ILogger<EpisodeList> Logger { get; set; }
 
     private CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -63,7 +63,7 @@
         await OnEpisodeAction.InvokeAsync(episode);
     }
 
-    private async Task DownloadEpisode(EpisodeModel episode)
+    private async Task DownloadEpisode()
     {
         var downloadProgress = new Progress<AnimeDownloadDownloadProgress>(p => 
             Logger.LogInformation("Download progress - Status: {Status}, Progress: {Progress:P}, Speed: {Speed}, ETA: {Eta}, TotalBytes: {TotalBytes}, Error: {Error}", 

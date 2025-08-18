@@ -1,1 +1,49 @@
-﻿/* Settings page styles */
+﻿.settings-container {
+    padding: 1rem;
+}
+
+.settings-section {
+    background: #1f2937;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.setting-group { 
+    margin-bottom: 1rem; 
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.setting-item label {
+    font-weight: 500;
+}
+
+.setting-item select {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: #111827;
+    color: #e5e7eb;
+}
+
+.save-button-container { 
+    text-align: right; 
+}
+
+.save-button {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+}

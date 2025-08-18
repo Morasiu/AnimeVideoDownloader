@@ -31,7 +31,7 @@
         </select>
     </div>
 
-    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+    <div class="table-container">
         <table class="log-table">
             <thead>
             <tr>
@@ -57,8 +57,7 @@
                     <td>
                         @if (log.Exception != null)
                         {
-                            <button class="btn-exception"
-                                    @onclick="() => ShowException(log.Exception)">
+                            <button class="btn-exception" @onclick="() => ShowException(log.Exception)">
                                 Show
                             </button>
                         }

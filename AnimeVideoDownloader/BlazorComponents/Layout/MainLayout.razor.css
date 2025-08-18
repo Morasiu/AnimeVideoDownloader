@@ -29,3 +29,17 @@
 }
 
 
+
+
+.main-layout {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
+}
+
+.content-area {
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+}

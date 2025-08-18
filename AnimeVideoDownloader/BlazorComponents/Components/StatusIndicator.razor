@@ -1,6 +1,5 @@
 ﻿@using System.Linq
 @using BlazorComponents.Services.Initializers
-@using BlazorComponents.Services.Logging
 
 <div class="nav-item status-item" @onclick="ToggleStatusPopover" @onblur="HideStatusPopover" tabindex="0">
     @if (_results.Any(x => x.Status == InitStatus.Error))

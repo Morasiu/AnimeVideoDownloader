@@ -19,8 +19,6 @@ public sealed class YoutubeDLInitializer : IInitializer
         Directory.CreateDirectory(LibrariesPath);
         _logger.LogInformation("Downloading youtube-dl");
         await YoutubeDLSharp.Utils.DownloadBinaries(skipExisting: true, LibrariesPath);
-        await Task.Delay(2000);
-        throw new InvalidOperationException();
         _logger.LogInformation("Downloading youtube-dl finished");
     }
 }
