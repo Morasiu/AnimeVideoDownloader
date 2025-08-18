@@ -13,24 +13,24 @@
 
 .no-selection-icon {
     font-size: 4rem;
-    color: #4a5568;
+    color: var(--color-trace);
     margin-bottom: 1.5rem;
 }
 
 .no-selection-content h2 {
     font-size: 1.5rem;
-    color: #e2e8f0;
+    color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }
 
 .no-selection-content p {
-    color: #a0aec0;
+    color: var(--text-tertiary);
     margin-bottom: 1.5rem;
 }
 
 .select-first-btn {
-    background: linear-gradient(90deg, #4299E1 0%, #667EEA 100%);
-    color: white;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: var(--text-primary);
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
@@ -41,6 +41,6 @@
 }
 
 .select-first-btn:hover {
-    background: linear-gradient(90deg, #3182ce 0%, #5a67d8 100%);
+    background: linear-gradient(90deg, var(--color-primary-hover) 0%, var(--color-accent) 100%);
     transform: translateY(-1px);
 }

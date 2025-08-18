@@ -2,7 +2,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-dark);
   z-index: 1000;
 }
 
@@ -11,14 +11,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #1f1f1f;
-  color: #fff;
+  background: var(--bg-modal);
+  color: var(--text-primary);
   border-radius: 8px;
   width: min(800px, 95vw);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 10px 30px var(--overlay-darker);
   z-index: 1001;
 }
 
@@ -27,7 +27,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .modal-body {
@@ -43,7 +43,7 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 16px 16px 16px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid var(--border-light);
 }
 
 .form-group {
@@ -55,22 +55,22 @@
 
 .form-group label {
   font-size: 0.9rem;
-  color: #ddd;
+  color: var(--text-light);
 }
 
 .form-group input[type="url"],
 .form-group input[type="text"] {
   padding: 8px 10px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: #2a2a2a;
-  color: #fff;
+  border: 1px solid var(--border-light);
+  background: var(--bg-input);
+  color: var(--text-primary);
   border-radius: 6px;
 }
 
 .add-error {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.1);
-  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: var(--color-error);
+  background: var(--bg-error-transparent);
+  border: 1px solid var(--bg-error-border);
   padding: 8px 10px;
   border-radius: 6px;
   margin-top: 6px;
@@ -80,13 +80,13 @@
 .secondary-btn,
 .close-btn {
   border: none;
-  background: #3a3a3a;
-  color: #fff;
+  background: var(--bg-button);
+  color: var(--text-primary);
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.primary-btn { background: #2563eb; }
-.secondary-btn { background: #4b5563; }
-.close-btn { background: transparent; color: #bbb; padding: 4px 6px; }
+.primary-btn { background: var(--color-primary); }
+.secondary-btn { background: var(--bg-button-secondary); }
+.close-btn { background: transparent; color: var(--text-light); padding: 4px 6px; }

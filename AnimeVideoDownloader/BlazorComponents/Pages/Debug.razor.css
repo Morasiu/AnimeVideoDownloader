@@ -5,8 +5,8 @@
 }
 
 .btn-refresh, .btn-clear, .btn-test, .btn-exception, .modal-btn {
-    background: #374151;
-    color: #fff;
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
     border: none;
     padding: 0.4rem 0.8rem;
     border-radius: 6px;
@@ -21,13 +21,13 @@
 .log-table {
     width: 100%;
     border-collapse: collapse;
-    color: #e5e7eb;
-    background: white;
+    color: var(--text-secondary);
+    background: var(--text-primary);
 }
 
 .log-table th, .log-table td {
     padding: 0.5rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--overlay-light);
 }
 
 /* Level badges/rows */
@@ -35,39 +35,39 @@
     padding: 0.2rem 0.5rem;
     border-radius: 999px;
     font-size: 0.85rem;
-    color: #fff;
+    color: var(--text-primary);
 }
 
 .log-badge-trace {
-    background: #6b7280;
+    background: var(--color-trace);
 }
 
 .log-badge-debug {
-    background: #3b82f6;
+    background: var(--color-debug);
 }
 
 .log-badge-information {
-    background: #10b981;
+    background: var(--color-success);
 }
 
 .log-badge-warning {
-    background: #f59e0b;
+    background: var(--color-warning);
 }
 
 .log-badge-error {
-    background: #ef4444;
+    background: var(--color-error);
 }
 
 .log-badge-critical {
-    background: #7c1d1d;
+    background: var(--color-critical);
 }
 
 /* Empty state */
 .log-alert {
     margin-top: 0.75rem;
     padding: 0.75rem;
-    background: #374151;
-    color: #fff;
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
     border-radius: 6px;
 }
 

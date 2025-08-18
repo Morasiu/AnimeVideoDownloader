@@ -3,8 +3,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #16192a;
-    border-bottom: 1px solid #2d3748;
+    background: var(--bg-navbar);
+    border-bottom: 1px solid var(--bg-tertiary);
     padding: 0.75rem 1.5rem;
     height: 64px;
 }
@@ -30,19 +30,19 @@
 .logo-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary) 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    color: white;
+    color: var(--text-primary);
 }
 
 .logo-text {
     font-size: 1.25rem;
     font-weight: 600;
-    color: white;
+    color: var(--text-primary);
 }
 
 .nav-menu {
@@ -59,19 +59,19 @@
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #a0aec0;
+    color: var(--text-tertiary);
     text-decoration: none;
     position: relative;
 }
 
 ::deep .nav-item:hover {
-    background: #2d3748;
-    color: white;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 ::deep .nav-item.active {
-    background: #4c51bf;
-    color: white;
+    background: var(--color-accent);
+    color: var(--text-primary);
 }
 
 .nav-icon {
@@ -84,8 +84,8 @@
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: #ff4444;
-    color: white;
+    background-color: var(--color-error);
+    color: var(--text-primary);
     border-radius: 50%;
     width: 18px;
     height: 18px;

@@ -3,7 +3,7 @@
 }
 
 .settings-section {
-    background: #1f2937;
+    background: var(--bg-secondary);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
@@ -20,7 +20,7 @@
     gap: 1rem;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid var(--border-light);
 }
 
 .setting-item label {
@@ -30,9 +30,9 @@
 .setting-item select {
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.15);
-    background: #111827;
-    color: #e5e7eb;
+    border: 1px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
 }
 
 .save-button-container { 
@@ -40,8 +40,8 @@
 }
 
 .save-button {
-    background: #2563eb;
-    color: #fff;
+    background: var(--color-primary);
+    color: var(--text-primary);
     border: none;
     padding: 0.5rem 0.9rem;
     border-radius: 6px;

@@ -6,10 +6,10 @@
 
 .details-header {
     margin-bottom: 2rem;
-    background: #1a1f35;
+    background: var(--bg-card);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px var(--overlay-light), 0 2px 4px -1px var(--overlay-light);
 }
 
 .title-row {
@@ -23,12 +23,12 @@
     margin: 0;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #E2E8F0;
+    color: var(--text-secondary);
 }
 
 .anime-season-badge {
-    background: rgba(66, 153, 225, 0.15);
-    color: #63B3ED;
+    background: var(--bg-info-badge);
+    color: var(--color-info);
     padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -49,7 +49,7 @@
 }
 
 .meta-label {
-    color: #A0AEC0;
+    color: var(--text-tertiary);
     font-size: 0.9rem;
     display: flex;
     align-items: center;
@@ -57,7 +57,7 @@
 }
 
 .meta-value {
-    color: #E2E8F0;
+    color: var(--text-secondary);
     font-size: 0.9rem;
 }
 
@@ -81,21 +81,21 @@
 }
 
 .download-all-btn {
-    background: linear-gradient(90deg, #4299E1 0%, #667EEA 100%);
-    color: white;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: var(--text-primary);
 }
 
 .download-all-btn:hover {
-    background: linear-gradient(90deg, #3182ce 0%, #5a67d8 100%);
+    background: linear-gradient(90deg, var(--color-primary-hover) 0%, var(--color-accent) 100%);
 }
 
 .refresh-btn {
-    background: #2d3748;
-    color: #e2e8f0;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
 }
 
 .refresh-btn:hover {
-    background: #3d4a5c;
+    background: var(--bg-button-hover);
 }
 
 .details-content {
