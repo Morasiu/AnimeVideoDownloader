@@ -41,7 +41,6 @@
 }
 
 .add-open-btn {
-  margin-left: auto;
 }
 
 .primary-btn {
@@ -56,4 +55,12 @@
   background: transparent;
   color: var(--text-light);
   padding: 4px 6px;
+}
+
+.sidebar-header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
 }
