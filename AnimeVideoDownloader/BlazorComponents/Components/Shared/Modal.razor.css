@@ -14,7 +14,10 @@
   background: #1f1f1f;
   color: #fff;
   border-radius: 8px;
-  width: min(520px, 92vw);
+  width: min(800px, 95vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   z-index: 1001;
 }
@@ -29,6 +32,10 @@
 
 .modal-body {
   padding: 16px;
+  overflow-y: auto;
+  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-footer {

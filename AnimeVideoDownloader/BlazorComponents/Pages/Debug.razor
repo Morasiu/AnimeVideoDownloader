@@ -77,28 +77,14 @@
 </div>
 
 <!-- Modal for exception -->
-@if (selectedException != null)
-{
-    <div class="custom-modal" tabindex="-1" role="dialog">
-        <div class="modal-container">
-            <div class="modal-box">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color: #212529;">Exception Details</h5>
-                    <button type="button" class="modal-close" @onclick="CloseExceptionModal">×</button>
-                </div>
-                <div class="modal-body" style="color: #212529;">
-                    <pre style="color: #212529;">@selectedException.ToString()</pre>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="modal-btn" @onclick="CloseExceptionModal">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-overlay"></div>
-}
+<Modal IsOpen="@(selectedException != null)" Title="Exception Details" OnClose="CloseExceptionModal">
+    <ChildContent>
+        <pre>@selectedException?.ToString()</pre>
+    </ChildContent>
+    <Footer>
+        <button type="button" class="modal-btn" @onclick="CloseExceptionModal">Close</button>
+    </Footer>
+</Modal>
 
 @code {
     [Inject]
