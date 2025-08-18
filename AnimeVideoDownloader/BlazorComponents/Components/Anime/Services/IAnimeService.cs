@@ -6,6 +6,7 @@ namespace BlazorComponents.Components.Anime.Services
     {
         List<AnimeModel> GetAnimeList();
         Task<AnimeModel?> GetAnimeByIdAsync(int id);
+        Task<AnimeModel> AddAnimeFromUrlAsync(string url, CancellationToken ct = default);
         bool HasDownloadingEpisodes(AnimeModel anime);
         bool HasErrorEpisodes(AnimeModel anime);
         string GetEpisodeStatusClass(EpisodeStatus status);

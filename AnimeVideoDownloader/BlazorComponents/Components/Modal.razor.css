@@ -1,4 +1,4 @@
-﻿/* Modal overlay and dialog styles specific to AnimeSidebar */
+﻿/* Reusable modal styles */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -69,7 +69,6 @@
   margin-top: 6px;
 }
 
-.add-open-btn,
 .primary-btn,
 .secondary-btn,
 .close-btn {
@@ -81,20 +80,6 @@
   cursor: pointer;
 }
 
-.add-open-btn {
-  margin-left: auto;
-}
-
-.primary-btn {
-  background: #2563eb;
-}
-
-.secondary-btn {
-  background: #4b5563;
-}
-
-.close-btn {
-  background: transparent;
-  color: #bbb;
-  padding: 4px 6px;
-}
+.primary-btn { background: #2563eb; }
+.secondary-btn { background: #4b5563; }
+.close-btn { background: transparent; color: #bbb; padding: 4px 6px; }

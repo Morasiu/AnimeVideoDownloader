@@ -3,6 +3,7 @@
 <aside class="sidebar">
     <div class="sidebar-header">
         <h3><i class="fas fa-film me-2"></i> Anime Library</h3>
+        <button class="add-open-btn" @onclick="OpenAddModal"><i class="fas fa-plus"></i> Add</button>
     </div>
 
     <div class="sidebar-filter">
@@ -15,7 +16,7 @@
     <div class="anime-list">
         @foreach (var anime in FilteredAnimeList)
         {
-            <button class="anime-item @(SelectedAnime?.Id == anime.Id ? "active" : "")" @onclick="() => SelectAnimeItem(anime)">
+            <button class="@GetAnimeItemClass(anime)" @onclick="() => SelectAnimeItem(anime)">
                 <div class="anime-title-container">
                     @if (AnimeService.HasDownloadingEpisodes(anime))
                     {
@@ -35,6 +36,27 @@
             </button>
         }
     </div>
+
+    <Modal IsOpen="@isAddModalOpen" Title="Add Anime by URL" OnClose="CloseAddModal">
+        <ChildContent>
+            <div class="form-group">
+                <label for="anime-url">URL</label>
+                <input id="anime-url" type="url" placeholder="https://..." @bind="AddUrl" />
+            </div>
+            <div class="form-group">
+                <label for="anime-title">Title (optional)</label>
+                <input id="anime-title" type="text" placeholder="Custom title" @bind="AddTitle" />
+            </div>
+            @if (!string.IsNullOrEmpty(AddError))
+            {
+                <div class="add-error">@AddError</div>
+            }
+        </ChildContent>
+        <Footer>
+            <button class="secondary-btn" @onclick="CloseAddModal">Cancel</button>
+            <button class="primary-btn" @onclick="AddAnimeFromModalAsync"><i class="fas fa-plus"></i> Add</button>
+        </Footer>
+    </Modal>
 </aside>
 
 @code {
@@ -44,8 +66,14 @@
     [Parameter]
     public EventCallback<AnimeModel> OnAnimeSelected { get; set; }
 
-    private string SearchQuery { get; set; } = "";
+    private string SearchQuery { get; set; } = string.Empty;
     private List<AnimeModel> AnimeList { get; set; } = new();
+
+    // Modal state
+    private bool isAddModalOpen = false;
+    private string AddUrl { get; set; } = string.Empty;
+    private string AddTitle { get; set; } = string.Empty;
+    private string? AddError { get; set; }
 
     private List<AnimeModel> FilteredAnimeList => 
         string.IsNullOrEmpty(SearchQuery) 
@@ -57,6 +85,48 @@
         AnimeList = AnimeService.GetAnimeList();
     }
 
+    private void OpenAddModal()
+    {
+        AddUrl = string.Empty;
+        AddTitle = string.Empty;
+        AddError = null;
+        isAddModalOpen = true;
+    }
+
+    private void CloseAddModal()
+    {
+        isAddModalOpen = false;
+    }
+
+    private async Task AddAnimeFromModalAsync()
+    {
+        AddError = null;
+        var url = AddUrl?.Trim();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            AddError = "Please provide a valid URL.";
+            return;
+        }
+        try
+        {
+            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url);
+            if (!string.IsNullOrWhiteSpace(AddTitle))
+            {
+                newAnime.Title = AddTitle.Trim();
+            }
+            // Refresh list reference and UI
+            AnimeList = AnimeService.GetAnimeList();
+            SearchQuery = string.Empty;
+            isAddModalOpen = false;
+            await OnAnimeSelected.InvokeAsync(newAnime);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AddError = ex.Message;
+        }
+    }
+
     private async Task SelectAnimeItem(AnimeModel anime)
     {
         await OnAnimeSelected.InvokeAsync(anime);
@@ -64,6 +134,12 @@
 
     private void OnSearchInput(ChangeEventArgs e)
     {
-        SearchQuery = e.Value?.ToString() ?? "";
+        SearchQuery = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private string GetAnimeItemClass(AnimeModel anime)
+    {
+        var isActive = SelectedAnime?.Id == anime.Id;
+        return isActive ? "anime-item active" : "anime-item";
     }
 }

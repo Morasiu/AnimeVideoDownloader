@@ -49,6 +49,39 @@ namespace BlazorComponents.Components.Anime.Services
             return Task.FromResult(_animeList.FirstOrDefault(a => a.Id == id));
         }
 
+        public async Task<AnimeModel> AddAnimeFromUrlAsync(string url, CancellationToken ct = default)
+        {
+            // Basic validation and parsing (placeholder logic)
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("URL cannot be empty", nameof(url));
+
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                throw new ArgumentException("Invalid URL format", nameof(url));
+
+            // Derive a simple title from the URL (host + last segment without dashes)
+            var segments = uri.Segments;
+            var lastSegment = segments.Length > 0 ? segments[^1].Trim('/') : uri.Host;
+            var readableLast = string.Join(" ", lastSegment.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            var title = string.IsNullOrWhiteSpace(readableLast) ? uri.Host : readableLast;
+
+            // Generate new Id
+            var newId = _animeList.Count == 0 ? 1 : _animeList.Max(a => a.Id) + 1;
+
+            var anime = new AnimeModel
+            {
+                Id = newId,
+                Title = title,
+                SourceUrl = url,
+                Episodes = new List<EpisodeModel>()
+            };
+
+            _animeList.Add(anime);
+
+            // Simulate async to keep signature async-friendly
+            await Task.CompletedTask;
+            return anime;
+        }
+
         public bool HasDownloadingEpisodes(AnimeModel anime)
         {
             return anime.Episodes.Any(e => e.Status == EpisodeStatus.InProgress);
