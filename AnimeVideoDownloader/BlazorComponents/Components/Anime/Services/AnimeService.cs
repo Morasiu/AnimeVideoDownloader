@@ -49,11 +49,14 @@ namespace BlazorComponents.Components.Anime.Services
             return Task.FromResult(_animeList.FirstOrDefault(a => a.Id == id));
         }
 
-        public async Task<AnimeModel> AddAnimeFromUrlAsync(string url, CancellationToken ct = default)
+        public async Task<AnimeModel> AddAnimeFromUrlAsync(string url, string directory, CancellationToken ct = default)
         {
             // Basic validation and parsing (placeholder logic)
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentException("URL cannot be empty", nameof(url));
+
+            if (string.IsNullOrWhiteSpace(directory))
+                throw new ArgumentException("Directory cannot be empty", nameof(directory));
 
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
                 throw new ArgumentException("Invalid URL format", nameof(url));
@@ -72,6 +75,7 @@ namespace BlazorComponents.Components.Anime.Services
                 Id = newId,
                 Title = title,
                 SourceUrl = url,
+                Directory = directory,
                 Episodes = new List<EpisodeModel>()
             };
 

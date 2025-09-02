@@ -1,4 +1,6 @@
-﻿@inject IAnimeService AnimeService
+﻿@using BlazorComponents.Services
+@inject IAnimeService AnimeService
+@inject IDirectorySelectionService DirectorySelectionService
 
 <aside class="sidebar">
     <div class="sidebar-header">
@@ -43,6 +45,17 @@
                 <label for="anime-url">URL</label>
                 <input id="anime-url" type="url" placeholder="https://..." @bind="AddUrl" />
             </div>
+
+            <div class="form-group">
+                <label for="anime-directory">Directory *</label>
+                <div class="directory-selection">
+                    <input id="anime-directory" type="text" placeholder="C:\Downloads\Anime" @bind="AddDirectory" readonly />
+                    <button type="button" class="browse-btn" @onclick="SelectDirectory">
+                        <i class="fas fa-folder-open"></i> Browse
+                    </button>
+                </div>
+            </div>
+            
             <div class="form-group">
                 <label for="anime-title">Title (optional)</label>
                 <input id="anime-title" type="text" placeholder="Custom title" @bind="AddTitle" />
@@ -73,6 +86,7 @@
     private bool isAddModalOpen;
     private string AddUrl { get; set; } = string.Empty;
     private string AddTitle { get; set; } = string.Empty;
+    private string AddDirectory { get; set; } = string.Empty;
     private string? AddError { get; set; }
 
     private List<AnimeModel> FilteredAnimeList => 
@@ -89,6 +103,7 @@
     {
         AddUrl = string.Empty;
         AddTitle = string.Empty;
+        AddDirectory = string.Empty;
         AddError = null;
         isAddModalOpen = true;
     }
@@ -102,14 +117,23 @@
     {
         AddError = null;
         var url = AddUrl.Trim();
+        var directory = AddDirectory.Trim();
+        
         if (string.IsNullOrWhiteSpace(url))
         {
             AddError = "Please provide a valid URL.";
             return;
         }
+        
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            AddError = "Please provide a valid directory.";
+            return;
+        }
+        
         try
         {
-            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url);
+            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory);
             if (!string.IsNullOrWhiteSpace(AddTitle))
             {
                 newAnime.Title = AddTitle.Trim();
@@ -141,5 +165,22 @@
     {
         var isActive = SelectedAnime?.Id == anime.Id;
         return isActive ? "anime-item active" : "anime-item";
+    }
+
+    private void SelectDirectory()
+    {
+        try
+        {
+            var selectedDirectory = DirectorySelectionService.SelectDirectory(AddDirectory);
+            if (!string.IsNullOrEmpty(selectedDirectory))
+            {
+                AddDirectory = selectedDirectory;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            AddError = $"Error selecting directory: {ex.Message}";
+        }
     }
 }

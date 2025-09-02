@@ -1,4 +1,5 @@
 ﻿using BlazorComponents.Components.Anime.Services;
+using BlazorComponents.Services;
 using BlazorComponents.Services.AppData;
 using BlazorComponents.Services.Initializers;
 using BlazorComponents.Services.Logging;
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
     {
         // Register component services
         services.AddSingleton<IAnimeService, AnimeService>();
+        services.AddSingleton<IDirectorySelectionService, DirectorySelectionService>();
         services.AddSingleton<UserSettingsProvider>();
         services.AddApplicationLogging();
         services.AddYoutubeDL();

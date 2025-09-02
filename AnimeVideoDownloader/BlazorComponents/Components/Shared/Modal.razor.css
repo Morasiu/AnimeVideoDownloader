@@ -30,6 +30,10 @@
   border-bottom: 1px solid var(--border-light);
 }
 
+h4 {
+    margin: 0.5rem;
+}
+
 .modal-body {
   padding: 16px;
   overflow-y: auto;
