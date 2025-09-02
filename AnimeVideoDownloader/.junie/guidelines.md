@@ -45,7 +45,7 @@ This document summarizes the conventions and Blazor-specific practices used in t
 
 - Components
   - File naming: `ComponentName.razor` with optional CSS isolation in `ComponentName.razor.css`.
-  - Do not use inline CSS styles
+  - Do not use inline CSS styles. Always create a CSS file for styling.
   - Parameters:
     - Mark parameters with `[Parameter]` and use `[EditorRequired]` for required inputs.
     - Use `EventCallback<T>` for parent-child communication of events/actions.
