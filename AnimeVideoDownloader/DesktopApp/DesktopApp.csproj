@@ -5,12 +5,13 @@
         <TargetFramework>net9.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <UseWindowsForms>true</UseWindowsForms>
+        <UseWpf>true</UseWpf>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>DesktopApp</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Components.WebView.WindowsForms" Version="9.0.90" />
+      <PackageReference Include="Microsoft.AspNetCore.Components.WebView.WindowsForms" Version="9.0.100" />
       <PackageReference Include="NReco.Logging.File" Version="1.2.2" />
     </ItemGroup>
 
