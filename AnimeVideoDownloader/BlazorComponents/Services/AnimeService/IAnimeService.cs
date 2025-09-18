@@ -5,8 +5,9 @@ namespace BlazorComponents.Services.AnimeService
 {
     public interface IAnimeService
     {
-        ObservableCollection<Anime> GetAnimeList();
+        Task<ObservableCollection<Anime>> GetAnimeListAsync();
         Task<Anime> AddAnimeFromUrlAsync(string url, string directory, string title = "", CancellationToken ct = default);
+        Task DeleteAnimeAsync(Anime anime, CancellationToken ct = default);
         bool HasDownloadingEpisodes(Anime anime);
         bool HasErrorEpisodes(Anime anime);
     }

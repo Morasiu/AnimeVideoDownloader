@@ -1,9 +1,7 @@
 ﻿@using System.Collections.ObjectModel
 @using BlazorComponents.Services.AnimeService
 @using BlazorComponents.Services.Data.Models.Animes
-@using BlazorComponents.Services.DirectorySelection
 @inject IAnimeService AnimeService
-@inject IDirectorySelectionService DirectorySelectionService
 
 <aside class="sidebar">
     <div class="sidebar-header">
@@ -21,7 +19,8 @@
     <div class="anime-list">
         @foreach (var anime in FilteredAnimeList)
         {
-            <button class="@GetAnimeItemClass(anime)" @onclick="() => SelectAnimeItem(anime)">
+            <button class="@GetAnimeItemClass(anime)" @onclick="() => SelectAnimeItem(anime)"
+                    @oncontextmenu:preventDefault="true">
                 <div class="anime-title-container">
                     @if (AnimeService.HasDownloadingEpisodes(anime))
                     {
@@ -37,12 +36,14 @@
                     }
                     <span class="anime-title">@anime.Title</span>
                 </div>
-                <span class="anime-episode-count">@anime.Episodes.Count</span>
+                <div class="anime-actions">
+                    <span class="anime-episode-count">@anime.Episodes.Count</span>
+                </div>
             </button>
         }
     </div>
-    
-    <AddAnimeModal IsOpen="@isAddModalOpen" OnClose="CloseAddModal" OnAdded="OnAnimeAdded"/>
+
+    <AddAnimeModal IsOpen="@isAddModalOpen" OnAdded="StateHasChanged"/>
 </aside>
 
 @code {
@@ -53,41 +54,18 @@
     public EventCallback<Anime> OnAnimeSelected { get; set; }
 
     private string SearchQuery { get; set; } = string.Empty;
-    private ObservableCollection<Anime> AnimeList { get; set; } = new();
+    private ObservableCollection<Anime> AnimeList { get; set; } = [];
 
-    // Modal state
     private bool isAddModalOpen;
-    private string AddUrl { get; set; } = string.Empty;
-    private string AddTitle { get; set; } = string.Empty;
-    private string AddDirectory { get; set; } = string.Empty;
-    private string? AddError { get; set; }
 
     private List<Anime> FilteredAnimeList =>
         string.IsNullOrEmpty(SearchQuery)
             ? AnimeList.ToList()
             : AnimeList.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        AnimeList = AnimeService.GetAnimeList();
-    }
-
-    private void OpenAddModal()
-    {
-        AddUrl = string.Empty;
-        AddTitle = string.Empty;
-        AddDirectory = string.Empty;
-        AddError = null;
-        isAddModalOpen = true;
-    }
-
-    private void CloseAddModal()
-    {
-        isAddModalOpen = false;
-    }
-
-    private async Task OnAnimeAdded()
-    {
+        AnimeList = await AnimeService.GetAnimeListAsync();
     }
 
     private async Task SelectAnimeItem(Anime anime)
@@ -104,6 +82,11 @@
     {
         var isActive = SelectedAnime?.Id == anime.Id;
         return isActive ? "anime-item active" : "anime-item";
+    }
+
+    private void OpenAddModal()
+    {
+        isAddModalOpen = true;
     }
 
 }

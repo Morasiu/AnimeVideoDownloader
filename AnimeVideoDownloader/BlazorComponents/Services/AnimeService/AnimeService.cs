@@ -4,6 +4,7 @@ using BlazorComponents.Services.Data;
 using BlazorComponents.Services.Data.Models.Animes;
 using BlazorComponents.Services.Data.Models.Episodes;
 using BlazorComponents.Services.Playwright;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace BlazorComponents.Services.AnimeService;
@@ -21,8 +22,9 @@ public class AnimeService : IAnimeService
         _logger = logger;
     }
 
-    public ObservableCollection<Anime> GetAnimeList()
+    public async Task<ObservableCollection<Anime>> GetAnimeListAsync()
     {
+        await _context.Anime.LoadAsync();
         return _context.Anime.Local.ToObservableCollection();
     }
 
@@ -49,6 +51,26 @@ public class AnimeService : IAnimeService
         _context.Anime.Add(anime);
         await _context.SaveChangesAsync(ct);
         return anime;
+    }
+
+    public async Task DeleteAnimeAsync(Anime anime, CancellationToken ct = default)
+    {
+        if (anime is null) throw new ArgumentNullException(nameof(anime));
+        _logger.LogInformation("Deleting anime {AnimeId} - {Title}", anime.Id, anime.Title);
+
+        // Remove related episodes first to avoid FK issues if cascade is not configured
+        var episodes = _context.Set<Episode>().Where(e => e.AnimeId == anime.Id);
+        _context.RemoveRange(episodes);
+
+        // Attach if needed and remove anime
+        if (_context.Entry(anime).State == EntityState.Detached)
+        {
+            _context.Attach(anime);
+        }
+        _context.Remove(anime);
+
+        await _context.SaveChangesAsync(ct);
+        _logger.LogInformation("Deleted anime {AnimeId}", anime.Id);
     }
 
     private async Task<string> GetTitle(Uri uri)

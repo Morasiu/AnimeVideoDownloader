@@ -5,6 +5,7 @@ using BlazorComponents.Services.DirectorySelection;
 using BlazorComponents.Services.Initializers;
 using BlazorComponents.Services.Logging;
 using BlazorComponents.Services.Playwright;
+using BlazorComponents.Services.Toasts;
 using BlazorComponents.Services.YoutubeDLService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAnimeService, AnimeService>();
         services.AddSingleton<IDirectorySelectionService, DirectorySelectionService>();
         services.AddSingleton<UserSettingsProvider>();
+        services.AddSingleton<ToastService>();
         services.AddApplicationLogging();
         services.AddYoutubeDL();
         services.AddPlaywright();
@@ -28,6 +30,7 @@ public static class ServiceCollectionExtensions
             .EnableSensitiveDataLogging()
             .UseLazyLoadingProxies()
         );
+        services.AddBlazorContextMenu();
         return services;
     }
 }

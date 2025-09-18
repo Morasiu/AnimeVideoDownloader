@@ -1,8 +1,10 @@
 ﻿@using BlazorComponents.Services.AnimeService
 @using BlazorComponents.Services.Data.Models.Animes
 @using BlazorComponents.Services.DirectorySelection
+@using BlazorComponents.Services.Toasts
 @inject IAnimeService AnimeService
 @inject IDirectorySelectionService DirectorySelectionService
+@inject ToastService ToastService
 
 <Modal IsOpen="@IsOpen" Title="Add Anime by URL" OnClose="OnClose" CanClose="!IsAdding">
     <ChildContent>
@@ -53,13 +55,13 @@
 </Modal>
 
 @code {
-    [Parameter]
+    [Parameter, EditorRequired]
     public bool IsOpen { get; set; }
 
-    [Parameter, EditorRequired]
+    [Parameter]
     public EventCallback OnClose { get; set; }
 
-    [Parameter, EditorRequired]
+    [Parameter]
     public EventCallback<Anime> OnAdded { get; set; }
 
     private string TitleInput { get; set; } = string.Empty;
@@ -107,15 +109,12 @@
         await InvokeAsync(StateHasChanged);
         try
         {
-            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory);
-            if (!string.IsNullOrWhiteSpace(TitleInput))
-            {
-                newAnime.Title = TitleInput.Trim();
-            }
+            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory, TitleInput);
             await OnAdded.InvokeAsync(newAnime);
             IsOpen = false;
             Reset();
             await InvokeAsync(StateHasChanged);
+            ToastService.ShowSuccess($"Anime {newAnime.Title} added.");
         }
         catch (Exception ex)
         {

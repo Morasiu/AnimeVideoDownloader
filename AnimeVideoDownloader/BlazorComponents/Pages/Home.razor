@@ -21,7 +21,7 @@
             else
             {
                 <NoAnimeSelected
-                    OnSelectFirstAnime="@SelectFirstAnime" />
+                    OnSelectFirstAnime="@SelectFirstAnimeAsync" />
             }
         </main>
     </div>
@@ -41,20 +41,18 @@
         // Handle anime updates if needed
     }
 
-    private void SelectFirstAnime()
+    private async Task SelectFirstAnimeAsync()
     {
-        var animeList = AnimeService.GetAnimeList();
+        var animeList = await AnimeService.GetAnimeListAsync();
         if (animeList.Count > 0)
         {
             selectedAnime = animeList[0];
         }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-
-        // Pre-select the first anime on load if there are any
-        SelectFirstAnime();
+        await base.OnInitializedAsync();
+        await SelectFirstAnimeAsync();
     }
 }
