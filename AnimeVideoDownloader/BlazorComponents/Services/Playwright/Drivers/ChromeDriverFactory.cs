@@ -6,7 +6,7 @@ public class ChromeDriverFactory {
 	public static async Task<IBrowser> CreateNewAsync()
 	{
 		var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-		var options = new BrowserTypeLaunchOptions()
+		var options = new BrowserTypeLaunchOptions
 		{
 #if DEBUG
 			Headless = false,

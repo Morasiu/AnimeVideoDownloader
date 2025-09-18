@@ -1,4 +1,4 @@
-﻿using BlazorComponents.Components.Anime.Services;
+﻿using BlazorComponents.Services.AnimeService;
 using BlazorComponents.Services.AppData;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.DirectorySelection;

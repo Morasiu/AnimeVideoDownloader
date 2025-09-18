@@ -1,4 +1,5 @@
-﻿using BlazorComponents.Services.YoutubeDLService;
+﻿using BlazorComponents.Services.Playwright;
+using BlazorComponents.Services.YoutubeDLService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorComponents.Services.Initializers;

@@ -1,4 +1,5 @@
-﻿<div class="download-progress">
+﻿@using BlazorComponents.Services.Data.Models.Animes
+<div class="download-progress">
     <h3>Download Progress</h3>
     <div class="progress-info">
         <span>@Anime.Title — @ProgressPercent%</span>
@@ -11,7 +12,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public AnimeModel Anime { get; set; } = null!;
+    public Anime Anime { get; set; } = null!;
 
     [Parameter]
     public int ProgressPercent { get; set; } = 48;

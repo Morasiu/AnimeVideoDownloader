@@ -1,4 +1,7 @@
-﻿@using BlazorComponents.Services.DirectorySelection
+﻿@using System.Collections.ObjectModel
+@using BlazorComponents.Services.AnimeService
+@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.DirectorySelection
 @inject IAnimeService AnimeService
 @inject IDirectorySelectionService DirectorySelectionService
 
@@ -11,7 +14,7 @@
     <div class="sidebar-filter">
         <div class="search-box">
             <span class="search-icon"><i class="fas fa-filter"></i></span>
-            <input type="text" placeholder="Filter titles" @bind="SearchQuery" @oninput="OnSearchInput" />
+            <input type="text" placeholder="Filter titles" @bind="SearchQuery" @oninput="OnSearchInput"/>
         </div>
     </div>
 
@@ -38,49 +41,19 @@
             </button>
         }
     </div>
-
-    <Modal IsOpen="@isAddModalOpen" Title="Add Anime by URL" OnClose="CloseAddModal">
-        <ChildContent>
-            <div class="form-group">
-                <label for="anime-url">URL</label>
-                <input id="anime-url" type="url" placeholder="https://..." @bind="AddUrl" />
-            </div>
-
-            <div class="form-group">
-                <label for="anime-directory">Directory *</label>
-                <div class="directory-selection">
-                    <input id="anime-directory" type="text" placeholder="C:\Downloads\Anime" @bind="AddDirectory" readonly />
-                    <button type="button" class="browse-btn" @onclick="SelectDirectory">
-                        <i class="fas fa-folder-open"></i> Browse
-                    </button>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="anime-title">Title (optional)</label>
-                <input id="anime-title" type="text" placeholder="Custom title" @bind="AddTitle" />
-            </div>
-            @if (!string.IsNullOrEmpty(AddError))
-            {
-                <div class="add-error">@AddError</div>
-            }
-        </ChildContent>
-        <Footer>
-            <button class="secondary-btn" @onclick="CloseAddModal">Cancel</button>
-            <button class="primary-btn" @onclick="AddAnimeFromModalAsync"><i class="fas fa-plus"></i> Add</button>
-        </Footer>
-    </Modal>
+    
+    <AddAnimeModal IsOpen="@isAddModalOpen" OnClose="CloseAddModal" OnAdded="OnAnimeAdded"/>
 </aside>
 
 @code {
     [Parameter]
-    public AnimeModel? SelectedAnime { get; set; }
+    public Anime? SelectedAnime { get; set; }
 
     [Parameter]
-    public EventCallback<AnimeModel> OnAnimeSelected { get; set; }
+    public EventCallback<Anime> OnAnimeSelected { get; set; }
 
     private string SearchQuery { get; set; } = string.Empty;
-    private List<AnimeModel> AnimeList { get; set; } = new();
+    private ObservableCollection<Anime> AnimeList { get; set; } = new();
 
     // Modal state
     private bool isAddModalOpen;
@@ -89,9 +62,9 @@
     private string AddDirectory { get; set; } = string.Empty;
     private string? AddError { get; set; }
 
-    private List<AnimeModel> FilteredAnimeList => 
-        string.IsNullOrEmpty(SearchQuery) 
-            ? AnimeList 
+    private List<Anime> FilteredAnimeList =>
+        string.IsNullOrEmpty(SearchQuery)
+            ? AnimeList.ToList()
             : AnimeList.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
 
     protected override void OnInitialized()
@@ -113,45 +86,11 @@
         isAddModalOpen = false;
     }
 
-    private async Task AddAnimeFromModalAsync()
+    private async Task OnAnimeAdded()
     {
-        AddError = null;
-        var url = AddUrl.Trim();
-        var directory = AddDirectory.Trim();
-        
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            AddError = "Please provide a valid URL.";
-            return;
-        }
-        
-        if (string.IsNullOrWhiteSpace(directory))
-        {
-            AddError = "Please provide a valid directory.";
-            return;
-        }
-        
-        try
-        {
-            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory);
-            if (!string.IsNullOrWhiteSpace(AddTitle))
-            {
-                newAnime.Title = AddTitle.Trim();
-            }
-            // Refresh list reference and UI
-            AnimeList = AnimeService.GetAnimeList();
-            SearchQuery = string.Empty;
-            isAddModalOpen = false;
-            await OnAnimeSelected.InvokeAsync(newAnime);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            AddError = ex.Message;
-        }
     }
 
-    private async Task SelectAnimeItem(AnimeModel anime)
+    private async Task SelectAnimeItem(Anime anime)
     {
         await OnAnimeSelected.InvokeAsync(anime);
     }
@@ -161,7 +100,7 @@
         SearchQuery = e.Value?.ToString() ?? string.Empty;
     }
 
-    private string GetAnimeItemClass(AnimeModel anime)
+    private string GetAnimeItemClass(Anime anime)
     {
         var isActive = SelectedAnime?.Id == anime.Id;
         return isActive ? "anime-item active" : "anime-item";
@@ -183,4 +122,5 @@
             AddError = $"Error selecting directory: {ex.Message}";
         }
     }
+
 }

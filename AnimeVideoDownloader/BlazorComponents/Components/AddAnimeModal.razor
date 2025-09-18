@@ -1,4 +1,6 @@
-﻿@using BlazorComponents.Services.DirectorySelection
+﻿@using BlazorComponents.Services.AnimeService
+@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.DirectorySelection
 @inject IAnimeService AnimeService
 @inject IDirectorySelectionService DirectorySelectionService
 
@@ -42,7 +44,7 @@
     public EventCallback OnClose { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<AnimeModel> OnAdded { get; set; }
+    public EventCallback<Anime> OnAdded { get; set; }
 
     private string Url { get; set; } = string.Empty;
     private string TitleInput { get; set; } = string.Empty;

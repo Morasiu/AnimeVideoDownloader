@@ -27,7 +27,8 @@ public sealed class PlaywrightInitializer : IInitializer
         }
         _logger.LogInformation("Installing Playwright finished. Code {Code}", exitCode);
         _logger.LogInformation("Creating Playwright Browser");
-        _serviceProvider.GetRequiredService<IBrowser>();
+        var browserProvider = _serviceProvider.GetRequiredService<IBrowserProvider>();
+        browserProvider.GetBrowser();
         _logger.LogInformation("Creating Playwright Browser finished");
         return Task.CompletedTask;
     }

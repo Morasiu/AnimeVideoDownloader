@@ -1,7 +1,8 @@
 ﻿@using BlazorComponents.Services.AppData
+@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.Data.Models.Episodes
 @using BlazorComponents.Services.YoutubeDLService
 @using Microsoft.Extensions.Logging
-@inject IAnimeService AnimeService
 
 <div class="episodes-section">
     <h3>Episodes</h3>
@@ -38,10 +39,10 @@
 
 @code {
     [Parameter, EditorRequired]
-    public AnimeModel Anime { get; set; } = null!;
+    public Anime Anime { get; set; } = null!;
 
     [Parameter]
-    public EventCallback<EpisodeModel> OnEpisodeAction { get; set; }
+    public EventCallback<Episode> OnEpisodeAction { get; set; }
 
     [Inject]
     public required DownloaderService DownloaderService { get; set; }
@@ -51,13 +52,13 @@
 
     private CancellationTokenSource cts = new CancellationTokenSource();
 
-    private async Task RetryDownload(EpisodeModel episode)
+    private async Task RetryDownload(Episode episode)
     {
         // Implement retry functionality
         await OnEpisodeAction.InvokeAsync(episode);
     }
 
-    private async Task PlayEpisode(EpisodeModel episode)
+    private async Task PlayEpisode(Episode episode)
     {
         // Implement play functionality
         await OnEpisodeAction.InvokeAsync(episode);

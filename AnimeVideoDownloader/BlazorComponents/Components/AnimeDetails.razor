@@ -1,4 +1,6 @@
-﻿@inject IAnimeService AnimeService
+﻿@using BlazorComponents.Services.AnimeService
+@using BlazorComponents.Services.Data.Models.Animes
+@inject IAnimeService AnimeService
 
 <div class="anime-details">
     <div class="details-header">
@@ -26,10 +28,10 @@
 
 @code {
     [Parameter, EditorRequired]
-    public AnimeModel Anime { get; set; } = null!;
+    public Anime Anime { get; set; } = null!;
 
     [Parameter]
-    public EventCallback<AnimeModel> OnAnimeUpdated { get; set; }
+    public EventCallback<Anime> OnAnimeUpdated { get; set; }
 
     private async Task DownloadAll()
     {

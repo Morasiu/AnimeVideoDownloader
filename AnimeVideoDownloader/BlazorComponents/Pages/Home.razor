@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using BlazorComponents.Services.AnimeService
+@using BlazorComponents.Services.Data.Models.Animes
 @using Microsoft.Extensions.Logging
 @inject IAnimeService AnimeService
 
@@ -27,14 +29,14 @@
 
 @code {
     [Inject] private ILogger<Home> Logger { get; set; } = null!;
-    private AnimeModel? selectedAnime;
+    private Anime? selectedAnime;
     
-    private void SelectAnime(AnimeModel anime)
+    private void SelectAnime(Anime anime)
     {
         selectedAnime = anime;
     }
 
-    private void OnAnimeUpdated(AnimeModel anime)
+    private void OnAnimeUpdated(Anime anime)
     {
         // Handle anime updates if needed
     }

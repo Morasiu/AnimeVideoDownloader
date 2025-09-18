@@ -1,4 +1,5 @@
-﻿<div class="no-selection">
+﻿@using BlazorComponents.Services.Data.Models.Animes
+<div class="no-selection">
     <div class="no-selection-content">
         <i class="fas fa-tv no-selection-icon"></i>
         <h2>Select an anime from the sidebar</h2>
@@ -9,7 +10,7 @@
 
 @code {
     [Parameter]
-    public EventCallback<AnimeModel> OnSelectFirstAnime { get; set; }
+    public EventCallback<Anime> OnSelectFirstAnime { get; set; }
 
     private async Task SelectFirstAnime()
     {

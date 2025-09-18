@@ -1,6 +1,4 @@
-﻿using BlazorComponents.Services.Playwright.Drivers;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Playwright;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorComponents.Services.Playwright;
 
@@ -8,8 +6,7 @@ public static class PlaywrightServiceCollectionExtensions
 {
     public static IServiceCollection AddPlaywright(this IServiceCollection services)
     {
-        services.AddSingleton<IBrowser>(_ => ChromeDriverFactory.CreateNewAsync().GetAwaiter().GetResult());
-        
+        services.AddSingleton<IBrowserProvider, BrowserProvider>();
         return services;
     }
 }
