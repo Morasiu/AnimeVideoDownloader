@@ -10,7 +10,7 @@
     --bg-button: #3a3a3a;
     --bg-button-hover: #374151;
     --bg-button-secondary: #4b5563;
-    
+
     /* Text Colors */
     --text-primary: #fff;
     --text-secondary: #e2e8f0;
@@ -18,37 +18,37 @@
     --text-light: #bbb;
     --text-dark: #333;
     --text-dark-secondary: #495057;
-    
+
     /* Primary Colors */
     --color-primary: #2563eb;
     --color-primary-hover: #3182ce;
-    
+
     /* Secondary/Gradient Colors */
     --color-secondary: #667eea;
     --color-accent: #4c51bf;
     --color-info: #63B3ED;
-    
+
     /* Status Colors */
     --color-success: #10b981;
     --color-warning: #f59e0b;
     --color-error: #ef4444;
     --color-critical: #7c1d1d;
-    
+
     /* Debug/Log Colors */
     --color-debug: #3b82f6;
     --color-trace: #6b7280;
     --color-unknown: #6c757d;
-    
+
     /* Utility Colors */
     --color-link: #006bb7;
     --color-focus: #258cfb;
-    
+
     /* Transparencies */
     --overlay-dark: rgba(0, 0, 0, 0.5);
     --overlay-darker: rgba(0, 0, 0, 0.6);
     --overlay-light: rgba(0, 0, 0, 0.1);
     --border-light: rgba(255, 255, 255, 0.1);
-    
+
     /* Status Background Transparencies */
     --bg-success-transparent: rgba(72, 187, 120, 0.1);
     --bg-success-hover: rgba(72, 187, 120, 0.3);
@@ -60,7 +60,7 @@
     --bg-episode-default: rgba(26, 32, 44, 0.4);
     --bg-episode-hover: rgba(45, 55, 72, 0.5);
     --bg-button-action: rgba(45, 55, 72, 0.8);
-    
+
     /* Border Colors */
     --border-default: #ccc;
     --border-muted: #dee2e6;
@@ -79,7 +79,7 @@ a, .btn-link {
 
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem var(--text-primary), 0 0 0 0.25rem var(--color-focus);
+    box-shadow: 0 0 0 0.1rem var(--text-primary), 0 0 0 0.25rem var(--color-focus);
 }
 
 
@@ -105,7 +105,15 @@ h1:focus {
     color: var(--text-primary);
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
 
+button {
+    border: none;
+    background: var(--bg-button);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}

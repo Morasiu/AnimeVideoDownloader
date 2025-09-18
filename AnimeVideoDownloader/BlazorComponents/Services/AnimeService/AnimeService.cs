@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using BlazorComponents.Extensions;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.Data.Models.Animes;
 using BlazorComponents.Services.Data.Models.Episodes;
@@ -25,18 +26,21 @@ public class AnimeService : IAnimeService
         return _context.Anime.Local.ToObservableCollection();
     }
 
-    public async Task<Anime> AddAnimeFromUrlAsync(string url, string directory, CancellationToken ct = default)
+    public async Task<Anime> AddAnimeFromUrlAsync(string url, string directory, string title = "", CancellationToken ct = default)
     {
         // Basic validation and parsing (placeholder logic)
         if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("URL cannot be empty", nameof(url));
         if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("Directory cannot be empty", nameof(directory));
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) throw new ArgumentException("Invalid URL format", nameof(url));
         _logger.LogInformation("Adding anime from {Url}", url);
-        await GetTitle(uri);
+        if (title.IsNullOrEmpty())
+        {
+            title = await GetTitle(uri);
+        }
         var anime = new Anime
         {
             Id = Guid.CreateVersion7(),
-            Title = string.Empty,
+            Title = title,
             SourceUrl = url,
             Directory = directory,
             Episodes = new List<Episode>(),
@@ -47,13 +51,13 @@ public class AnimeService : IAnimeService
         return anime;
     }
 
-    private async Task GetTitle(Uri uri)
+    private async Task<string> GetTitle(Uri uri)
     {
         var browser = _browserProvider.GetBrowser();
         var page = await browser.NewPageAsync();
         await page.GotoAsync(uri.AbsoluteUri);
-        await page.WaitForSelectorAsync("title");
-        var title = await page.TitleAsync();
+        var title = await page.Locator(".title").InnerTextAsync();
+        return title;
     }
 
     public bool HasDownloadingEpisodes(Anime anime)

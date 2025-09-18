@@ -4,35 +4,51 @@
 @inject IAnimeService AnimeService
 @inject IDirectorySelectionService DirectorySelectionService
 
-<Modal IsOpen="@IsOpen" Title="Add Anime by URL" OnClose="OnClose">
+<Modal IsOpen="@IsOpen" Title="Add Anime by URL" OnClose="OnClose" CanClose="!IsAdding">
     <ChildContent>
         <div class="form-group">
             <label for="anime-url">URL</label>
-            <input id="anime-url" type="url" placeholder="https://..." @bind="Url" />
+            <input id="anime-url" type="url" placeholder="https://..." @bind="Url" disabled="@IsAdding"/>
         </div>
 
         <div class="form-group">
             <label for="anime-directory">Directory *</label>
             <div class="directory-selection">
-                <input id="anime-directory" type="text" placeholder="C:\\Downloads\\Anime" @bind="Directory" readonly />
-                <button type="button" class="browse-btn" @onclick="SelectDirectory">
+                <input id="anime-directory" type="text" placeholder="C:\\Downloads\\Anime" @bind="Directory" readonly
+                       disabled="@IsAdding"/>
+                <button type="button" class="browse-btn" @onclick="SelectDirectory" disabled="@IsAdding">
                     <i class="fas fa-folder-open"></i> Browse
                 </button>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label for="anime-title">Title (optional)</label>
-            <input id="anime-title" type="text" placeholder="Custom title" @bind="TitleInput" />
+            <input id="anime-title" type="text" placeholder="Custom title" @bind="TitleInput" disabled="@IsAdding"/>
         </div>
         @if (!string.IsNullOrEmpty(Error))
         {
             <div class="add-error">@Error</div>
         }
+        @if (IsAdding)
+        {
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Adding anime...</div>
+        }
     </ChildContent>
     <Footer>
-        <button class="secondary-btn" @onclick="OnClose">Cancel</button>
-        <button class="primary-btn" @onclick="AddAsync"><i class="fas fa-plus"></i> Add</button>
+        <button class="secondary-btn" @onclick="OnClose" disabled="@IsAdding">Cancel</button>
+        <button class="primary-btn" @onclick="AddAsync" disabled="@IsAdding">
+            @if (IsAdding)
+            {
+                <i class="fas fa-spinner fa-spin"></i>
+                <span> Adding...</span>
+            }
+            else
+            {
+                <i class="fas fa-plus"></i>
+                <span> Add</span>
+            }
+        </button>
     </Footer>
 </Modal>
 
@@ -46,10 +62,13 @@
     [Parameter, EditorRequired]
     public EventCallback<Anime> OnAdded { get; set; }
 
-    private string Url { get; set; } = string.Empty;
     private string TitleInput { get; set; } = string.Empty;
-    private string Directory { get; set; } = string.Empty;
+    //private string Url { get; set; } = string.Empty;
+    //private string Directory { get; set; } = string.Empty;
+    private string Url { get; set; } = "https://shinden.pl/series/54801-psycho-pass-3/episodes";
+    private string Directory { get; set; } = @"D:\Download\Psycho Pass 3";
     private string? Error { get; set; }
+    private bool IsAdding { get; set; }
 
     protected override void OnParametersSet()
     {
@@ -66,6 +85,7 @@
         TitleInput = string.Empty;
         Directory = string.Empty;
         Error = null;
+        IsAdding = false;
     }
 
     private async Task AddAsync()
@@ -73,19 +93,18 @@
         Error = null;
         var url = Url.Trim();
         var directory = Directory.Trim();
-
         if (string.IsNullOrWhiteSpace(url))
         {
             Error = "Please provide a valid URL.";
             return;
         }
-
         if (string.IsNullOrWhiteSpace(directory))
         {
             Error = "Please provide a valid directory.";
             return;
         }
-
+        IsAdding = true;
+        await InvokeAsync(StateHasChanged);
         try
         {
             var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory);
@@ -94,10 +113,18 @@
                 newAnime.Title = TitleInput.Trim();
             }
             await OnAdded.InvokeAsync(newAnime);
+            IsOpen = false;
+            Reset();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
             Error = ex.Message;
+        }
+        finally
+        {
+            IsAdding = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -117,4 +144,5 @@
             Error = $"Error selecting directory: {ex.Message}";
         }
     }
+
 }

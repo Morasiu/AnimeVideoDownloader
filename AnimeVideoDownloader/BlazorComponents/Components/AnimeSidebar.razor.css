@@ -1,63 +1,4 @@
-﻿.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.form-group label {
-  font-size: 0.9rem;
-  color: var(--text-light);
-}
-
-.form-group input[type="url"],
-.form-group input[type="text"] {
-  padding: 8px 10px;
-  border: 1px solid var(--border-light);
-  background: var(--bg-input);
-  color: var(--text-primary);
-  border-radius: 6px;
-}
-
-.add-error {
-  color: var(--color-error);
-  background: var(--bg-error-transparent);
-  border: 1px solid var(--bg-error-border);
-  padding: 8px 10px;
-  border-radius: 6px;
-  margin-top: 6px;
-}
-
-.add-open-btn,
-.primary-btn,
-.secondary-btn,
-.close-btn {
-  border: none;
-  background: var(--bg-button);
-  color: var(--text-primary);
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.add-open-btn {
-}
-
-.primary-btn {
-  background: var(--color-primary);
-}
-
-.secondary-btn {
-  background: var(--bg-button-secondary);
-}
-
-.close-btn {
-  background: transparent;
-  color: var(--text-light);
-  padding: 4px 6px;
-}
-
-.sidebar {
+﻿.sidebar {
     background: var(--bg-secondary);
     padding: 16px;
     height: 100%;
@@ -182,47 +123,6 @@
     font-size: 0.8rem;
     font-weight: 500;
     margin-left: 8px;
-}
-
-/* Directory selection layout */
-.directory-selection {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.directory-selection input[type="text"] {
-    flex: 1;
-    padding: 8px 10px;
-    border: 1px solid var(--border-light);
-    background: var(--bg-input);
-    color: var(--text-primary);
-    border-radius: 6px;
-}
-
-.directory-selection input[type="text"]:focus {
-    outline: none;
-    border-color: var(--color-primary);
-}
-
-.browse-btn {
-    flex-shrink: 0;
-    border: none;
-    background: var(--bg-button);
-    color: var(--text-primary);
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.browse-btn:hover {
-    background: var(--bg-button-hover);
-}
-
-.browse-btn i {
-    margin-right: 4px;
 }
 
 /* Status text colors */

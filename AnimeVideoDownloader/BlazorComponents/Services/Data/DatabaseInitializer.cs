@@ -1,7 +1,7 @@
-﻿using BlazorComponents.Services.Data;
+﻿using BlazorComponents.Services.Initializers;
 using Microsoft.Extensions.Logging;
 
-namespace BlazorComponents.Services.Initializers;
+namespace BlazorComponents.Services.Data;
 
 public sealed class DatabaseInitializer : IInitializer
 {
