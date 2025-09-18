@@ -8,10 +8,10 @@
     <div class="episode-list">
         @foreach (var episode in Anime.Episodes)
         {
-            <div class="episode-item @AnimeService.GetEpisodeStatusClass(episode.Status)">
+            <div class="episode-item @GetEpisodeStatusClass(episode.Status)">
                 <div class="episode-number">@episode.Number</div>
                 <div class="episode-title">@episode.Title</div>
-                <div class="episode-status">@AnimeService.GetStatusText(episode.Status)</div>
+                <div class="episode-status">@GetStatusText(episode.Status)</div>
                 <div class="episode-actions">
                     @if (episode.Status == EpisodeStatus.Error)
                     {
@@ -71,5 +71,26 @@
             );
          await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress, ct: cts.Token);
     }
-
+    
+    private string GetEpisodeStatusClass(EpisodeStatus status)
+    {
+        return status switch
+        {
+            EpisodeStatus.Downloaded => "downloaded",
+            EpisodeStatus.InProgress => "in-progress",
+            EpisodeStatus.Error => "error",
+            _ => ""
+        };
+    }
+    
+    public string GetStatusText(EpisodeStatus status)
+    {
+        return status switch
+        {
+            EpisodeStatus.Downloaded => "Downloaded",
+            EpisodeStatus.InProgress => "In Progress",
+            EpisodeStatus.Error => "Error",
+            _ => ""
+        };
+    }
 }

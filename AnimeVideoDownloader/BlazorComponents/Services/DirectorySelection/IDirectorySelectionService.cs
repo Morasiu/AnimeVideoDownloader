@@ -1,4 +1,4 @@
-﻿namespace BlazorComponents.Services;
+﻿namespace BlazorComponents.Services.DirectorySelection;
 
 public interface IDirectorySelectionService
 {

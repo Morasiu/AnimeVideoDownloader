@@ -1,5 +1,5 @@
 ﻿
-namespace BlazorComponents.Services;
+namespace BlazorComponents.Services.DirectorySelection;
 
 public sealed class DirectorySelectionService : IDirectorySelectionService
 {

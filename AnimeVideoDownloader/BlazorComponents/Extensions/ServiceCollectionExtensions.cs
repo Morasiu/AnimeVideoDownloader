@@ -1,10 +1,12 @@
 ﻿using BlazorComponents.Components.Anime.Services;
-using BlazorComponents.Services;
 using BlazorComponents.Services.AppData;
+using BlazorComponents.Services.Data;
+using BlazorComponents.Services.DirectorySelection;
 using BlazorComponents.Services.Initializers;
 using BlazorComponents.Services.Logging;
 using BlazorComponents.Services.Playwright;
 using BlazorComponents.Services.YoutubeDLService;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorComponents.Extensions;
@@ -21,6 +23,11 @@ public static class ServiceCollectionExtensions
         services.AddYoutubeDL();
         services.AddPlaywright();
         services.AddAppInitializers();
+        services.AddDbContext<ApplicationDbContext>((_, o) => o
+            .UseSqlite($"Data Source={AppDataPath.AnimeDownloaderPath}/anime.db")
+            .EnableSensitiveDataLogging()
+            .UseLazyLoadingProxies()
+        );
         return services;
     }
 }

@@ -5,11 +5,9 @@ namespace BlazorComponents.Components.Anime.Services
     public interface IAnimeService
     {
         List<AnimeModel> GetAnimeList();
-        Task<AnimeModel?> GetAnimeByIdAsync(int id);
+        Task<AnimeModel?> GetAnimeByIdAsync(Guid id);
         Task<AnimeModel> AddAnimeFromUrlAsync(string url, string directory, CancellationToken ct = default);
         bool HasDownloadingEpisodes(AnimeModel anime);
         bool HasErrorEpisodes(AnimeModel anime);
-        string GetEpisodeStatusClass(EpisodeStatus status);
-        string GetStatusText(EpisodeStatus status);
     }
 }

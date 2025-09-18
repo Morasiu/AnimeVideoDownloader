@@ -26,7 +26,7 @@ public sealed class AppInitializer
             var initResult = new InitResult { Name = initializer.GetType().Name, Status = InitStatus.Pending };
             _results.Add(initResult);
             StatusChanged?.Invoke();
-            var task = initializer.InitAsync().ContinueWith(task =>
+            var task = Task.Run(initializer.InitAsync).ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully)
                 {

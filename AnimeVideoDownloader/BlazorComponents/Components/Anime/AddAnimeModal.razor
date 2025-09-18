@@ -1,0 +1,118 @@
+﻿@using BlazorComponents.Services.DirectorySelection
+@inject IAnimeService AnimeService
+@inject IDirectorySelectionService DirectorySelectionService
+
+<Modal IsOpen="@IsOpen" Title="Add Anime by URL" OnClose="OnClose">
+    <ChildContent>
+        <div class="form-group">
+            <label for="anime-url">URL</label>
+            <input id="anime-url" type="url" placeholder="https://..." @bind="Url" />
+        </div>
+
+        <div class="form-group">
+            <label for="anime-directory">Directory *</label>
+            <div class="directory-selection">
+                <input id="anime-directory" type="text" placeholder="C:\\Downloads\\Anime" @bind="Directory" readonly />
+                <button type="button" class="browse-btn" @onclick="SelectDirectory">
+                    <i class="fas fa-folder-open"></i> Browse
+                </button>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="anime-title">Title (optional)</label>
+            <input id="anime-title" type="text" placeholder="Custom title" @bind="TitleInput" />
+        </div>
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <div class="add-error">@Error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <button class="secondary-btn" @onclick="OnClose">Cancel</button>
+        <button class="primary-btn" @onclick="AddAsync"><i class="fas fa-plus"></i> Add</button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<AnimeModel> OnAdded { get; set; }
+
+    private string Url { get; set; } = string.Empty;
+    private string TitleInput { get; set; } = string.Empty;
+    private string Directory { get; set; } = string.Empty;
+    private string? Error { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // When opened, reset fields
+        if (IsOpen && string.IsNullOrEmpty(Url) && string.IsNullOrEmpty(Directory) && string.IsNullOrEmpty(TitleInput) && string.IsNullOrEmpty(Error))
+        {
+            Reset();
+        }
+    }
+
+    private void Reset()
+    {
+        Url = string.Empty;
+        TitleInput = string.Empty;
+        Directory = string.Empty;
+        Error = null;
+    }
+
+    private async Task AddAsync()
+    {
+        Error = null;
+        var url = Url.Trim();
+        var directory = Directory.Trim();
+
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            Error = "Please provide a valid URL.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            Error = "Please provide a valid directory.";
+            return;
+        }
+
+        try
+        {
+            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory);
+            if (!string.IsNullOrWhiteSpace(TitleInput))
+            {
+                newAnime.Title = TitleInput.Trim();
+            }
+            await OnAdded.InvokeAsync(newAnime);
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+    }
+
+    private void SelectDirectory()
+    {
+        try
+        {
+            var selectedDirectory = DirectorySelectionService.SelectDirectory(Directory);
+            if (!string.IsNullOrEmpty(selectedDirectory))
+            {
+                Directory = selectedDirectory;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = $"Error selecting directory: {ex.Message}";
+        }
+    }
+}
