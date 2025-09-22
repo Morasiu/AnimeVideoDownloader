@@ -1,6 +1,8 @@
 using BlazorComponents;
 using BlazorComponents.Extensions;
+using BlazorComponents.Services.Data;
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
@@ -24,7 +26,12 @@ public partial class MainForm : Form
         services.AddBlazorWebViewDeveloperTools();
         
         var provider = services.BuildServiceProvider();
-        var logger = provider.GetRequiredService<ILogger<MainForm>>();
+        using var scope = provider.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<MainForm>>();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        logger.LogInformation("Starting Database Migration");
+        context.Database.Migrate();
+        logger.LogInformation("Starting Database Migration finished");
         logger.LogInformation("Starting Blazor Host");
         BlazorWebView blazor = new BlazorWebView
         {
@@ -33,7 +40,6 @@ public partial class MainForm : Form
             Services = provider,
         };
         blazor.RootComponents.Add<App>("#app");
-        
         Controls.Add(blazor);
     }
 }

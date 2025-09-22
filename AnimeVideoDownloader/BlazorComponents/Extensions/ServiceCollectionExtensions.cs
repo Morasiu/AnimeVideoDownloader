@@ -8,6 +8,7 @@ using BlazorComponents.Services.Playwright;
 using BlazorComponents.Services.Toasts;
 using BlazorComponents.Services.YoutubeDLService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorComponents.Extensions;
@@ -25,12 +26,14 @@ public static class ServiceCollectionExtensions
         services.AddYoutubeDL();
         services.AddPlaywright();
         services.AddAppInitializers();
-        services.AddDbContext<ApplicationDbContext>((_, o) => o
-            .UseSqlite($"Data Source={AppDataPath.AnimeDownloaderPath}/anime.db")
-            .EnableSensitiveDataLogging()
-            .UseLazyLoadingProxies()
-        );
-        services.AddBlazorContextMenu(o => 
+        services.AddDbContext<ApplicationDbContext>((_, o) =>
+        {
+            o.UseSqlite($"Data Source={AppDataPath.AnimeDownloaderPath}/anime.db")
+                .EnableSensitiveDataLogging()
+                .UseLazyLoadingProxies();
+            o.ConfigureWarnings(x => x.Ignore(CoreEventId.SensitiveDataLoggingEnabledWarning));
+        });
+        services.AddBlazorContextMenu(o =>
             o.ConfigureTemplate(defaultTemplate =>
             {
                 defaultTemplate.MenuCssClass = "context-menu";

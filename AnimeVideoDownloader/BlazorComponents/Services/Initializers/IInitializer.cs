@@ -2,6 +2,7 @@
 
 public interface IInitializer
 {
+    bool IsInitialized { get; protected set; }
     Task InitAsync();
 }
 

@@ -25,7 +25,6 @@ public sealed class AppInitializer
         {
             var initResult = new InitResult { Name = initializer.GetType().Name, Status = InitStatus.Pending };
             _results.Add(initResult);
-            StatusChanged?.Invoke();
             var task = initializer.InitAsync().ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully)
@@ -38,10 +37,10 @@ public sealed class AppInitializer
                     initResult.Status = InitStatus.Error;
                     _logger.LogError(task.Exception, "Failed to initialize {Name}", initializer.GetType().Name);
                 }
-                StatusChanged?.Invoke();
             });
             tasks.Add(task);
         }
         await Task.WhenAll(tasks);
+        StatusChanged?.Invoke();
     }
 }

@@ -60,7 +60,7 @@ public sealed class ToastService
 
         // schedule auto-dismiss
         toast.Cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        _ = Task.Run(async () =>
+        Task.Run(async () =>
         {
             try
             {
@@ -75,7 +75,7 @@ public sealed class ToastService
             {
                 _logger.LogError(ex, "Error while auto-dismissing toast {ToastId}", id);
             }
-        });
+        }, ct);
 
         return id;
     }

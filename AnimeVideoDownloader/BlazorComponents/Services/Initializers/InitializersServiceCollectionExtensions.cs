@@ -12,7 +12,6 @@ public static class InitializersServiceCollectionExtensions
         services.AddSingleton<AppInitializer>();
         services.AddSingleton<IInitializer, PlaywrightInitializer>();
         services.AddSingleton<IInitializer, YoutubeDLInitializer>();
-        services.AddSingleton<IInitializer, DatabaseInitializer>();
         return services;
     }
 }

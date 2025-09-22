@@ -10,6 +10,7 @@ public class Anime
     public string SourceUrl { get; set; } = "";
     public string Directory { get; set; } = "";
     public AnimeStatus Status { get; set; } = AnimeStatus.Initializing;
+    public DateTime? EpisodesUpdatedAt { get; set; }
     public virtual ICollection<Episode> Episodes { get; set; } = new ObservableCollection<Episode>();
 }
 

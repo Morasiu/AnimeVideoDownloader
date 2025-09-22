@@ -19,18 +19,18 @@
     <HeadOutlet/>
 </head>
 <body>
-<Toasts />
+<Toasts/>
 <Routes/>
 </body>
 
 </html>
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            await Task.Run(() => AppInitializer.InitAsync());
-        }
+        await Task.Run(AppInitializer.InitAsync);
     }
+
 }

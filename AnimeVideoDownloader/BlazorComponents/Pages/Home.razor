@@ -14,9 +14,7 @@
         <main class="content-area">
             @if (selectedAnime != null)
             {
-                <AnimeDetails
-                    Anime="@selectedAnime"
-                    OnAnimeUpdated="@OnAnimeUpdated" />
+                <AnimeDetails Anime="@selectedAnime" />
             }
             else
             {
@@ -34,11 +32,6 @@
     private void SelectAnime(Anime anime)
     {
         selectedAnime = anime;
-    }
-
-    private void OnAnimeUpdated(Anime anime)
-    {
-        // Handle anime updates if needed
     }
 
     private async Task SelectFirstAnimeAsync()

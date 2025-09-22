@@ -16,9 +16,12 @@ public sealed class PlaywrightInitializer : IInitializer
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
-    
+
+    public bool IsInitialized { get; set; }
+
     public Task InitAsync()
     {
+        if (IsInitialized) return Task.CompletedTask;
         _logger.LogInformation("Installing Playwright");
         int exitCode = Program.Main(["install", "chromium"]);
         if (exitCode != 0)
@@ -30,6 +33,7 @@ public sealed class PlaywrightInitializer : IInitializer
         var browserProvider = _serviceProvider.GetRequiredService<IBrowserProvider>();
         browserProvider.GetBrowser();
         _logger.LogInformation("Creating Playwright Browser finished");
+        IsInitialized = true;
         return Task.CompletedTask;
     }
 }

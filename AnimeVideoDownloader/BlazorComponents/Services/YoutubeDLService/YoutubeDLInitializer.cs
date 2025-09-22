@@ -14,11 +14,15 @@ public sealed class YoutubeDLInitializer : IInitializer
         _logger = logger;
     }
 
+    public bool IsInitialized { get; set; }
+
     public async Task InitAsync()
     {
+        if (IsInitialized) return;
         Directory.CreateDirectory(LibrariesPath);
         _logger.LogInformation("Downloading youtube-dl");
         await YoutubeDLSharp.Utils.DownloadBinaries(skipExisting: true, LibrariesPath);
         _logger.LogInformation("Downloading youtube-dl finished");
+        IsInitialized = true;
     }
 }
