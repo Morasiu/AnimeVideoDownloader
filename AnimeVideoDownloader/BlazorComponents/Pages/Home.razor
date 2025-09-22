@@ -5,30 +5,28 @@
 @inject IAnimeService AnimeService
 
 
-<div class="app-container">
-    <div class="main-layout">
-        <AnimeSidebar
-            SelectedAnime="@selectedAnime"
-            OnAnimeSelected="@SelectAnime" />
+<div class="main-layout">
+    <AnimeSidebar
+        SelectedAnime="@selectedAnime"
+        OnAnimeSelected="@SelectAnime"/>
 
-        <main class="content-area">
-            @if (selectedAnime != null)
-            {
-                <AnimeDetails Anime="@selectedAnime" />
-            }
-            else
-            {
-                <NoAnimeSelected
-                    OnSelectFirstAnime="@SelectFirstAnimeAsync" />
-            }
-        </main>
-    </div>
+    <main class="content-area">
+        @if (selectedAnime != null)
+        {
+            <AnimeDetails Anime="@selectedAnime"/>
+        }
+        else
+        {
+            <NoAnimeSelected
+                OnSelectFirstAnime="@SelectFirstAnimeAsync"/>
+        }
+    </main>
 </div>
 
 @code {
     [Inject] private ILogger<Home> Logger { get; set; } = null!;
     private Anime? selectedAnime;
-    
+
     private void SelectAnime(Anime anime)
     {
         selectedAnime = anime;
@@ -48,4 +46,5 @@
         await base.OnInitializedAsync();
         await SelectFirstAnimeAsync();
     }
+
 }
