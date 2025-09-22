@@ -26,11 +26,8 @@
 </html>
 
 @code {
-    private bool isLoading = true;
-
     protected override async Task OnInitializedAsync()
     {
         await Task.Run(AppInitializer.InitAsync);
     }
-
 }

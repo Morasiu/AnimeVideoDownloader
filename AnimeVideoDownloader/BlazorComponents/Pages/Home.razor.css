@@ -1,9 +1,10 @@
 ﻿
-.main-layout {
+.container {
     display: flex;
     gap: 1rem;
     flex: 1;
     overflow: hidden;
+    height: 100%;
 }
 
 .content-area {

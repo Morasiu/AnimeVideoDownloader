@@ -13,13 +13,13 @@
     background: #000;
     overflow: hidden;
 }
-.container
+.container-box
 {
     position: relative;
     width: 100%;
     transform: rotate(-35deg);
 }
-.container .box
+.container-box .box
 {
     position: relative;
     left: -100px;
@@ -42,7 +42,7 @@
         transform: translateX(-200px);
     }
 }
-.container .box .cube
+.container-box .box .cube
 {
     position: relative;
     width: 200px;
