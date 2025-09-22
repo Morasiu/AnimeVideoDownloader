@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using BlazorComponents.Services.Data.Models.Animes;
 
-namespace BlazorComponents.Services.AnimeService
+namespace BlazorComponents.Services.AnimeServices
 {
     public interface IAnimeService
     {
@@ -10,5 +10,6 @@ namespace BlazorComponents.Services.AnimeService
         Task DeleteAnimeAsync(Anime anime, CancellationToken ct = default);
         bool HasDownloadingEpisodes(Anime anime);
         bool HasErrorEpisodes(Anime anime);
+        Task UpdateAnimeEpisodeListAsync(Anime anime);
     }
 }

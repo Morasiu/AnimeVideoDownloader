@@ -1,4 +1,4 @@
-﻿using BlazorComponents.Services.AnimeService;
+﻿using BlazorComponents.Services.AnimeServices;
 using BlazorComponents.Services.AppData;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.DirectorySelection;
@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddBlazorComponentsServices(this IServiceCollection services)
     {
         // Register component services
-        services.AddSingleton<IAnimeService, AnimeService>();
+        services.AddAnimeServices();
         services.AddSingleton<IDirectorySelectionService, DirectorySelectionService>();
         services.AddSingleton<UserSettingsProvider>();
         services.AddSingleton<ToastService>();

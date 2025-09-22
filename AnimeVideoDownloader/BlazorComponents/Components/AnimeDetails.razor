@@ -1,4 +1,4 @@
-﻿@using BlazorComponents.Services.AnimeService
+﻿@using BlazorComponents.Services.AnimeServices
 @using BlazorComponents.Services.Data.Models.Animes
 @inject IAnimeService AnimeService
 
@@ -11,7 +11,10 @@
 
             <div class="action-buttons">
                 <button class="action-btn download-all-btn" @onclick="DownloadAll"><i class="fas fa-download"></i> Download All</button>
-                <button class="action-btn refresh-btn" @onclick="RefreshAnime"><i class="fas fa-sync-alt"></i> Update episode list</button>
+                <button class="action-btn refresh-btn" @onclick="UpdateEpisodeListAsync">
+                    <i class="fas fa-sync-alt"></i> 
+                    Update episodes list
+                </button>
             </div>
         </div>
     </div>
@@ -30,18 +33,13 @@
     [Parameter, EditorRequired]
     public Anime Anime { get; set; } = null!;
 
-    [Parameter]
-    public EventCallback<Anime> OnAnimeUpdated { get; set; }
-
     private async Task DownloadAll()
     {
         // Implement download all functionality
-        await OnAnimeUpdated.InvokeAsync(Anime);
     }
 
-    private async Task RefreshAnime()
+    private async Task UpdateEpisodeListAsync()
     {
-        // Implement refresh functionality
-        await OnAnimeUpdated.InvokeAsync(Anime);
+        AnimeService.UpdateAnimeEpisodeListAsync(Anime);
     }
 }

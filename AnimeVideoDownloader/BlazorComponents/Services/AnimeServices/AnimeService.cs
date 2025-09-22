@@ -1,24 +1,25 @@
 ﻿using System.Collections.ObjectModel;
 using BlazorComponents.Extensions;
+using BlazorComponents.Services.AnimeServices.Providers;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.Data.Models.Animes;
 using BlazorComponents.Services.Data.Models.Episodes;
-using BlazorComponents.Services.Playwright;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace BlazorComponents.Services.AnimeService;
+namespace BlazorComponents.Services.AnimeServices;
 
 public class AnimeService : IAnimeService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IBrowserProvider _browserProvider;
+    private readonly IAnimeProvider _animeProvider;
     private readonly ILogger<AnimeService> _logger;
 
-    public AnimeService(ApplicationDbContext context, IBrowserProvider browserProvider, ILogger<AnimeService> logger)
+    public AnimeService(ApplicationDbContext context, [FromKeyedServices(AnimeProviderType.Shinden)] IAnimeProvider animeProvider, ILogger<AnimeService> logger)
     {
         _context = context;
-        _browserProvider = browserProvider;
+        _animeProvider = animeProvider;
         _logger = logger;
     }
 
@@ -37,7 +38,7 @@ public class AnimeService : IAnimeService
         _logger.LogInformation("Adding anime from {Url}", url);
         if (title.IsNullOrEmpty())
         {
-            title = await GetTitleAsync(uri);
+            title = await _animeProvider.GetAnimeTitleAsync(uri.AbsoluteUri);
         }
         var anime = new Anime
         {
@@ -73,16 +74,11 @@ public class AnimeService : IAnimeService
         _logger.LogInformation("Deleted anime {AnimeId}", anime.Id);
     }
 
-    private async Task<string> GetTitleAsync(Uri uri)
+    public async Task UpdateAnimeEpisodeListAsync(Anime anime)
     {
-        var browser = _browserProvider.GetBrowser();
-        var page = await browser.NewPageAsync();
-        await page.GotoAsync(uri.AbsoluteUri);
-        var title = await page.Locator(".title").InnerTextAsync();
-        await page.CloseAsync();
-        return title;
+        var episodes = await _animeProvider.GetEpisodesListAsync(anime.SourceUrl);
     }
-
+    
     public bool HasDownloadingEpisodes(Anime anime)
     {
         return anime.Episodes.Any(e => e.Status == EpisodeStatus.InProgress);
