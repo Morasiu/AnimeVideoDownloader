@@ -1,0 +1,15 @@
+﻿@if (ShouldShow)
+{
+    <i class="fas fa-spinner fa-spin"></i>
+}
+else
+{
+    <i class="fas @(BaseIconClass)"></i>
+}
+@code {
+    [Parameter, EditorRequired]
+    public bool ShouldShow { get; set; }
+
+    [Parameter]
+    public string BaseIconClass { get; set; }
+}

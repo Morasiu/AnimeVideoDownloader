@@ -8,6 +8,7 @@ public class Episode
     public int Number { get; set; }
     public string Title { get; set; } = "";
     public EpisodeStatus Status { get; set; }
+    public string? PageUri { get; set; }
     
     public Guid AnimeId { get; set; }
     public virtual Anime Anime { get; set; } = null!;
@@ -15,7 +16,8 @@ public class Episode
 
 public enum EpisodeStatus
 {
-    Downloaded,
+    New, 
     InProgress,
-    Error
+    Downloaded,
+    Error,
 }

@@ -77,6 +77,13 @@ public class AnimeService : IAnimeService
     public async Task UpdateAnimeEpisodeListAsync(Anime anime)
     {
         var episodes = await _animeProvider.GetEpisodesListAsync(anime.SourceUrl);
+        foreach (var episode in episodes)
+        {
+            if (anime.Episodes.Any(e => e.Number == episode.Number)) continue;
+            anime.Episodes.Add(episode);
+        }
+        anime.EpisodesUpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
     }
     
     public bool HasDownloadingEpisodes(Anime anime)

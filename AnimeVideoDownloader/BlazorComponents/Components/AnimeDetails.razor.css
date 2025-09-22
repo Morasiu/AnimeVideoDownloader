@@ -65,6 +65,7 @@
     display: flex;
     gap: 1rem;
     margin-top: auto;
+    align-items: center;
 }
 
 .action-btn {

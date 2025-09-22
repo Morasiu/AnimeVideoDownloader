@@ -7,7 +7,7 @@
 <div class="episodes-section">
     <h3>Episodes</h3>
     <div class="episode-list">
-        @foreach (var episode in Anime.Episodes)
+        @foreach (var episode in Anime.Episodes.OrderBy(x => x.Number))
         {
             <div class="episode-item @GetEpisodeStatusClass(episode.Status)">
                 <div class="episode-number">@episode.Number</div>

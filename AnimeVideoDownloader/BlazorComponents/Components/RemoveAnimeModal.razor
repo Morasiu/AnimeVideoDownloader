@@ -19,16 +19,8 @@
     <Footer>
         <button class="secondary-btn" @onclick="OnClose" disabled="@IsDeleting">Cancel</button>
         <button class="primary-btn" @onclick="RemoveAsync" disabled="@(IsDeleting || Anime is null)">
-            @if (IsDeleting)
-            {
-                <i class="fas fa-spinner fa-spin"></i>
-                <span> Removing...</span>
-            }
-            else
-            {
-                <i class="fas fa-trash"></i>
-                <span> Remove</span>
-            }
+            <Spinner ShouldShow="@IsDeleting" BaseIconClass="fa-trash"/>
+            <span> Remove</span>
         </button>
     </Footer>
 </Modal>
@@ -57,7 +49,6 @@
             Error = "No anime selected.";
             return;
         }
-
         IsDeleting = true;
         await InvokeAsync(StateHasChanged);
         try
@@ -78,4 +69,5 @@
             await InvokeAsync(StateHasChanged);
         }
     }
+
 }

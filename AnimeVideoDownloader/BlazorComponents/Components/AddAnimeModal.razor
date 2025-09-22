@@ -40,16 +40,8 @@
     <Footer>
         <button class="secondary-btn" @onclick="OnClose" disabled="@IsAdding">Cancel</button>
         <button class="primary-btn" @onclick="AddAsync" disabled="@IsAdding">
-            @if (IsAdding)
-            {
-                <i class="fas fa-spinner fa-spin"></i>
-                <span> Adding...</span>
-            }
-            else
-            {
-                <i class="fas fa-plus"></i>
-                <span> Add</span>
-            }
+            <Spinner ShouldShow="IsAdding" BaseIconClass="fa-plus"/>
+            <span> Add</span>
         </button>
     </Footer>
 </Modal>

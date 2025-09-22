@@ -35,6 +35,7 @@ namespace BlazorComponents.Migrations
                     Number = table.Column<int>(type: "INTEGER", nullable: false),
                     Title = table.Column<string>(type: "TEXT", maxLength: 250, nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    PageUri = table.Column<string>(type: "TEXT", nullable: true),
                     AnimeId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
