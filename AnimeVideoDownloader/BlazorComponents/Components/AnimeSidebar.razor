@@ -19,31 +19,38 @@
     <div class="anime-list">
         @foreach (var anime in FilteredAnimeList)
         {
-            <button class="@GetAnimeItemClass(anime)" @onclick="() => SelectAnimeItem(anime)"
-                    @oncontextmenu:preventDefault="true">
-                <div class="anime-title-container">
-                    @if (AnimeService.HasDownloadingEpisodes(anime))
-                    {
-                        <i class="fas fa-circle-notch fa-spin text-blue status-icon-left"></i>
-                    }
-                    else if (AnimeService.HasErrorEpisodes(anime))
-                    {
-                        <i class="fas fa-exclamation-circle text-red status-icon-left"></i>
-                    }
-                    else
-                    {
-                        <i class="fas fa-check text-green status-icon-left"></i>
-                    }
-                    <span class="anime-title">@anime.Title</span>
-                </div>
-                <div class="anime-actions">
-                    <span class="anime-episode-count">@anime.Episodes.Count</span>
-                </div>
-            </button>
+            <ContextMenuTrigger MenuId="animeMenu" Data="anime">
+                <button class="@GetAnimeItemClass(anime)" @onclick="() => SelectAnimeItem(anime)">
+                    <div class="anime-title-container">
+                        @if (AnimeService.HasDownloadingEpisodes(anime))
+                        {
+                            <i class="fas fa-circle-notch fa-spin text-blue status-icon-left"></i>
+                        }
+                        else if (AnimeService.HasErrorEpisodes(anime))
+                        {
+                            <i class="fas fa-exclamation-circle text-red status-icon-left"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-check text-green status-icon-left"></i>
+                        }
+                        <span class="anime-title">@anime.Title</span>
+                    </div>
+                    <div class="anime-actions">
+                        <span class="anime-episode-count">@anime.Episodes.Count</span>
+                    </div>
+                </button>
+            </ContextMenuTrigger>
         }
     </div>
 
-    <AddAnimeModal IsOpen="@isAddModalOpen" OnAdded="StateHasChanged"/>
+    <ContextMenu Id="animeMenu">
+        <Item OnClick="@OnRemoveClicked">Remove</Item>
+    </ContextMenu>
+
+    <AddAnimeModal IsOpen="@isAddModalOpen" OnAdded="StateHasChanged" OnClose="@(() => isAddModalOpen = false)"/>
+
+    <RemoveAnimeModal IsOpen="@isDeleteModalOpen" Anime="@AnimeToDelete" OnRemoved="@OnAnimeRemoved" OnClose="@(() => isDeleteModalOpen = false)" />
 </aside>
 
 @code {
@@ -57,6 +64,8 @@
     private ObservableCollection<Anime> AnimeList { get; set; } = [];
 
     private bool isAddModalOpen;
+    private bool isDeleteModalOpen;
+    private Anime? AnimeToDelete;
 
     private List<Anime> FilteredAnimeList =>
         string.IsNullOrEmpty(SearchQuery)
@@ -87,6 +96,25 @@
     private void OpenAddModal()
     {
         isAddModalOpen = true;
+    }
+
+    private void OnRemoveClicked(ItemClickEventArgs e)
+    {
+        var anime = (Anime)e.Data;
+        AnimeToDelete = anime;
+        isDeleteModalOpen = true;
+    }
+
+    private async Task RemoveAnime()
+    {
+        ArgumentNullException.ThrowIfNull(AnimeToDelete);
+        await AnimeService.DeleteAnimeAsync(AnimeToDelete);
+        isDeleteModalOpen = false;
+    }
+
+    private void OnCloseDeleteModal()
+    {
+        isDeleteModalOpen = false;
     }
 
 }

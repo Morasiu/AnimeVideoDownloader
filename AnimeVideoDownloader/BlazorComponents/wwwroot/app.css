@@ -8,7 +8,7 @@
     --bg-input: #2a2a2a;
     --bg-modal: #1f1f1f;
     --bg-button: #3a3a3a;
-    --bg-button-hover: #374151;
+    --bg-button-hover: #434e5c;
     --bg-button-secondary: #4b5563;
 
     /* Text Colors */
@@ -58,7 +58,6 @@
     --bg-error-transparent: rgba(245, 101, 101, 0.1);
     --bg-error-border: rgba(255, 107, 107, 0.3);
     --bg-episode-default: rgba(26, 32, 44, 0.4);
-    --bg-episode-hover: rgba(45, 55, 72, 0.5);
     --bg-button-action: rgba(45, 55, 72, 0.8);
 
     /* Border Colors */
@@ -116,4 +115,30 @@ button {
     padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
+}
+
+.context-menu {
+    color: var(--text-primary);
+    padding: 0;
+}
+
+/* using css specificity to override default background-color */
+.context-menu .context-menu-item {
+    background-color: var(--bg-button);
+}
+
+.context-menu .context-menu-item:hover {
+    background-color: var(--bg-button-hover);
+}
+
+.context-menu-list {
+    padding: 0;
+}
+
+.primary-btn {
+    background: var(--color-primary);
+}
+
+.secondary-btn {
+    background: var(--bg-button-secondary);
 }

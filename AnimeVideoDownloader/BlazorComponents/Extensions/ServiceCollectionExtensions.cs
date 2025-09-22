@@ -30,7 +30,13 @@ public static class ServiceCollectionExtensions
             .EnableSensitiveDataLogging()
             .UseLazyLoadingProxies()
         );
-        services.AddBlazorContextMenu();
+        services.AddBlazorContextMenu(o => 
+            o.ConfigureTemplate(defaultTemplate =>
+            {
+                defaultTemplate.MenuCssClass = "context-menu";
+                defaultTemplate.MenuItemCssClass = "context-menu-item";
+                defaultTemplate.MenuListCssClass = "context-menu-list";
+            }));
         return services;
     }
 }

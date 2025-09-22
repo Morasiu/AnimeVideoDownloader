@@ -70,8 +70,6 @@
 }
 
 .add-open-btn,
-.primary-btn,
-.secondary-btn,
 .close-btn {
     border: none;
     background: var(--bg-button);
@@ -82,14 +80,6 @@
 }
 
 .add-open-btn {
-}
-
-.primary-btn {
-    background: var(--color-primary);
-}
-
-.secondary-btn {
-    background: var(--bg-button-secondary);
 }
 
 .close-btn {

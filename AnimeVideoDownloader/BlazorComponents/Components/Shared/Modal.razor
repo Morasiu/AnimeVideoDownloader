@@ -23,7 +23,7 @@
     public bool IsOpen { get; set; }
 
     [Parameter]
-    public bool CanClose { get; set; }
+    public bool CanClose { get; set; } = true;
 
     [Parameter, EditorRequired]
     public string Title { get; set; } = string.Empty;
@@ -39,7 +39,10 @@
 
     private Task OnCloseClicked()
     {
-        if (!CanClose) return Task.CompletedTask;
+        if (!CanClose)
+        {
+            return Task.CompletedTask;
+        }
         return OnClose.InvokeAsync();
     }
 
