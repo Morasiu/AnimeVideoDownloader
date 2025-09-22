@@ -37,7 +37,7 @@ public class AnimeService : IAnimeService
         _logger.LogInformation("Adding anime from {Url}", url);
         if (title.IsNullOrEmpty())
         {
-            title = await GetTitle(uri);
+            title = await GetTitleAsync(uri);
         }
         var anime = new Anime
         {
@@ -73,12 +73,13 @@ public class AnimeService : IAnimeService
         _logger.LogInformation("Deleted anime {AnimeId}", anime.Id);
     }
 
-    private async Task<string> GetTitle(Uri uri)
+    private async Task<string> GetTitleAsync(Uri uri)
     {
         var browser = _browserProvider.GetBrowser();
         var page = await browser.NewPageAsync();
         await page.GotoAsync(uri.AbsoluteUri);
         var title = await page.Locator(".title").InnerTextAsync();
+        await page.CloseAsync();
         return title;
     }
 

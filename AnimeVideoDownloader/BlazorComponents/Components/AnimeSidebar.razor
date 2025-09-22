@@ -48,9 +48,10 @@
         <Item OnClick="@OnRemoveClicked">Remove</Item>
     </ContextMenu>
 
-    <AddAnimeModal IsOpen="@isAddModalOpen" OnAdded="StateHasChanged" OnClose="@(() => isAddModalOpen = false)"/>
+    <AddAnimeModal IsOpen="@isAddModalOpen" OnAdded="OnAnimeAdded" OnClose="@(() => isAddModalOpen = false)"/>
 
-    <RemoveAnimeModal IsOpen="@isDeleteModalOpen" Anime="@AnimeToDelete" OnRemoved="@OnAnimeRemoved" OnClose="@(() => isDeleteModalOpen = false)" />
+    <RemoveAnimeModal IsOpen="@isDeleteModalOpen" Anime="@AnimeToDelete" OnRemoved="OnAnimeRemoved"
+                      OnClose="@(() => isDeleteModalOpen = false)"/>
 </aside>
 
 @code {
@@ -105,16 +106,16 @@
         isDeleteModalOpen = true;
     }
 
-    private async Task RemoveAnime()
+    private void OnAnimeRemoved()
     {
-        ArgumentNullException.ThrowIfNull(AnimeToDelete);
-        await AnimeService.DeleteAnimeAsync(AnimeToDelete);
         isDeleteModalOpen = false;
+        StateHasChanged();
     }
 
-    private void OnCloseDeleteModal()
+    private void OnAnimeAdded()
     {
-        isDeleteModalOpen = false;
+        isAddModalOpen = false;
+        StateHasChanged();
     }
 
 }

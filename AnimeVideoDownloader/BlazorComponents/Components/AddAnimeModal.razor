@@ -111,7 +111,6 @@
         {
             var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory, TitleInput);
             await OnAdded.InvokeAsync(newAnime);
-            IsOpen = false;
             Reset();
             await InvokeAsync(StateHasChanged);
             ToastService.ShowSuccess($"Anime {newAnime.Title} added.");

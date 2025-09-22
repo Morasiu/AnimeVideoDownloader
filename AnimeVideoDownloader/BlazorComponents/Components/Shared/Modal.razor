@@ -19,15 +19,15 @@
 }
 
 @code {
-    [Parameter]
+    [Parameter, EditorRequired]
     public bool IsOpen { get; set; }
-
-    [Parameter]
-    public bool CanClose { get; set; } = true;
-
+    
     [Parameter, EditorRequired]
     public string Title { get; set; } = string.Empty;
-
+    
+    [Parameter]
+    public bool CanClose { get; set; } = true;
+    
     [Parameter]
     public EventCallback OnClose { get; set; }
 
