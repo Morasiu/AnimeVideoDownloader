@@ -13,6 +13,7 @@ public partial class MainForm : Form
     public MainForm()
     {
         InitializeComponent();
+        Icon = new Icon(Application.StartupPath + "/icon.ico");
         var services = new ServiceCollection();
         services.AddBlazorComponentsServices();
         services.AddLogging(l => l
