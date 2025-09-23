@@ -10,5 +10,5 @@ public class EpisodeSource
     public SourceKind Kind { get; set; }
     
     public Guid EpisodeId { get; set; }
-    public Episode? Episode { get; set; }
+    public virtual Episode? Episode { get; set; }
 }

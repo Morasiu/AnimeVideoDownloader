@@ -14,7 +14,7 @@ public class Episode
     public string? FilePath { get; set; }
     public long TotalBytes { get; set; }
     public EpisodeType EpisodeType { get; set; }
-    public ICollection<EpisodeSource> Sources { get; set; } = new ObservableCollection<EpisodeSource>();
+    public virtual ICollection<EpisodeSource> Sources { get; set; } = new ObservableCollection<EpisodeSource>();
     
     public Guid AnimeId { get; set; }
     public virtual Anime Anime { get; set; } = null!;
