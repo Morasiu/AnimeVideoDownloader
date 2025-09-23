@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using System.Collections.ObjectModel
+@using System.Collections.Specialized
 @using BlazorComponents.Services.AnimeServices
 @using BlazorComponents.Services.Data.Models.Animes
 @using Microsoft.Extensions.Logging
@@ -17,8 +19,7 @@
         }
         else
         {
-            <NoAnimeSelected
-                OnSelectFirstAnime="@SelectFirstAnimeAsync"/>
+            <NoAnimeSelected OnAnimeAdded="OnAnimeAdded"/>
         }
     </main>
 </div>
@@ -26,25 +27,43 @@
 @code {
     [Inject] private ILogger<Home> Logger { get; set; } = null!;
     private Anime? selectedAnime;
+    private ObservableCollection<Anime> AnimeList = [];
 
     private void SelectAnime(Anime anime)
     {
         selectedAnime = anime;
     }
 
-    private async Task SelectFirstAnimeAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var animeList = await AnimeService.GetAnimeListAsync();
-        if (animeList.Count > 0)
+        if (firstRender)
         {
-            selectedAnime = animeList[0];
+            AnimeList = await AnimeService.GetAnimeListAsync();
+            selectedAnime = AnimeList.FirstOrDefault();
+            AnimeList.CollectionChanged += AnimeListOnCollectionChanged;
+            StateHasChanged();
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    private void AnimeListOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        await base.OnInitializedAsync();
-        await SelectFirstAnimeAsync();
+        if (selectedAnime is not null && !AnimeList.Contains(selectedAnime))
+        {
+            selectedAnime = null;
+        }
+        if (selectedAnime is null)
+        {
+            if (AnimeList.Any())
+            {
+                selectedAnime = AnimeList.First();
+            }
+        }
+        StateHasChanged();
+    }
+
+    private void OnAnimeAdded(Anime anime)
+    {
+        selectedAnime = anime;
     }
 
 }

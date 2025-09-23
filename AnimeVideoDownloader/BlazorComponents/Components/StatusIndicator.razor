@@ -30,7 +30,7 @@
                 @foreach (var initResult in _results)
                 {
                     <div class="status-item-detail">
-                        <strong>@initResult.Name:</strong>
+                        <strong>@initResult.Name.Split("Initializer")[0]:</strong>
                         @switch (initResult.Status)
                         {
                             case InitStatus.Success:

@@ -50,7 +50,6 @@
     [Inject]
     public required ILogger<EpisodeList> Logger { get; set; }
 
-    private CancellationTokenSource cts = new CancellationTokenSource();
 
     private async Task RetryDownload(Episode episode)
     {
@@ -70,7 +69,7 @@
             Logger.LogInformation("Download progress - Status: {Status}, Progress: {Progress:P}, Speed: {Speed}, ETA: {Eta}, TotalBytes: {TotalBytes}, Error: {Error}", 
                 p.Status, p.Progress, p.DownloadSpeed, p.ETA, p.TotalBytes, p.Error ?? "None")
             );
-         await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress, ct: cts.Token);
+         await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress);
     }
     
     private string GetEpisodeStatusClass(EpisodeStatus status)

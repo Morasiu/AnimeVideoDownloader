@@ -46,11 +46,12 @@ public class AnimeService : IAnimeService
             Title = title,
             SourceUrl = url,
             Directory = directory,
-            Episodes = new List<Episode>(),
+            Episodes = [],
             Status = AnimeStatus.Error,
         };
         _context.Anime.Add(anime);
         await _context.SaveChangesAsync(ct);
+        await UpdateAnimeEpisodeListAsync(anime);
         return anime;
     }
 

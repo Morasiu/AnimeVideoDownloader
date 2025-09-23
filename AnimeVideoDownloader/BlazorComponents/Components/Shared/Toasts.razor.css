@@ -6,6 +6,7 @@
     flex-direction: column;
     gap: 0.5rem;
     z-index: 1080;
+    background: var(--bg-modal);
 }
 
 .toast-item {

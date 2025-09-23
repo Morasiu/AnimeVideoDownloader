@@ -4,16 +4,26 @@
         <i class="fas fa-tv no-selection-icon"></i>
         <h2>Select an anime from the sidebar</h2>
         <p>View details and manage episodes</p>
-        <button class="select-first-btn" @onclick="SelectFirstAnime">Select First Anime</button>
+        <button class="select-first-btn" @onclick="AddAnime">Add new anime</button>
     </div>
 </div>
 
+<AddAnimeModal IsOpen="@isAddAnimeModalOpen" OnClose="@OnCloseAnimeModal" OnAdded="OnAnimeAdded"/>
+
 @code {
     [Parameter]
-    public EventCallback<Anime> OnSelectFirstAnime { get; set; }
+    public EventCallback<Anime> OnAnimeAdded { get; set; }
+    
+    private bool isAddAnimeModalOpen;
 
-    private async Task SelectFirstAnime()
+    private void AddAnime()
     {
-        await OnSelectFirstAnime.InvokeAsync(null);
+        isAddAnimeModalOpen = true;
     }
+
+    private void OnCloseAnimeModal()
+    {
+        isAddAnimeModalOpen = false;
+    }
+
 }

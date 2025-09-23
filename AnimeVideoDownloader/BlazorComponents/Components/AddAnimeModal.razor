@@ -105,7 +105,7 @@
             await OnAdded.InvokeAsync(newAnime);
             Reset();
             await InvokeAsync(StateHasChanged);
-            ToastService.ShowSuccess($"Anime {newAnime.Title} added.");
+            ToastService.ShowSuccess($"Anime {newAnime.Title} added.", duration: TimeSpan.FromMinutes(99));
         }
         catch (Exception ex)
         {
