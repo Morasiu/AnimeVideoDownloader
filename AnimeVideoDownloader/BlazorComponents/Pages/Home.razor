@@ -5,7 +5,7 @@
 @using BlazorComponents.Services.Data.Models.Animes
 @using Microsoft.Extensions.Logging
 @inject IAnimeService AnimeService
-
+@implements IDisposable
 
 <div class="container">
     <AnimeSidebar
@@ -34,15 +34,12 @@
         selectedAnime = anime;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            AnimeList = await AnimeService.GetAnimeListAsync();
-            selectedAnime = AnimeList.FirstOrDefault();
-            AnimeList.CollectionChanged += AnimeListOnCollectionChanged;
-            StateHasChanged();
-        }
+        AnimeList = await AnimeService.GetAnimeListAsync();
+        selectedAnime = AnimeList.FirstOrDefault();
+        AnimeList.CollectionChanged += AnimeListOnCollectionChanged;
+        StateHasChanged();
     }
 
     private void AnimeListOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -64,5 +61,10 @@
     private void OnAnimeAdded(Anime anime)
     {
         selectedAnime = anime;
+    }
+
+    public void Dispose()
+    {
+        AnimeList.CollectionChanged -= AnimeListOnCollectionChanged;
     }
 }
