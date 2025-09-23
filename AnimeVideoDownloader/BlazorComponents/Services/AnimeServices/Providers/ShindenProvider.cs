@@ -70,8 +70,8 @@ public sealed class ShindenProvider : IAnimeProvider
         var page = await GetPageAsync(episodeSourceUri);
         var sources = new List<EpisodeSource>();
         
-        // fucking ads
         await RemoveFuckingAdsAsync(page);
+        
         var episodeRows = await page.Locator("section.box.episode-player-list > div.table-responsive > table > tbody").Locator("tr").AllAsync();
         foreach (var episodeRow in episodeRows)
         {
