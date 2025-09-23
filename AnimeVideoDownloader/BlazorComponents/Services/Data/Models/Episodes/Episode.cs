@@ -10,7 +10,7 @@ public class Episode
     public int Number { get; set; }
     public string Title { get; set; } = "";
     public EpisodeStatus Status { get; set; }
-    public string? PageUri { get; set; }
+    public string? SourceUri { get; set; }
     public string? FilePath { get; set; }
     public long TotalBytes { get; set; }
     public EpisodeType EpisodeType { get; set; }

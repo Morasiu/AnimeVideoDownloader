@@ -86,7 +86,20 @@ public class AnimeService : IAnimeService
         anime.EpisodesUpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
     }
-    
+
+    public async Task UpdateEpisodeSourcesAsync(Episode episode)
+    {
+        ArgumentNullException.ThrowIfNull(episode.SourceUri);
+        var sources = await _animeProvider.GetEpisodeSourcesAsync(episode.SourceUri);
+        foreach (var source in sources)
+        {
+            if (episode.Sources.Any(e => e.Url == source.Url)) continue;
+            episode.Sources.Add(source);
+        }
+        episode.SourcesUpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+    }
+
     public bool HasDownloadingEpisodes(Anime anime)
     {
         return anime.Episodes.Any(e => e.Status == EpisodeStatus.InProgress);

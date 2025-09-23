@@ -1,4 +1,5 @@
 ﻿using BlazorComponents.Services.Data.Models.Episodes;
+using BlazorComponents.Services.Data.Models.EpisodeSources;
 using BlazorComponents.Services.Playwright;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
@@ -57,11 +58,49 @@ public sealed class ShindenProvider : IAnimeProvider
                 Number = int.Parse(number),
                 Status = EpisodeStatus.New,
                 Title = name,
-                PageUri = fullLink,
+                SourceUri = fullLink,
             };
             episodes.Add(episode);
         }
-        
         return episodes;
+    }
+
+    public async Task<List<EpisodeSource>> GetEpisodeSourcesAsync(string episodeSourceUri)
+    {
+        var page = await GetPageAsync(episodeSourceUri);
+        var sources = new List<EpisodeSource>();
+        
+        // fucking ads
+        await RemoveFuckingAdsAsync(page);
+        var episodeRows = await page.Locator("section.box.episode-player-list > div.table-responsive > table > tbody").Locator("tr").AllAsync();
+        foreach (var episodeRow in episodeRows)
+        {
+            var cells = await episodeRow.Locator("td").AllAsync();
+            var sourceKind = await cells[0].InnerTextAsync();
+            var quality = await cells[1].InnerTextAsync();
+            var voiceLanguage = await cells[2].InnerTextAsync();
+            var subtitlesLanguage = await cells[3].InnerTextAsync();
+            await cells[5].Locator("a").DispatchEventAsync("click");
+            var sourceUrl = await page.Locator(".player-container > iframe").GetAttributeAsync("src");
+            ArgumentNullException.ThrowIfNull(sourceUrl);
+            var source = new EpisodeSource
+            {
+                Kind = SourceKindParser.Parse(sourceKind),
+                Quality = QualityParser.FromString(quality),
+                VoiceLanguage = LanguageParser.Parse(voiceLanguage),
+                SubtitlesLanguage = LanguageParser.Parse(subtitlesLanguage),
+                Url = sourceUrl,
+            };
+            sources.Add(source);
+        }
+        await page.CloseAsync();
+        return sources;
+    }
+
+    private static async Task RemoveFuckingAdsAsync(IPage page)
+    {
+        await page.Locator("html > iframe:last-child").ClickAsync();
+        await page.GetByText("Zaakceptuj wszystko").ClickAsync();
+        await page.GetByText("Akceptuję").ClickAsync();
     }
 }

@@ -111,7 +111,7 @@
     private async Task UpdateSourcesAsync(Episode episode)
     {
         isUpdatingSourcesForEpisode = episode.Id;
-        await Task.Delay(3000);
+        await AnimeService.UpdateEpisodeSourcesAsync(episode);
         isUpdatingSourcesForEpisode = Guid.Empty;
     }
 

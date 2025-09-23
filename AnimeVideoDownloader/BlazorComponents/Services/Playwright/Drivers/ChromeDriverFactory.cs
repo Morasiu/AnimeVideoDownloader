@@ -11,6 +11,7 @@ public class ChromeDriverFactory {
 #if DEBUG
 			Headless = false,
 #endif
+			Args = ["--accept-lang=pl-PL"],
 		};
 		var browser = await playwright.Chromium.LaunchAsync(options);
 		return browser;
