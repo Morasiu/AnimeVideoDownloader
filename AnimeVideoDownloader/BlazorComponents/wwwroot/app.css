@@ -135,7 +135,7 @@ button {
     padding: 0;
 }
 
-.primary-btn {
+.btn-primary {
     background: var(--color-primary);
 }
 

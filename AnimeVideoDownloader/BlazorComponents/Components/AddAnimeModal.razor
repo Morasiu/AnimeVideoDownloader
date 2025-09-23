@@ -39,7 +39,7 @@
     </ChildContent>
     <Footer>
         <button class="secondary-btn" @onclick="OnClose" disabled="@IsAdding">Cancel</button>
-        <button class="primary-btn" @onclick="AddAsync" disabled="@IsAdding">
+        <button class="btn-primary" @onclick="AddAsync" disabled="@IsAdding">
             <Spinner ShouldShow="IsAdding" BaseIconClass="fa-plus"/>
             <span> Add</span>
         </button>

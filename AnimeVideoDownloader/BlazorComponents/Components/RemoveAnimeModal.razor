@@ -18,7 +18,7 @@
     </ChildContent>
     <Footer>
         <button class="secondary-btn" @onclick="OnClose" disabled="@IsDeleting">Cancel</button>
-        <button class="primary-btn" @onclick="RemoveAsync" disabled="@(IsDeleting || Anime is null)">
+        <button class="btn-primary" @onclick="RemoveAsync" disabled="@(IsDeleting || Anime is null)">
             <Spinner ShouldShow="@IsDeleting" BaseIconClass="fa-trash"/>
             <span> Remove</span>
         </button>

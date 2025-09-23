@@ -1,0 +1,58 @@
+﻿/* Episode item container */
+.episode-item {
+    display: grid;
+    /* Five columns: number | title | status | sources | actions */
+    grid-template-columns: 80px auto 160px 120px 12rem;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--bg-tertiary);
+    background: var(--bg-secondary);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.episode-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--bg-tertiary);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--bg-tertiary), transparent 70%);
+}
+
+/* Parts */
+.episode-number {
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.episode-title {
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.episode-status {
+    color: var(--text-tertiary);
+    font-size: 0.95rem;
+}
+
+.episode-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* State colors */
+.downloaded {
+    border-color: color-mix(in oklab, var(--color-success), transparent 65%);
+}
+
+.in-progress {
+    border-color: color-mix(in oklab, var(--color-accent), transparent 65%);
+}
+
+.error {
+    border-color: color-mix(in oklab, var(--color-error), transparent 55%);
+    background: color-mix(in oklab, var(--color-error), var(--bg-secondary) 92%);
+}

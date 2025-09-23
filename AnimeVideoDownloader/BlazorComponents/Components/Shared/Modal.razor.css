@@ -80,7 +80,7 @@ h4 {
   margin-top: 6px;
 }
 
-.primary-btn,
+.btn-primary,
 .secondary-btn,
 .close-btn {
   border: none;
@@ -91,6 +91,6 @@ h4 {
   cursor: pointer;
 }
 
-.primary-btn { background: var(--color-primary); }
+.btn-primary { background: var(--color-primary); }
 .secondary-btn { background: var(--bg-button-secondary); }
 .close-btn { background: transparent; color: var(--text-light); padding: 4px 6px; }

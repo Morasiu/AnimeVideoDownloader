@@ -1,0 +1,83 @@
+﻿@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.Data.Models.Episodes
+@using BlazorComponents.Services.Data.Models.EpisodeSources
+
+@inject IAnimeService AnimeService
+
+<div class="episode-item @GetEpisodeStatusClass(Episode.Status)">
+    <div class="episode-number">@Episode.Number</div>
+    <div class="episode-title">@Episode.Title</div>
+    <div class="episode-status">@GetStatusText(Episode.Status)</div>
+    <div class="episode-status">Sources: @Episode.Sources.Count(x => x.Status == EpisodeSourceStatus.Valid)</div>
+    <div class="episode-actions">
+        @if (Episode.Status == EpisodeStatus.Error)
+        {
+            <button class="retry-btn" @onclick="HandleRetry">
+                <i class="fas fa-redo"></i> Retry
+            </button>
+        }
+        else if (!Episode.Sources.Any())
+        {
+            <button class="btn-primary" @onclick="HandleUpdateSources">
+                <Spinner ShouldShow="@isUpdatingEpisodeSources" BaseIconClass="fa-globe"/>
+                Update sources
+            </button>
+        }
+        else if (Episode.Status != EpisodeStatus.InProgress)
+        {
+            <button class="download-btn" @onclick="HandleDownload">
+                <i class="fas fa-download"></i> Download
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Episode Episode { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<Episode> OnRetry { get; set; }
+
+    [Parameter]
+    public EventCallback<Episode> OnUpdateSources { get; set; }
+
+    [Parameter]
+    public EventCallback<Episode> OnDownload { get; set; }
+
+    private bool isUpdatingEpisodeSources { get; set; }
+
+    private Task HandleRetry() => OnRetry.InvokeAsync(Episode);
+
+    private Task HandleDownload() => OnDownload.InvokeAsync(Episode);
+
+    private static string GetEpisodeStatusClass(EpisodeStatus status)
+    {
+        return status switch
+        {
+            EpisodeStatus.Downloaded => "downloaded",
+            EpisodeStatus.InProgress => "in-progress",
+            EpisodeStatus.Error => "error",
+            _ => string.Empty
+        };
+    }
+
+    private static string GetStatusText(EpisodeStatus status)
+    {
+        return status switch
+        {
+            EpisodeStatus.Downloaded => "Downloaded",
+            EpisodeStatus.InProgress => "In Progress",
+            EpisodeStatus.Error => "Error",
+            _ => string.Empty
+        };
+    }
+
+    private async Task HandleUpdateSources()
+    {
+        isUpdatingEpisodeSources = true;
+        await AnimeService.UpdateEpisodeSourcesAsync(Episode);
+        isUpdatingEpisodeSources = false;
+        await OnUpdateSources.InvokeAsync(Episode);
+    }
+}

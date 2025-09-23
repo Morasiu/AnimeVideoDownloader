@@ -13,39 +13,10 @@
     <div class="episode-list">
         @foreach (var episode in Anime.Episodes.OrderBy(x => x.Number))
         {
-            <div class="episode-item @GetEpisodeStatusClass(episode.Status)">
-                <div class="episode-number">@episode.Number</div>
-                <div class="episode-title">@episode.Title</div>
-                <div class="episode-status">@GetStatusText(episode.Status)</div>
-                <div class="episode-status">
-                    Sources: @episode.Sources.Count(x => x.Status == EpisodeSourceStatus.Valid)</div>
-                <div class="episode-actions">
-                    @if (episode.Status == EpisodeStatus.Error)
-                    {
-                        <button class="retry-btn" @onclick="() => RetryDownload(episode)"><i class="fas fa-redo"></i>
-                            Retry
-                        </button>
-                    }
-                    else if (!episode.Sources.Any())
-                    {
-                        <button class="btn-primary" @onclick="() => UpdateSourcesAsync(episode)">
-                            <Spinner ShouldShow="@(isUpdatingSourcesForEpisode == episode.Id)" BaseIconClass="fa-globe"/> Update sources
-                        </button>
-                    }
-                    else if (episode.Status == EpisodeStatus.Downloaded)
-                    {
-                        <button class="play-btn" @onclick="() => PlayEpisode(episode)"><i class="fas fa-play"></i> Play
-                        </button>
-                    }
-                    else if (episode.Status != EpisodeStatus.InProgress)
-                    {
-                        <button class="download-btn" @onclick="() => DownloadEpisode()"><i
-                                class="fas fa-download"></i> Download
-                        </button>
-                    }
-
-                </div>
-            </div>
+            <EpisodeItem 
+                Episode="episode"
+                OnRetry="RetryDownload"
+                OnDownload="@(async e => await DownloadEpisode())" />
         }
     </div>
 </div>
@@ -63,7 +34,6 @@
     [Inject]
     public required ILogger<EpisodeList> Logger { get; set; }
 
-    public Guid isUpdatingSourcesForEpisode { get; set; }
 
     private async Task RetryDownload(Episode episode)
     {
@@ -85,34 +55,4 @@
         );
         await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress);
     }
-
-    private string GetEpisodeStatusClass(EpisodeStatus status)
-    {
-        return status switch
-        {
-            EpisodeStatus.Downloaded => "downloaded",
-            EpisodeStatus.InProgress => "in-progress",
-            EpisodeStatus.Error => "error",
-            _ => ""
-        };
-    }
-
-    public string GetStatusText(EpisodeStatus status)
-    {
-        return status switch
-        {
-            EpisodeStatus.Downloaded => "Downloaded",
-            EpisodeStatus.InProgress => "In Progress",
-            EpisodeStatus.Error => "Error",
-            _ => ""
-        };
-    }
-
-    private async Task UpdateSourcesAsync(Episode episode)
-    {
-        isUpdatingSourcesForEpisode = episode.Id;
-        await AnimeService.UpdateEpisodeSourcesAsync(episode);
-        isUpdatingSourcesForEpisode = Guid.Empty;
-    }
-
 }

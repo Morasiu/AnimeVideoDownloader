@@ -1,107 +1,26 @@
-﻿.episodes-section {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px var(--overlay-light), 0 2px 4px -1px var(--overlay-light);
-    flex: 1;
+﻿/* Episodes section container */
+.episodes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
 }
 
-.episodes-section h3 {
-    margin-top: 0;
-    margin-bottom: 1.25rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+.episodes-section > h3 {
+    margin: 0;
+    color: var(--text-primary);
 }
 
+/* Episodes list layout */
 .episode-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.episode-item {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    min-height: 3rem;
-    border-radius: 8px;
-    transition: background 0.2s ease;
-    cursor: pointer;
-    background: var(--bg-episode-default);
-}
-
-.episode-item:hover {
-    background: var(--bg-episode-hover);
-}
-
-.episode-item.downloaded {
-    background: var(--bg-success-transparent);
-}
-
-.episode-item.in-progress {
-    background: var(--bg-info-transparent);
-}
-
-.episode-item.error {
-    background: var(--bg-error-transparent);
-}
-
-.episode-number {
-    min-width: 2rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
-}
-
-.episode-title {
-    flex: 1;
-    margin-left: 1rem;
-    color: var(--text-secondary);
-}
-
-.episode-status {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    margin-right: 1rem;
-}
-
-.episode-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.retry-btn, .play-btn, .download-btn {
-    background: var(--bg-button-action);
-    color: var(--text-secondary);
-    border: none;
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    transition: all 0.2s ease;
-}
-
-.retry-btn:hover, .play-btn:hover, .download-btn:hover {
-    background: var(--bg-tertiary);
-    transform: translateY(-1px);
-}
-
-.play-btn {
-    background: var(--bg-success-hover);
-}
-
-.play-btn:hover {
-    background: var(--bg-success-hover);
-}
-
-.download-btn {
-    background: var(--bg-info-hover);
-}
-
-.download-btn:hover {
-    background: var(--bg-info-hover);
+/* Space the items a bit more on larger screens */
+@media (min-width: 900px) {
+    .episode-list {
+        gap: 0.6rem;
+    }
 }
