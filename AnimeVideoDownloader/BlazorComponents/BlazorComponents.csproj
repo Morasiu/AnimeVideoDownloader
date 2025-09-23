@@ -38,8 +38,4 @@
       <Folder Include="wwwroot\lib\" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\DownloaderLibrary\DownloaderLibrary.csproj" />
-    </ItemGroup>
-
 </Project>

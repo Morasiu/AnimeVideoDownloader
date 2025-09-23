@@ -1,8 +1,12 @@
-﻿@using BlazorComponents.Services.AppData
+﻿@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.AppData
 @using BlazorComponents.Services.Data.Models.Animes
 @using BlazorComponents.Services.Data.Models.Episodes
+@using BlazorComponents.Services.Data.Models.EpisodeSources
 @using BlazorComponents.Services.YoutubeDLService
 @using Microsoft.Extensions.Logging
+
+@inject IAnimeService AnimeService
 
 <div class="episodes-section">
     <h3>Episodes</h3>
@@ -13,6 +17,8 @@
                 <div class="episode-number">@episode.Number</div>
                 <div class="episode-title">@episode.Title</div>
                 <div class="episode-status">@GetStatusText(episode.Status)</div>
+                <div class="episode-status">
+                    Sources: @episode.Sources.Count(x => x.Status == EpisodeSourceStatus.Valid)</div>
                 <div class="episode-actions">
                     @if (episode.Status == EpisodeStatus.Error)
                     {
@@ -20,7 +26,13 @@
                             Retry
                         </button>
                     }
-                    @if (episode.Status == EpisodeStatus.Downloaded)
+                    else if (!episode.Sources.Any())
+                    {
+                        <button class="btn-primary" @onclick="() => UpdateSourcesAsync(episode)">
+                            <Spinner ShouldShow="@(isUpdatingSourcesForEpisode == episode.Id)" BaseIconClass="fa-globe"/> Update sources
+                        </button>
+                    }
+                    else if (episode.Status == EpisodeStatus.Downloaded)
                     {
                         <button class="play-btn" @onclick="() => PlayEpisode(episode)"><i class="fas fa-play"></i> Play
                         </button>
@@ -31,6 +43,7 @@
                                 class="fas fa-download"></i> Download
                         </button>
                     }
+
                 </div>
             </div>
         }
@@ -50,6 +63,7 @@
     [Inject]
     public required ILogger<EpisodeList> Logger { get; set; }
 
+    public Guid isUpdatingSourcesForEpisode { get; set; }
 
     private async Task RetryDownload(Episode episode)
     {
@@ -65,13 +79,13 @@
 
     private async Task DownloadEpisode()
     {
-        var downloadProgress = new Progress<AnimeDownloadDownloadProgress>(p => 
-            Logger.LogInformation("Download progress - Status: {Status}, Progress: {Progress:P}, Speed: {Speed}, ETA: {Eta}, TotalBytes: {TotalBytes}, Error: {Error}", 
+        var downloadProgress = new Progress<AnimeDownloadDownloadProgress>(p =>
+            Logger.LogInformation("Download progress - Status: {Status}, Progress: {Progress:P}, Speed: {Speed}, ETA: {Eta}, TotalBytes: {TotalBytes}, Error: {Error}",
                 p.Status, p.Progress, p.DownloadSpeed, p.ETA, p.TotalBytes, p.Error ?? "None")
-            );
-         await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress);
+        );
+        await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress);
     }
-    
+
     private string GetEpisodeStatusClass(EpisodeStatus status)
     {
         return status switch
@@ -82,7 +96,7 @@
             _ => ""
         };
     }
-    
+
     public string GetStatusText(EpisodeStatus status)
     {
         return status switch
@@ -93,4 +107,12 @@
             _ => ""
         };
     }
+
+    private async Task UpdateSourcesAsync(Episode episode)
+    {
+        isUpdatingSourcesForEpisode = episode.Id;
+        await Task.Delay(3000);
+        isUpdatingSourcesForEpisode = Guid.Empty;
+    }
+
 }

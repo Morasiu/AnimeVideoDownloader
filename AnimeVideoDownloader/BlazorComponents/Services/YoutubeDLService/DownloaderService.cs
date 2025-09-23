@@ -39,7 +39,7 @@ public sealed class DownloaderService
         var result = await _youtubeDL.RunVideoDownload(url, progress: progress, ct: ct, overrideOptions: options);
         if (!result.Success)
         {
-            downloadProgress?.Report(new AnimeDownloadDownloadProgress()
+            downloadProgress?.Report(new AnimeDownloadDownloadProgress
             {
                 DownloadSpeed = null,
                 ETA = null,
