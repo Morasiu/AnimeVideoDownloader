@@ -1,6 +1,7 @@
 ﻿@using BlazorComponents.Services.AnimeServices
 @using BlazorComponents.Services.Data.Models.Episodes
 @using BlazorComponents.Services.Data.Models.EpisodeSources
+@using Humanizer
 
 @inject IAnimeService AnimeService
 
@@ -8,7 +9,7 @@
     <div class="episode-number">@Episode.Number</div>
     <div class="episode-title">@Episode.Title</div>
     <div class="episode-status">@GetStatusText(Episode.Status)</div>
-    <div class="episode-status">Sources: @Episode.Sources.Count(x => x.Status == EpisodeSourceStatus.Valid)</div>
+    <div class="episode-status" title="Last updated: @Episode.SourcesUpdatedAt.Humanize()">Sources: @Episode.Sources.Count(x => x.Status == EpisodeSourceStatus.Valid)</div>
     <div class="episode-actions">
         @if (Episode.Status == EpisodeStatus.Error)
         {
