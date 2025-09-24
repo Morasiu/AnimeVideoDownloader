@@ -1,6 +1,7 @@
 ﻿@page "/download-queue"
 @using BlazorComponents.Services.Data.Models.QueueItems
 @using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.YoutubeDLService
 @inject DownloadQueueService QueueService
 
 <div class="container">
@@ -29,8 +30,17 @@
                                 <div class="current-episode">
                                     Episode @current.EpisodeSource?.Episode?.Number — @current.EpisodeSource?.Episode?.Title</div>
                             </div>
+                            <div class="current-stats">
+                                <span class="speed"><i class="fas fa-tachometer-alt"></i> @_progress?.DownloadSpeed</span>
+                                <span class="eta"><i class="fas fa-hourglass-half"></i> @_progress?.ETA</span>
+                                <span class="bytes"><i class="fas fa-database"></i> @_progress?.TotalBytes</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @(ProgressPercent + "%")"></div>
                         </div>
                         <div class="progress-footer">
+                            <span>@(ProgressPercent)%</span>
                             <span>@current.Status</span>
                         </div>
                     </div>
@@ -131,9 +141,20 @@
 
 @code {
 
+    private AnimeDownloadDownloadProgress? _progress;
+
+    private int ProgressPercent => (int)Math.Round((_progress?.Progress ?? 0f) * 100);
+
     protected override void OnInitialized()
     {
         QueueService.Changed += OnQueueChanged;
+        QueueService.DownloadProgressChanged += OnDownloadProgressChanged;
+    }
+
+    private void OnDownloadProgressChanged(AnimeDownloadDownloadProgress progress)
+    {
+        _progress = progress;
+        InvokeAsync(StateHasChanged);
     }
 
     private void OnQueueChanged()
@@ -169,6 +190,7 @@
     public void Dispose()
     {
         QueueService.Changed -= OnQueueChanged;
+        QueueService.DownloadProgressChanged -= OnDownloadProgressChanged;
     }
 
 }

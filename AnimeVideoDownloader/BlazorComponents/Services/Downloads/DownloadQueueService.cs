@@ -1,7 +1,10 @@
 ﻿using System.Collections.ObjectModel;
+using BlazorComponents.Extensions;
 using BlazorComponents.Services.Data;
+using BlazorComponents.Services.Data.Models.Episodes;
 using BlazorComponents.Services.Data.Models.QueueItems;
 using BlazorComponents.Services.YoutubeDLService;
+using Codeuctivity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -50,10 +53,28 @@ public sealed class DownloadQueueService
     private async Task StartDownloadAsync(QueueItem item)
     {
         item.Status = QueueItemStatus.Downloading;
+        item.EpisodeSource!.Episode!.Status = EpisodeStatus.InProgress;
         var url = item.EpisodeSource!.Url;
         var downloadPath = item.EpisodeSource!.Episode!.Anime.Directory;
-        var progress = new Progress<AnimeDownloadDownloadProgress>(p => DownloadProgressChanged?.Invoke(p));
-        await _downloaderService.DownloadAsync(url, downloadPath, progress);
+        var progress = new Progress<AnimeDownloadDownloadProgress>(p =>
+        {
+            DownloadProgressChanged?.Invoke(p);
+        });
+        var downloadedFilePath = await _downloaderService.DownloadAsync(url, downloadPath, progress);
+        if (downloadedFilePath.IsNullOrEmpty())
+        {
+            item.Status = QueueItemStatus.Error;
+            item.EpisodeSource.Episode.Status = EpisodeStatus.Error;
+            await _context.SaveChangesAsync();
+            return;
+        }
+        item.Status = QueueItemStatus.Completed;
+        item.EpisodeSource.Episode.Status = EpisodeStatus.Downloaded;
+        var fullFilePath = Path.Combine(downloadPath, $"{item.EpisodeSource.Episode.Number} - {item.EpisodeSource.Episode.Title.SanitizeFilename("_")}{Path.GetExtension(downloadedFilePath)}");
+        File.Move(downloadedFilePath, fullFilePath, true);
+        item.EpisodeSource.Episode.FilePath = fullFilePath;
+        await _context.SaveChangesAsync();
+        Changed?.Invoke();
     }
 
     public async Task RemoveAsync(QueueItem item)
@@ -97,7 +118,6 @@ public sealed class DownloadQueueService
     public async Task StartNextAsync()
     {
         if (!Queue.Any()) return;
-
         if (!Queue.Any(x => x.Status == QueueItemStatus.Downloading))
         {
             await StartDownloadAsync(Queue.First());

@@ -12,7 +12,7 @@ public sealed class EpisodeConfiguration : IEntityTypeConfiguration<Episode>
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Title).IsRequired().HasMaxLength(250);
         builder.Property(x => x.SourceUri).IsRequired().HasMaxLength(1000);
-        builder.Property(x => x.FilePath).IsRequired().HasMaxLength(1000);
+        builder.Property(x => x.FilePath).HasMaxLength(1000);
         
     }
 }

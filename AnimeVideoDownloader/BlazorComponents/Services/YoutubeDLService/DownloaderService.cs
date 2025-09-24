@@ -9,6 +9,8 @@ public sealed class DownloaderService
     private readonly ILogger<DownloaderService> _logger;
     private readonly YoutubeDL _youtubeDL;
 
+    public const string Done = "Done";
+    
     public DownloaderService(ILogger<DownloaderService> logger)
     {
         _logger = logger;
@@ -20,7 +22,7 @@ public sealed class DownloaderService
         _youtubeDL = ytdl;
     }
 
-    public async Task DownloadAsync(string url, string directoryPath, IProgress<AnimeDownloadDownloadProgress>? downloadProgress = null, CancellationToken ct = default)
+    public async Task<string> DownloadAsync(string url, string directoryPath, IProgress<AnimeDownloadDownloadProgress>? downloadProgress = null, CancellationToken ct = default)
     {
         var progress = new Progress<DownloadProgress>(p =>
         {
@@ -51,8 +53,19 @@ public sealed class DownloaderService
                 TotalBytes = null,
             });
             _logger.LogError("Download failed with error {Error}", string.Join(Environment.NewLine, result.ErrorOutput));
+            return string.Empty;
         }
+        downloadProgress?.Report(new AnimeDownloadDownloadProgress()
+        {
+            Progress = 1,
+            Status = Done,
+            DownloadSpeed = null,
+            Error = null,
+            ETA = null,
+            TotalBytes = null,
+        });
         _logger.LogInformation("Download finished");
+        return result.Data;
     }
 }
 
