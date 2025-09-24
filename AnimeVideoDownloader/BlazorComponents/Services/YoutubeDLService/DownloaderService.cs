@@ -12,9 +12,11 @@ public sealed class DownloaderService
     public DownloaderService(ILogger<DownloaderService> logger)
     {
         _logger = logger;
-        var ytdl = new YoutubeDL();
-        ytdl.YoutubeDLPath = Path.Combine(YoutubeDLInitializer.LibrariesPath, Utils.YtDlpBinaryName);
-        ytdl.FFmpegPath = Path.Combine(YoutubeDLInitializer.LibrariesPath, Utils.FfmpegBinaryName);
+        var ytdl = new YoutubeDL
+        {
+            YoutubeDLPath = Path.Combine(YoutubeDLInitializer.LibrariesPath, Utils.YtDlpBinaryName),
+            FFmpegPath = Path.Combine(YoutubeDLInitializer.LibrariesPath, Utils.FfmpegBinaryName),
+        };
         _youtubeDL = ytdl;
     }
 

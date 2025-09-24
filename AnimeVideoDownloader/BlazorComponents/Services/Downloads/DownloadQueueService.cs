@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.Data.Models.QueueItems;
+using BlazorComponents.Services.YoutubeDLService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -9,6 +10,7 @@ namespace BlazorComponents.Services.Downloads;
 public sealed class DownloadQueueService
 {
     private readonly ApplicationDbContext _context;
+    private readonly DownloaderService _downloaderService;
     private readonly ILogger<DownloadQueueService> _logger;
 
     private ObservableCollection<QueueItem>? queue;
@@ -24,34 +26,34 @@ public sealed class DownloadQueueService
     }
 
     public event Action? Changed;
+    public event Action<AnimeDownloadDownloadProgress>? DownloadProgressChanged;
 
-    public DownloadQueueService(ApplicationDbContext context, ILogger<DownloadQueueService> logger)
+    public DownloadQueueService(ApplicationDbContext context, DownloaderService downloaderService, ILogger<DownloadQueueService> logger)
     {
         _context = context;
+        _downloaderService = downloaderService;
         _logger = logger;
-    }
-    
-    private void ResortQueueByOrder()
-    {
-        if (queue is null) return;
-        var ordered = queue.OrderBy(x => x.Order).ToList();
-        if (ordered.Count == queue.Count && ordered.SequenceEqual(queue))
-        {
-            return; // already sorted
-        }
-        queue.Clear();
-        foreach (var item in ordered)
-        {
-            queue.Add(item);
-        }
     }
 
     public async Task EnqueueAsync(QueueItem item)
     {
         item.Order = Queue.Select(x => x.Order).DefaultIfEmpty().Max() + 1;
         queue!.Add(item);
+        if (Queue.Count == 1)
+        {
+            await StartDownloadAsync(item);
+        }
         await _context.SaveChangesAsync();
         Changed?.Invoke();
+    }
+
+    private async Task StartDownloadAsync(QueueItem item)
+    {
+        item.Status = QueueItemStatus.Downloading;
+        var url = item.EpisodeSource!.Url;
+        var downloadPath = item.EpisodeSource!.Episode!.Anime.Directory;
+        var progress = new Progress<AnimeDownloadDownloadProgress>(p => DownloadProgressChanged?.Invoke(p));
+        await _downloaderService.DownloadAsync(url, downloadPath, progress);
     }
 
     public async Task RemoveAsync(QueueItem item)
@@ -77,7 +79,6 @@ public sealed class DownloadQueueService
         }
         item.Order--;
         await _context.SaveChangesAsync();
-        ResortQueueByOrder();
         Changed?.Invoke();
     }
 
@@ -90,7 +91,6 @@ public sealed class DownloadQueueService
         }
         item.Order++;
         await _context.SaveChangesAsync();
-        ResortQueueByOrder();
         Changed?.Invoke();
     }
 
@@ -100,20 +100,8 @@ public sealed class DownloadQueueService
 
         if (!Queue.Any(x => x.Status == QueueItemStatus.Downloading))
         {
-            var first = Queue.First();
-            first.Status = QueueItemStatus.Downloading;
-            await _context.SaveChangesAsync();
-            Changed?.Invoke();
+            await StartDownloadAsync(Queue.First());
         }
-    }
-    
-    public void UpdateProgress(double progressPercent, string? speed, string? eta, string? totalBytes)
-    {
-        // Progress reporting for QueueItem is not modeled here; only status is tracked.
-        if (Queue.Count == 0) return;
-        var current = Queue.First();
-        current.Status = QueueItemStatus.Downloading;
-        Changed?.Invoke();
     }
 
     private void EnsureQueueLoaded()
