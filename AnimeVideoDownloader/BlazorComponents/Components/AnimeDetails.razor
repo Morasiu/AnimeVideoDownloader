@@ -1,6 +1,8 @@
 ﻿@using BlazorComponents.Services.AnimeServices
 @using BlazorComponents.Services.Data.Models.Animes
 @using Humanizer
+@using System.Diagnostics
+@using System.IO
 @inject IAnimeService AnimeService
 
 <div class="anime-details">
@@ -12,6 +14,7 @@
 
             <div class="action-buttons">
                 <button class="action-btn download-all-btn" @onclick="DownloadAll"><i class="fas fa-download"></i> Download All</button>
+                <button class="action-btn open-dir-btn" @onclick="OpenDirectoryAsync"><i class="fas fa-folder-open"></i> Open Folder</button>
                 <button class="action-btn refresh-btn" @onclick="UpdateEpisodeListAsync">
                     <Spinner ShouldShow="@isUpdatingEpisodes" BaseIconClass="fa-sync-alt"/>
                     Update episodes list
@@ -40,6 +43,35 @@
     private async Task DownloadAll()
     {
         
+    }
+
+    private Task OpenDirectoryAsync()
+    {
+        var path = Anime.Directory;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return Task.CompletedTask;
+        }
+
+        try
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // Intentionally ignore exceptions when trying to open the folder
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task UpdateEpisodeListAsync()
