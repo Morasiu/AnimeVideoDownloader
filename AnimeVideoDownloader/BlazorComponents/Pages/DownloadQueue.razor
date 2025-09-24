@@ -8,9 +8,16 @@
         <section class="queue-section">
             <h2 class="section-title"><i class="fas fa-tasks"></i> Download Queue</h2>
 
-            @if (QueueService.Queue.Any())
+            @{
+                var activeQueue = QueueService.Queue.Where(x => x.Status != QueueItemStatus.Completed).ToList();
+                var downloadedItems = QueueService.Queue.Where(x => x.Status == QueueItemStatus.Completed)
+                    .OrderByDescending(x => x.DownloadedAt)
+                    .ToList();
+            }
+
+            @if (activeQueue.Any())
             {
-                var current = QueueService.Queue.First();
+                var current = activeQueue.First();
                 <div class="current-download card">
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-download"></i> Currently Downloading</h3>
@@ -40,8 +47,7 @@
 
             <div class="queue-list card">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-list"></i> In Queue
-                        (@(QueueService.Queue.Count > 0 ? QueueService.Queue.Count - 1 : 0))</h3>
+                    <h3 class="card-title"><i class="fas fa-list"></i> In Queue (@(activeQueue.Count > 0 ? activeQueue.Count - 1 : 0))</h3>
                     <div class="header-actions">
                         <button class="btn-primary" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i>
                         </button>
@@ -51,10 +57,10 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if (QueueService.Queue.Skip(1).Any())
+                    @if (activeQueue.Skip(1).Any())
                     {
                         <ul class="queue-items">
-                            @foreach (var item in QueueService.Queue.Skip(1))
+                            @foreach (var item in activeQueue.Skip(1))
                             {
                                 <li class="queue-item">
                                     <div class="qi-left">
@@ -83,6 +89,39 @@
                     else
                     {
                         <div class="muted">Queue is empty.</div>
+                    }
+                </div>
+            </div>
+
+            <div class="downloaded-list card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-check"></i> Downloaded (@downloadedItems.Count)</h3>
+                </div>
+                <div class="card-body">
+                    @if (downloadedItems.Any())
+                    {
+                        <ul class="queue-items">
+                            @foreach (var item in downloadedItems)
+                            {
+                                <li class="queue-item">
+                                    <div class="qi-left">
+                                        <div class="qi-title">@item.EpisodeSource?.Episode?.Anime.Title</div>
+                                        <div class="qi-episode">Episode @item.EpisodeSource?.Episode?.Number — @item.EpisodeSource?.Episode?.Title</div>
+                                    </div>
+                                    <div class="qi-right">
+                                        <span class="qi-status status-completed">Completed</span>
+                                        @if (item.DownloadedAt != default)
+                                        {
+                                            <span class="muted">@item.DownloadedAt</span>
+                                        }
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="muted">No downloaded items yet.</div>
                     }
                 </div>
             </div>
