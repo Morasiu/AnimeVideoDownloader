@@ -1,75 +1,109 @@
 ﻿using System.Collections.ObjectModel;
+using BlazorComponents.Services.Data;
+using BlazorComponents.Services.Data.Models.QueueItems;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace BlazorComponents.Services.Downloads;
 
 public sealed class DownloadQueueService
 {
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<DownloadQueueService> _logger;
 
-    public ObservableCollection<QueueItem> Queue { get; } = new();
+    private ObservableCollection<QueueItem>? queue = null;
 
     public QueueItem? Current { get; private set; }
 
     public event Action? Changed;
 
-    public DownloadQueueService(ILogger<DownloadQueueService> logger)
+    public DownloadQueueService(ApplicationDbContext context, ILogger<DownloadQueueService> logger)
     {
+        _context = context;
         _logger = logger;
     }
 
-    public void Enqueue(QueueItem item)
+    public async Task<ObservableCollection<QueueItem>> GetQueue()
     {
-        Queue.Add(item);
+        await LoadQueueAsync();
+        return queue!;
+    }
+
+    private async Task LoadQueueAsync()
+    {
+        if (queue is null)
+        {
+            await _context.QueueItems.LoadAsync();
+            queue = _context.QueueItems.Local.ToObservableCollection();
+        }
+    }
+
+    public async Task EnqueueAsync(QueueItem item)
+    {
+        await LoadQueueAsync();
+        item.Order = queue!.Select(x => x.Order).DefaultIfEmpty().Max() + 1;
+        queue!.Add(item);
+        await _context.SaveChangesAsync();
         Changed?.Invoke();
     }
 
-    public void Remove(QueueItem item)
+    public async Task RemoveAsync(QueueItem item)
     {
         if (ReferenceEquals(item, Current))
         {
             Current = null;
         }
-        Queue.Remove(item);
+        await LoadQueueAsync();
+        queue!.Remove(item);
+        await _context.SaveChangesAsync();
         Changed?.Invoke();
     }
 
-    public void Clear()
+    public async Task ClearAsync()
     {
-        Queue.Clear();
+        await LoadQueueAsync();
+        queue!.Clear();
+        Changed?.Invoke();
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task MoveUpAsync(QueueItem item)
+    {
+        await LoadQueueAsync();
+        var itemBefore = queue!.FirstOrDefault(x => x.Order == item.Order - 1);
+        if (itemBefore != null)
+        {
+            itemBefore.Order++;
+        }
+        item.Order--;
+        await _context.SaveChangesAsync();
         Changed?.Invoke();
     }
 
-    public void MoveUp(QueueItem item)
+    public async Task MoveDownAsync(QueueItem item)
     {
-        var idx = Queue.IndexOf(item);
-        if (idx > 0)
+        await LoadQueueAsync();
+        var itemAfter = queue!.FirstOrDefault(x => x.Order == item.Order + 1);
+        if (itemAfter != null)
         {
-            Queue.Move(idx, idx - 1);
-            Changed?.Invoke();
+            itemAfter.Order--;
         }
+        item.Order++;
+        await _context.SaveChangesAsync();
+        Changed?.Invoke();
     }
 
-    public void MoveDown(QueueItem item)
-    {
-        var idx = Queue.IndexOf(item);
-        if (idx >= 0 && idx < Queue.Count - 1)
-        {
-            Queue.Move(idx, idx + 1);
-            Changed?.Invoke();
-        }
-    }
-
-    public void StartNext()
+    public async Task StartNextAsync()
     {
         if (Current is { Status: not QueueItemStatus.Downloading })
         {
             // do nothing if current is paused or queued; caller should manage state
         }
-        if (Current is null && Queue.Any())
+        await LoadQueueAsync();
+        if (Current is null && queue!.Any())
         {
-            Current = Queue[0];
-            Queue.RemoveAt(0);
+            Current = queue!.First();
+            queue!.RemoveAt(0);
             Current.Status = QueueItemStatus.Downloading;
             Changed?.Invoke();
         }
@@ -103,25 +137,4 @@ public sealed class DownloadQueueService
         Current.Status = QueueItemStatus.Downloading;
         Changed?.Invoke();
     }
-}
-
-public enum QueueItemStatus
-{
-    Queued,
-    Downloading,
-    Paused,
-}
-
-public sealed class QueueItem
-{
-    public required string AnimeTitle { get; set; }
-    public required int EpisodeNumber { get; set; }
-    public required string EpisodeTitle { get; set; }
-
-    public double Progress { get; set; }
-    public string? DownloadSpeed { get; set; }
-    public string? ETA { get; set; }
-    public string? TotalBytes { get; set; }
-
-    public QueueItemStatus Status { get; set; } = QueueItemStatus.Queued;
 }

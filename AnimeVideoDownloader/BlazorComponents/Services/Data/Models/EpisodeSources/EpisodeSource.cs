@@ -1,4 +1,6 @@
-﻿using BlazorComponents.Services.Data.Models.Episodes;
+﻿using System.Collections.ObjectModel;
+using BlazorComponents.Services.Data.Models.Episodes;
+using BlazorComponents.Services.Data.Models.QueueItems;
 
 namespace BlazorComponents.Services.Data.Models.EpisodeSources;
 
@@ -14,4 +16,5 @@ public class EpisodeSource
     
     public Guid EpisodeId { get; set; }
     public virtual Episode? Episode { get; set; }
+    public virtual ICollection<QueueItem>? QueueItems { get; set; } = new ObservableCollection<QueueItem>();
 }

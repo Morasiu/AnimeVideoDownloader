@@ -18,12 +18,16 @@
                         <div class="current-info">
                             <div class="current-meta">
                                 <div class="current-title">@QueueService.Current!.AnimeTitle</div>
-                                <div class="current-episode">Episode @QueueService.Current!.EpisodeNumber — @QueueService.Current!.EpisodeTitle</div>
+                                <div class="current-episode">
+                                    Episode @QueueService.Current!.EpisodeNumber — @QueueService.Current!.EpisodeTitle</div>
                             </div>
                             <div class="current-stats">
-                                <span class="speed"><i class="fas fa-tachometer-alt"></i> @QueueService.Current!.DownloadSpeed</span>
-                                <span class="eta"><i class="fas fa-hourglass-half"></i> @QueueService.Current!.ETA</span>
-                                <span class="bytes"><i class="fas fa-database"></i> @QueueService.Current!.TotalBytes</span>
+                                <span class="speed"><i
+                                        class="fas fa-tachometer-alt"></i> @QueueService.Current!.DownloadSpeed</span>
+                                <span class="eta"><i
+                                        class="fas fa-hourglass-half"></i> @QueueService.Current!.ETA</span>
+                                <span class="bytes"><i
+                                        class="fas fa-database"></i> @QueueService.Current!.TotalBytes</span>
                             </div>
                         </div>
                         <div class="progress-bar">
@@ -49,8 +53,10 @@
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-list"></i> In Queue (@QueueService.Queue.Count)</h3>
                     <div class="header-actions">
-                        <button class="action-btn" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i></button>
-                        <button class="action-btn" title="Clear all" @onclick="ClearAll"><i class="fas fa-trash"></i></button>
+                        <button class="btn-primary" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i>
+                        </button>
+                        <button class="secondary-btn" title="Clear all" @onclick="ClearAll"><i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -65,18 +71,24 @@
                                         <div class="qi-episode">Episode @item.EpisodeNumber — @item.EpisodeTitle</div>
                                     </div>
                                     <div class="qi-right">
-                                        <span class="qi-status status-@item.Status.ToString().ToLower()">@item.Status</span>
-                                        <button class="action-btn" @onclick="(() => MoveUp(item))" title="Move up"><i class="fas fa-arrow-up"></i></button>
-                                        <button class="action-btn" @onclick="(() => MoveDown(item))" title="Move down"><i class="fas fa-arrow-down"></i></button>
+                                        <span
+                                            class="qi-status status-@item.Status.ToString().ToLower()">@item.Status</span>
+                                        <button class="secondary-btn" @onclick="() => MoveUp(item)" title="Move up"><i
+                                                class="fas fa-arrow-up"></i></button>
+                                        <button class="secondary-btn" @onclick="() => MoveDown(item)" title="Move down">
+                                            <i class="fas fa-arrow-down"></i></button>
                                         @if (item.Status == QueueItemStatus.Paused)
                                         {
-                                            <button class="action-btn" @onclick="(() => Resume(item))" title="Resume"><i class="fas fa-play"></i></button>
+                                            <button class="secondary-btn" @onclick="() => Resume(item)" title="Resume">
+                                                <i class="fas fa-play"></i></button>
                                         }
                                         else
                                         {
-                                            <button class="action-btn" @onclick="(() => Pause(item))" title="Pause"><i class="fas fa-pause"></i></button>
+                                            <button class="secondary-btn" @onclick="() => Pause(item)" title="Pause"><i
+                                                    class="fas fa-pause"></i></button>
                                         }
-                                        <button class="action-btn remove" @onclick="(() => RemoveFromQueue(item))" title="Remove from queue">
+                                        <button class="secondary-btn" @onclick="() => RemoveFromQueue(item)"
+                                                title="Remove from queue">
                                             <i class="fas fa-times"></i>
                                         </button>
                                     </div>
@@ -90,21 +102,21 @@
                     }
                 </div>
             </div>
-
         </section>
     </main>
 </div>
 
 @code {
+
     protected override void OnInitialized()
     {
         QueueService.Changed += OnQueueChanged;
         // Seed some demo data to visualize the page before real wiring
         if (!QueueService.Queue.Any() && QueueService.Current is null)
         {
-            QueueService.Enqueue(new QueueItem { AnimeTitle = "Sample Anime", EpisodeNumber = 6, EpisodeTitle = "Next Steps", Status = QueueItemStatus.Queued });
-            QueueService.Enqueue(new QueueItem { AnimeTitle = "Another Show", EpisodeNumber = 1, EpisodeTitle = "Pilot", Status = QueueItemStatus.Queued });
-            QueueService.Enqueue(new QueueItem { AnimeTitle = "Another Show", EpisodeNumber = 2, EpisodeTitle = "Episode 2", Status = QueueItemStatus.Queued });
+            QueueService.EnqueueAsync(new QueueItem { AnimeTitle = "Sample Anime", EpisodeNumber = 6, EpisodeTitle = "Next Steps", Status = QueueItemStatus.Queued });
+            QueueService.EnqueueAsync(new QueueItem { AnimeTitle = "Another Show", EpisodeNumber = 1, EpisodeTitle = "Pilot", Status = QueueItemStatus.Queued });
+            QueueService.EnqueueAsync(new QueueItem { AnimeTitle = "Another Show", EpisodeNumber = 2, EpisodeTitle = "Episode 2", Status = QueueItemStatus.Queued });
             QueueService.SetCurrent(new QueueItem { AnimeTitle = "Sample Anime", EpisodeNumber = 5, EpisodeTitle = "The Start", Status = QueueItemStatus.Downloading, Progress = 48, DownloadSpeed = "2.3 MB/s", ETA = "00:04:21", TotalBytes = "1.2 GB" });
         }
     }
@@ -116,27 +128,27 @@
 
     private void StartNext()
     {
-        QueueService.StartNext();
+        QueueService.StartNextAsync();
     }
 
     private void ClearAll()
     {
-        QueueService.Clear();
+        QueueService.ClearAsync();
     }
 
     private void RemoveFromQueue(QueueItem item)
     {
-        QueueService.Remove(item);
+        QueueService.RemoveAsync(item);
     }
 
     private void MoveUp(QueueItem item)
     {
-        QueueService.MoveUp(item);
+        QueueService.MoveUpAsync(item);
     }
 
     private void MoveDown(QueueItem item)
     {
-        QueueService.MoveDown(item);
+        QueueService.MoveDownAsync(item);
     }
 
     private void Pause(QueueItem item)
@@ -153,4 +165,5 @@
     {
         QueueService.Changed -= OnQueueChanged;
     }
+
 }

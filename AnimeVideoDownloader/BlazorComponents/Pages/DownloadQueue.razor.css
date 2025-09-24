@@ -13,15 +13,15 @@
 }
 
 .card {
-    background: var(--panel-bg, #1e1e1e);
-    border: 1px solid var(--panel-border, #2a2a2a);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .15)
 }
 
 .card-header {
     padding: 10px 14px;
-    border-bottom: 1px solid var(--panel-border, #2a2a2a);
+    border-bottom: 1px solid var(--border-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -69,14 +69,14 @@
 
 .progress-bar {
     height: 10px;
-    background: var(--progress-bg, #2a2a2a);
+    background: var(--bg-input);
     border-radius: 6px;
     overflow: hidden
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4CAF50, #66BB6A)
+    background: var(--color-success)
 }
 
 .progress-footer {
@@ -101,9 +101,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 12px;
-    border: 1px solid var(--panel-border, #2a2a2a);
+    border: 1px solid var(--border-light);
     border-radius: 8px;
-    background: var(--panel-nested-bg, #232323)
+    background: var(--bg-tertiary)
 }
 
 .qi-left {
@@ -130,25 +130,14 @@
     padding: 2px 8px;
     border-radius: 999px;
     font-size: .85rem;
-    border: 1px solid #3a3a3a
+    border: 1px solid var(--border-light)
 }
 
 .qi-status.status-queued {
-    background: #2a2a2a
+    background: var(--bg-info-badge)
 }
 
-.action-btn.remove {
-    background: transparent;
-    border: 1px solid var(--panel-border, #2a2a2a);
-    color: inherit;
-    border-radius: 6px;
-    padding: 6px;
-    cursor: pointer
-}
 
-.action-btn.remove:hover {
-    background: #2d2d2d
-}
 
 .empty .card-body {
     opacity: .9

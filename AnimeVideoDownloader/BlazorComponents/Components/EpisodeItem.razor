@@ -1,9 +1,13 @@
 ﻿@using BlazorComponents.Services.AnimeServices
 @using BlazorComponents.Services.Data.Models.Episodes
 @using BlazorComponents.Services.Data.Models.EpisodeSources
+@using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.Toasts
 @using Humanizer
 
 @inject IAnimeService AnimeService
+@inject DownloadQueueService QueueService
+@inject ToastService ToastService
 
 <div class="episode-item @GetEpisodeStatusClass(Episode.Status)">
     <div class="episode-number">@Episode.Number</div>
@@ -50,7 +54,19 @@
 
     private Task HandleRetry() => OnRetry.InvokeAsync(Episode);
 
-    private Task HandleDownload() => OnDownload.InvokeAsync(Episode);
+    private void HandleDownload()
+    {
+        var queueItem = new QueueItem
+        {
+            AnimeTitle = Episode.Anime.Title,
+            EpisodeNumber = Episode.Number,
+            EpisodeTitle = Episode.Title,
+            Status = QueueItemStatus.Queued,
+        };
+        QueueService.EnqueueAsync(queueItem);
+        ToastService.ShowSuccess($"Episode: {Episode.Title} added to download queue.");
+        Episode.Status = EpisodeStatus.InProgress;
+    }
 
     private static string GetEpisodeStatusClass(EpisodeStatus status)
     {

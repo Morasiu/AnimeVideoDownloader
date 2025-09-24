@@ -10,6 +10,7 @@
     border: 1px solid var(--bg-tertiary);
     background: var(--bg-secondary);
     transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 60px;
 }
 
 .episode-item:hover {
