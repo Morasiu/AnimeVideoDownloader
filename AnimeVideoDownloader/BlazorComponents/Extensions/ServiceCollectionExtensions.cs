@@ -7,6 +7,7 @@ using BlazorComponents.Services.Logging;
 using BlazorComponents.Services.Playwright;
 using BlazorComponents.Services.Toasts;
 using BlazorComponents.Services.YoutubeDLService;
+using BlazorComponents.Services.Downloads;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddApplicationLogging();
         services.AddYoutubeDL();
         services.AddPlaywright();
+        services.AddDownloads();
         services.AddAppInitializers();
         services.AddDbContext<ApplicationDbContext>((_, o) =>
         {

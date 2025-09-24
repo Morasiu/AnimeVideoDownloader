@@ -1,0 +1,156 @@
+﻿@page "/download-queue"
+@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.Downloads
+@inject DownloadQueueService QueueService
+
+<div class="container">
+    <main class="content-area">
+        <section class="queue-section">
+            <h2 class="section-title"><i class="fas fa-tasks"></i> Download Queue</h2>
+
+            @if (QueueService.Current is not null)
+            {
+                <div class="current-download card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-download"></i> Currently Downloading</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="current-info">
+                            <div class="current-meta">
+                                <div class="current-title">@QueueService.Current!.AnimeTitle</div>
+                                <div class="current-episode">Episode @QueueService.Current!.EpisodeNumber — @QueueService.Current!.EpisodeTitle</div>
+                            </div>
+                            <div class="current-stats">
+                                <span class="speed"><i class="fas fa-tachometer-alt"></i> @QueueService.Current!.DownloadSpeed</span>
+                                <span class="eta"><i class="fas fa-hourglass-half"></i> @QueueService.Current!.ETA</span>
+                                <span class="bytes"><i class="fas fa-database"></i> @QueueService.Current!.TotalBytes</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @(QueueService.Current!.Progress + "%")"></div>
+                        </div>
+                        <div class="progress-footer">
+                            <span>@QueueService.Current!.Progress%</span>
+                            <span>@QueueService.Current!.Status</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty card">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle"></i> Nothing is downloading right now.
+                    </div>
+                </div>
+            }
+
+            <div class="queue-list card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-list"></i> In Queue (@QueueService.Queue.Count)</h3>
+                    <div class="header-actions">
+                        <button class="action-btn" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i></button>
+                        <button class="action-btn" title="Clear all" @onclick="ClearAll"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (QueueService.Queue.Any())
+                    {
+                        <ul class="queue-items">
+                            @foreach (var item in QueueService.Queue)
+                            {
+                                <li class="queue-item">
+                                    <div class="qi-left">
+                                        <div class="qi-title">@item.AnimeTitle</div>
+                                        <div class="qi-episode">Episode @item.EpisodeNumber — @item.EpisodeTitle</div>
+                                    </div>
+                                    <div class="qi-right">
+                                        <span class="qi-status status-@item.Status.ToString().ToLower()">@item.Status</span>
+                                        <button class="action-btn" @onclick="(() => MoveUp(item))" title="Move up"><i class="fas fa-arrow-up"></i></button>
+                                        <button class="action-btn" @onclick="(() => MoveDown(item))" title="Move down"><i class="fas fa-arrow-down"></i></button>
+                                        @if (item.Status == QueueItemStatus.Paused)
+                                        {
+                                            <button class="action-btn" @onclick="(() => Resume(item))" title="Resume"><i class="fas fa-play"></i></button>
+                                        }
+                                        else
+                                        {
+                                            <button class="action-btn" @onclick="(() => Pause(item))" title="Pause"><i class="fas fa-pause"></i></button>
+                                        }
+                                        <button class="action-btn remove" @onclick="(() => RemoveFromQueue(item))" title="Remove from queue">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="muted">Queue is empty.</div>
+                    }
+                </div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        QueueService.Changed += OnQueueChanged;
+        // Seed some demo data to visualize the page before real wiring
+        if (!QueueService.Queue.Any() && QueueService.Current is null)
+        {
+            QueueService.Enqueue(new QueueItem { AnimeTitle = "Sample Anime", EpisodeNumber = 6, EpisodeTitle = "Next Steps", Status = QueueItemStatus.Queued });
+            QueueService.Enqueue(new QueueItem { AnimeTitle = "Another Show", EpisodeNumber = 1, EpisodeTitle = "Pilot", Status = QueueItemStatus.Queued });
+            QueueService.Enqueue(new QueueItem { AnimeTitle = "Another Show", EpisodeNumber = 2, EpisodeTitle = "Episode 2", Status = QueueItemStatus.Queued });
+            QueueService.SetCurrent(new QueueItem { AnimeTitle = "Sample Anime", EpisodeNumber = 5, EpisodeTitle = "The Start", Status = QueueItemStatus.Downloading, Progress = 48, DownloadSpeed = "2.3 MB/s", ETA = "00:04:21", TotalBytes = "1.2 GB" });
+        }
+    }
+
+    private void OnQueueChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void StartNext()
+    {
+        QueueService.StartNext();
+    }
+
+    private void ClearAll()
+    {
+        QueueService.Clear();
+    }
+
+    private void RemoveFromQueue(QueueItem item)
+    {
+        QueueService.Remove(item);
+    }
+
+    private void MoveUp(QueueItem item)
+    {
+        QueueService.MoveUp(item);
+    }
+
+    private void MoveDown(QueueItem item)
+    {
+        QueueService.MoveDown(item);
+    }
+
+    private void Pause(QueueItem item)
+    {
+        QueueService.Pause(item);
+    }
+
+    private void Resume(QueueItem item)
+    {
+        QueueService.Resume(item);
+    }
+
+    public void Dispose()
+    {
+        QueueService.Changed -= OnQueueChanged;
+    }
+}
