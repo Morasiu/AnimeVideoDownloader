@@ -1,12 +1,8 @@
-﻿@using BlazorComponents.Services.AnimeServices
-@using BlazorComponents.Services.AppData
+﻿@using BlazorComponents.Services.AppData
 @using BlazorComponents.Services.Data.Models.Animes
 @using BlazorComponents.Services.Data.Models.Episodes
-@using BlazorComponents.Services.Data.Models.EpisodeSources
 @using BlazorComponents.Services.YoutubeDLService
 @using Microsoft.Extensions.Logging
-
-@inject IAnimeService AnimeService
 
 <div class="episodes-section">
     <h3>Episodes</h3>
@@ -16,7 +12,7 @@
             <EpisodeItem 
                 Episode="episode"
                 OnRetry="RetryDownload"
-                OnDownload="@(async e => await DownloadEpisode())" />
+                OnDownload="@(async _ => await DownloadEpisode())" />
         }
     </div>
 </div>
@@ -40,13 +36,7 @@
         // Implement retry functionality
         await OnEpisodeAction.InvokeAsync(episode);
     }
-
-    private async Task PlayEpisode(Episode episode)
-    {
-        // Implement play functionality
-        await OnEpisodeAction.InvokeAsync(episode);
-    }
-
+    
     private async Task DownloadEpisode()
     {
         var downloadProgress = new Progress<AnimeDownloadDownloadProgress>(p =>
