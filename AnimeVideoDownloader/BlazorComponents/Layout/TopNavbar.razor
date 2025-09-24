@@ -6,7 +6,7 @@
 <nav class="top-nav">
     <div class="left-section">
         <div class="logo">
-           @* <img src='@Assets["_content/BlazorComponents/Icon.png"]' alt="Logo" class="logo-icon" loading="lazy"/> *@
+           <img src='@Assets["_content/BlazorComponents/Icon.png"]' alt="Logo" class="logo-icon" loading="lazy"/>
             <span class="logo-text">Anime Downloader</span>
         </div>
 
@@ -14,6 +14,10 @@
             <NavLink class="nav-item" href="" Match="NavLinkMatch.All" ActiveClass="active">
                 <span class="nav-icon"><i class="fas fa-home"></i></span>
                 <span class="nav-text">Home</span>
+            </NavLink>
+            <NavLink class="nav-item" href="download-queue" ActiveClass="active">
+                <span class="nav-icon"><i class="fas fa-tasks"></i></span>
+                <span class="nav-text">Queue</span>
             </NavLink>
         </div>
     </div>
@@ -25,11 +29,6 @@
         <NavLink class="nav-item" href="settings" ActiveClass="active">
             <span class="nav-icon"><i class="fas fa-cog"></i></span>
             <span class="nav-text">Settings</span>
-        </NavLink>
-
-        <NavLink class="nav-item" href="download-queue" ActiveClass="active">
-            <span class="nav-icon"><i class="fas fa-tasks"></i></span>
-            <span class="nav-text">Queue</span>
         </NavLink>
 
         <NavLink class="nav-item" href="debug" ActiveClass="active">

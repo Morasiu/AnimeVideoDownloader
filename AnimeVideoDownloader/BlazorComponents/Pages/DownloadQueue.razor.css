@@ -1,31 +1,159 @@
-﻿.queue-section{display:flex;flex-direction:column;gap:16px}
-.section-title{font-size:1.4rem;margin:0 0 4px 0;display:flex;align-items:center;gap:8px}
-.card{background:var(--panel-bg, #1e1e1e);border:1px solid var(--panel-border, #2a2a2a);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.card-header{padding:10px 14px;border-bottom:1px solid var(--panel-border, #2a2a2a)}
-.card-title{margin:0;font-size:1.1rem;display:flex;align-items:center;gap:8px}
-.card-body{padding:12px 14px}
+﻿.queue-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px
+}
 
-.current-info{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
-.current-meta{display:flex;flex-direction:column}
-.current-title{font-weight:600}
-.current-episode{opacity:.8;font-size:.95rem}
-.current-stats{display:flex;gap:12px;opacity:.9}
+.section-title {
+    font-size: 1.4rem;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
 
-.progress-bar{height:10px;background:var(--progress-bg, #2a2a2a);border-radius:6px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg, #4CAF50, #66BB6A)}
-.progress-footer{display:flex;justify-content:space-between;opacity:.8;margin-top:6px;font-size:.9rem}
+.card {
+    background: var(--panel-bg, #1e1e1e);
+    border: 1px solid var(--panel-border, #2a2a2a);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .15)
+}
 
-.queue-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.queue-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--panel-border, #2a2a2a);border-radius:8px;background:var(--panel-nested-bg, #232323)}
-.qi-left{display:flex;flex-direction:column}
-.qi-title{font-weight:600}
-.qi-episode{opacity:.8;font-size:.95rem}
-.qi-right{display:flex;align-items:center;gap:10px}
-.qi-status{padding:2px 8px;border-radius:999px;font-size:.85rem;border:1px solid #3a3a3a}
-.qi-status.status-queued{background:#2a2a2a}
+.card-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--panel-border, #2a2a2a);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-.action-btn.remove{background:transparent;border:1px solid var(--panel-border, #2a2a2a);color:inherit;border-radius:6px;padding:6px;cursor:pointer}
-.action-btn.remove:hover{background:#2d2d2d}
+.card-title {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
 
-.empty .card-body{opacity:.9}
-.muted{opacity:.7}
+.card-body {
+    padding: 12px 14px
+}
+
+.current-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px
+}
+
+.current-meta {
+    display: flex;
+    flex-direction: column
+}
+
+.current-title {
+    font-weight: 600
+}
+
+.current-episode {
+    opacity: .8;
+    font-size: .95rem
+}
+
+.current-stats {
+    display: flex;
+    gap: 12px;
+    opacity: .9
+}
+
+.progress-bar {
+    height: 10px;
+    background: var(--progress-bg, #2a2a2a);
+    border-radius: 6px;
+    overflow: hidden
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #66BB6A)
+}
+
+.progress-footer {
+    display: flex;
+    justify-content: space-between;
+    opacity: .8;
+    margin-top: 6px;
+    font-size: .9rem
+}
+
+.queue-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.queue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--panel-border, #2a2a2a);
+    border-radius: 8px;
+    background: var(--panel-nested-bg, #232323)
+}
+
+.qi-left {
+    display: flex;
+    flex-direction: column
+}
+
+.qi-title {
+    font-weight: 600
+}
+
+.qi-episode {
+    opacity: .8;
+    font-size: .95rem
+}
+
+.qi-right {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.qi-status {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .85rem;
+    border: 1px solid #3a3a3a
+}
+
+.qi-status.status-queued {
+    background: #2a2a2a
+}
+
+.action-btn.remove {
+    background: transparent;
+    border: 1px solid var(--panel-border, #2a2a2a);
+    color: inherit;
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer
+}
+
+.action-btn.remove:hover {
+    background: #2d2d2d
+}
+
+.empty .card-body {
+    opacity: .9
+}
+
+.muted {
+    opacity: .7
+}
