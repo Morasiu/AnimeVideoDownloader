@@ -1,7 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using BlazorComponents.Extensions;
+using BlazorComponents.Services.AnimeServices;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.Data.Models.Episodes;
+using BlazorComponents.Services.Data.Models.EpisodeSources;
 using BlazorComponents.Services.Data.Models.QueueItems;
 using BlazorComponents.Services.YoutubeDLService;
 using Codeuctivity;
@@ -14,6 +16,7 @@ public sealed class DownloadQueueService
 {
     private readonly ApplicationDbContext _context;
     private readonly DownloaderService _downloaderService;
+    private readonly IAnimeService _animeService;
     private readonly ILogger<DownloadQueueService> _logger;
 
     private ObservableCollection<QueueItem>? queue;
@@ -31,20 +34,39 @@ public sealed class DownloadQueueService
     public event Action? Changed;
     public event Action<AnimeDownloadDownloadProgress>? DownloadProgressChanged;
 
-    public DownloadQueueService(ApplicationDbContext context, DownloaderService downloaderService, ILogger<DownloadQueueService> logger)
+    public DownloadQueueService(ApplicationDbContext context, DownloaderService downloaderService, IAnimeService animeService, ILogger<DownloadQueueService> logger)
     {
         _context = context;
         _downloaderService = downloaderService;
+        _animeService = animeService;
         _logger = logger;
     }
 
-    public async Task EnqueueAsync(QueueItem item)
+    public async Task EnqueueAsync(Episode episode)
     {
-        item.Order = Queue.Select(x => x.Order).DefaultIfEmpty().Max() + 1;
-        queue!.Add(item);
-        if (Queue.Count == 1)
+        var item = new QueueItem
         {
-            await StartDownloadAsync(item);
+            Order = Queue.Select(x => x.Order).DefaultIfEmpty().Max() + 1,
+            Episode = episode,
+        };
+        queue!.Add(item);
+        await _context.SaveChangesAsync();
+        Changed?.Invoke();
+    }
+
+    public async Task DequeueAsync(QueueItem item)
+    {
+        // Get the order of the item being removed
+        var removedOrder = item.Order;
+
+        // Remove the item from the queue
+        item.Order = int.MaxValue;
+
+        // Update the order of all items that come after the removed item
+        var itemsToUpdate = Queue.Where(x => x.Order > removedOrder).ToList();
+        foreach (var queueItem in itemsToUpdate)
+        {
+            queueItem.Order--;
         }
         await _context.SaveChangesAsync();
         Changed?.Invoke();
@@ -53,28 +75,60 @@ public sealed class DownloadQueueService
     private async Task StartDownloadAsync(QueueItem item)
     {
         item.Status = QueueItemStatus.Downloading;
-        item.EpisodeSource!.Episode!.Status = EpisodeStatus.InProgress;
-        var url = item.EpisodeSource!.Url;
-        var downloadPath = item.EpisodeSource!.Episode!.Anime.Directory;
+        item.Episode.Status = EpisodeStatus.InProgress;
+        if (item.Episode.Sources.Count == 0 && item.Episode.SourcesUpdatedAt is null)
+        {
+            await _animeService.UpdateEpisodeSourcesAsync(item.Episode);
+        }
+        foreach (var episodeSource in item.Episode.Sources
+                     .Where(x => x.Status == EpisodeSourceStatus.Valid)
+                     .OrderByDescending(x => x.Quality))
+        {
+            var (success, downloadedFilePath) = await DownloadEpisodeFromSourceAsync(item, episodeSource);
+            if (success)
+            {
+                item.Status = QueueItemStatus.Completed;
+                item.DownloadedAt = DateTime.UtcNow;
+                item.Episode.Status = EpisodeStatus.Downloaded;
+                var fullFilePath = Path.Combine(item.Episode.Anime.Directory, $"{item.Episode.Number} - {item.Episode.Title.SanitizeFilename("_")}{Path.GetExtension(downloadedFilePath)}");
+                File.Move(downloadedFilePath!, fullFilePath, true);
+                item.Episode.FilePath = fullFilePath;
+                await _context.SaveChangesAsync();
+                await StartNextAsync();
+                Changed?.Invoke();
+                return;
+            }
+            if (!success)
+            {
+                episodeSource.Status = EpisodeSourceStatus.Error;
+                await _context.SaveChangesAsync();
+            }
+        }
+        item.Episode.Status = EpisodeStatus.Error;
+        _logger.LogError("Cannot download episode {EpisodeNumber} - {EpisodeTitle} from {EpisodeSourceUrl} from anime {AnimeTitle}", item.Episode.Number, item.Episode.Title, item.Episode.SourceUri, item.Episode.Anime.Title);
+        await _context.SaveChangesAsync();
+        await StartNextAsync();
+        Changed?.Invoke();
+    }
+
+    private async Task<(bool Success, string? DownloadedFilePath)> DownloadEpisodeFromSourceAsync(QueueItem item, EpisodeSource episodeSource)
+    {
+        var url = episodeSource.Url;
+        var downloadPath = item.Episode.Anime.Directory;
         var progress = new Progress<AnimeDownloadDownloadProgress>(p =>
         {
             DownloadProgressChanged?.Invoke(p);
+            if (p.Error is not null)
+            {
+                _logger.LogError("Error downloading episode {EpisodeNumber} from {EpisodeSourceUrl}. Error: {Error}", item.Episode.Number, url, p.Error);
+            }
         });
         var downloadedFilePath = await _downloaderService.DownloadAsync(url, downloadPath, progress);
         if (downloadedFilePath.IsNullOrEmpty())
         {
-            item.Status = QueueItemStatus.Error;
-            item.EpisodeSource.Episode.Status = EpisodeStatus.Error;
-            await _context.SaveChangesAsync();
-            return;
+            return (false, null);
         }
-        item.Status = QueueItemStatus.Completed;
-        item.EpisodeSource.Episode.Status = EpisodeStatus.Downloaded;
-        var fullFilePath = Path.Combine(downloadPath, $"{item.EpisodeSource.Episode.Number} - {item.EpisodeSource.Episode.Title.SanitizeFilename("_")}{Path.GetExtension(downloadedFilePath)}");
-        File.Move(downloadedFilePath, fullFilePath, true);
-        item.EpisodeSource.Episode.FilePath = fullFilePath;
-        await _context.SaveChangesAsync();
-        Changed?.Invoke();
+        return (true, downloadedFilePath);
     }
 
     public async Task RemoveAsync(QueueItem item)
@@ -118,9 +172,13 @@ public sealed class DownloadQueueService
     public async Task StartNextAsync()
     {
         if (!Queue.Any()) return;
-        if (!Queue.Any(x => x.Status == QueueItemStatus.Downloading))
+        var first = Queue.OrderBy(x => x.Order).First();
+        if (first.Status == QueueItemStatus.Downloading) return;
+        await DequeueAsync(first);
+        var item = Queue.OrderBy(x => x.Order).FirstOrDefault(x => x.Status != QueueItemStatus.Downloading);
+        if (item is not null)
         {
-            await StartDownloadAsync(Queue.First());
+            await StartDownloadAsync(item);
         }
     }
 

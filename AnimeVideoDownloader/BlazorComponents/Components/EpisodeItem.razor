@@ -2,7 +2,6 @@
 @using BlazorComponents.Services.AnimeServices
 @using BlazorComponents.Services.Data.Models.Episodes
 @using BlazorComponents.Services.Data.Models.EpisodeSources
-@using BlazorComponents.Services.Data.Models.QueueItems
 @using BlazorComponents.Services.Downloads
 @using BlazorComponents.Services.Toasts
 @using Humanizer
@@ -71,15 +70,10 @@
             ToastService.ShowError("No sources available for this episode.");
             return;
         }
-        var queueItem = new QueueItem
-        {
-            EpisodeSourceId = source.Id,
-            EpisodeSource = source,
-            Status = QueueItemStatus.Queued,
-        };
-        await QueueService.EnqueueAsync(queueItem);
-        ToastService.ShowSuccess($"Episode: {Episode.Title} added to download queue.");
+        await QueueService.EnqueueAsync(Episode);
+        await QueueService.StartNextAsync();
         Episode.Status = EpisodeStatus.InProgress;
+        ToastService.ShowSuccess($"Episode: {Episode.Title} added to download queue.");
     }
 
     private static string GetEpisodeStatusClass(EpisodeStatus status)
@@ -120,4 +114,5 @@
             UseShellExecute = true,
         });
     }
+
 }

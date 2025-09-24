@@ -2,8 +2,13 @@
 @using BlazorComponents.Services.Data.Models.Animes
 @using Humanizer
 @using System.Diagnostics
+@using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.Data.Models.Episodes
+@using BlazorComponents.Services.Toasts
 @using System.IO
 @inject IAnimeService AnimeService
+@inject DownloadQueueService QueueService
+@inject ToastService ToastService
 
 <div class="anime-details">
     <div class="details-header">
@@ -13,8 +18,12 @@
             </div>
 
             <div class="action-buttons">
-                <button class="action-btn download-all-btn" @onclick="DownloadAll"><i class="fas fa-download"></i> Download All</button>
-                <button class="action-btn open-dir-btn" @onclick="OpenDirectoryAsync"><i class="fas fa-folder-open"></i> Open Folder</button>
+                <button class="action-btn download-all-btn" @onclick="DownloadAll"><i class="fas fa-download"></i>
+                    Download All
+                </button>
+                <button class="action-btn open-dir-btn" @onclick="OpenDirectoryAsync"><i class="fas fa-folder-open"></i>
+                    Open Folder
+                </button>
                 <button class="action-btn refresh-btn" @onclick="UpdateEpisodeListAsync">
                     <Spinner ShouldShow="@isUpdatingEpisodes" BaseIconClass="fa-sync-alt"/>
                     Update episodes list
@@ -25,24 +34,25 @@
     </div>
 
     <div class="details-content">
-        <EpisodeList Anime="Anime" />
-
-        @if (AnimeService.HasDownloadingEpisodes(Anime))
-        {
-            <DownloadProgress Anime="Anime" />
-        }
+        <EpisodeList Anime="Anime"/>
     </div>
 </div>
 
 @code {
     [Parameter, EditorRequired]
     public Anime Anime { get; set; } = null!;
-    
+
     private bool isUpdatingEpisodes;
 
     private async Task DownloadAll()
     {
-        
+        var episodesToDownload = Anime.Episodes.OrderBy(x => x.Number).Where(x => x.Status == EpisodeStatus.New);
+        foreach (var episode in episodesToDownload)
+        {
+            await QueueService.EnqueueAsync(episode);
+        }
+        await QueueService.StartNextAsync();
+        ToastService.ShowSuccess("All episodes added to download queue");
     }
 
     private Task OpenDirectoryAsync()
@@ -52,14 +62,12 @@
         {
             return Task.CompletedTask;
         }
-
         try
         {
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
-
             Process.Start(new ProcessStartInfo
             {
                 FileName = path,
@@ -70,7 +78,6 @@
         {
             // Intentionally ignore exceptions when trying to open the folder
         }
-
         return Task.CompletedTask;
     }
 
@@ -80,4 +87,5 @@
         await AnimeService.UpdateAnimeEpisodeListAsync(Anime);
         isUpdatingEpisodes = false;
     }
+
 }

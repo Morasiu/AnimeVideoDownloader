@@ -1,8 +1,14 @@
 ﻿@page "/download-queue"
+@using System.Diagnostics
+@using System.Timers
+@using BlazorComponents.Extensions
 @using BlazorComponents.Services.Data.Models.QueueItems
 @using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.Toasts
 @using BlazorComponents.Services.YoutubeDLService
+@using Humanizer
 @inject DownloadQueueService QueueService
+@inject ToastService ToastService
 
 <div class="container">
     <main class="content-area">
@@ -26,14 +32,23 @@
                     <div class="card-body">
                         <div class="current-info">
                             <div class="current-meta">
-                                <div class="current-title">@current.EpisodeSource?.Episode?.Anime.Title</div>
+                                <div class="current-title">@current.Episode.Anime.Title</div>
                                 <div class="current-episode">
-                                    Episode @current.EpisodeSource?.Episode?.Number — @current.EpisodeSource?.Episode?.Title</div>
+                                    Episode @current.Episode.Number — @current.Episode.Title</div>
                             </div>
                             <div class="current-stats">
-                                <span class="speed"><i class="fas fa-tachometer-alt"></i> @_progress?.DownloadSpeed</span>
-                                <span class="eta"><i class="fas fa-hourglass-half"></i> @_progress?.ETA</span>
-                                <span class="bytes"><i class="fas fa-database"></i> @_progress?.TotalBytes</span>
+                                <span>
+                                    <i class="fas fa-rotate"></i>@updatedAt.Humanize() ago 
+                                </span>
+                                <span class="speed">
+                                    <i class="fas fa-tachometer-alt"></i> @_progress.DownloadSpeed
+                                </span>
+                                <span class="eta"><i class="fas fa-hourglass-half">
+                                    
+                                </i> @_progress.ETA</span>
+                                <span class="bytes">
+                                    <i class="fas fa-database"></i> @_progress.TotalBytes
+                                </span>
                             </div>
                         </div>
                         <div class="progress-bar">
@@ -57,7 +72,8 @@
 
             <div class="queue-list card">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-list"></i> In Queue (@(activeQueue.Count > 0 ? activeQueue.Count - 1 : 0))</h3>
+                    <h3 class="card-title"><i class="fas fa-list"></i> In Queue
+                        (@(activeQueue.Count > 0 ? activeQueue.Count - 1 : 0))</h3>
                     <div class="header-actions">
                         <button class="btn-primary" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i>
                         </button>
@@ -74,9 +90,9 @@
                             {
                                 <li class="queue-item">
                                     <div class="qi-left">
-                                        <div class="qi-title">@item.EpisodeSource?.Episode?.Anime.Title</div>
+                                        <div class="qi-title">@item.Episode.Anime.Title</div>
                                         <div class="qi-episode">
-                                            Episode @item.EpisodeSource?.Episode?.Number — @item.EpisodeSource?.Episode?.Title</div>
+                                            Episode @item.Episode.Number — @item.Episode.Title</div>
                                     </div>
                                     <div class="qi-right">
                                         <span
@@ -115,8 +131,8 @@
                             {
                                 <li class="queue-item">
                                     <div class="qi-left">
-                                        <div class="qi-title">@item.EpisodeSource?.Episode?.Anime.Title</div>
-                                        <div class="qi-episode">Episode @item.EpisodeSource?.Episode?.Number — @item.EpisodeSource?.Episode?.Title</div>
+                                        <div class="qi-title">@item.Episode.Anime.Title</div>
+                                        <div class="qi-episode">Episode @item.Episode.Number — @item.Episode.Title</div>
                                     </div>
                                     <div class="qi-right">
                                         <span class="qi-status status-completed">Completed</span>
@@ -141,19 +157,37 @@
 
 @code {
 
-    private AnimeDownloadDownloadProgress? _progress;
+    private static AnimeDownloadDownloadProgress _progress = new()
+    {
+        Status = "",
+        Error = "",
+        DownloadSpeed = "",
+        ETA = "",
+        TotalBytes = "",
+        Progress = 0
+    };
+    private TimeSpan updatedAt => Stopwatch.GetElapsedTime(lastUpdated);
+    private static long lastUpdated = Stopwatch.GetTimestamp();
 
-    private int ProgressPercent => (int)Math.Round((_progress?.Progress ?? 0f) * 100);
+    private int ProgressPercent => (int)Math.Round(_progress.Progress * 100);
 
     protected override void OnInitialized()
     {
         QueueService.Changed += OnQueueChanged;
         QueueService.DownloadProgressChanged += OnDownloadProgressChanged;
+        var timer = new Timer(TimeSpan.FromMilliseconds(100));
+        timer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
+        timer.Start();
     }
 
     private void OnDownloadProgressChanged(AnimeDownloadDownloadProgress progress)
     {
+        if (!progress.Error.IsNullOrEmpty())
+        {
+            ToastService.ShowError($"Error while downloading file {_progress.Error}", "Download error", TimeSpan.FromSeconds(10));
+        }
         _progress = progress;
+        lastUpdated = Stopwatch.GetTimestamp();
         InvokeAsync(StateHasChanged);
     }
 

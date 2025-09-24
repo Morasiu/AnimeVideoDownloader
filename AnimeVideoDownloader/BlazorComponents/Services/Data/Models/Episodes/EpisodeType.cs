@@ -1,6 +1,6 @@
 ﻿namespace BlazorComponents.Services.Data.Models.Episodes;
 
 public enum EpisodeType {
-	Normal,
-	Filler
+	Normal = 0,
+	Filler = 1
 }

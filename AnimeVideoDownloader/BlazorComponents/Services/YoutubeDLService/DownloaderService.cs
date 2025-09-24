@@ -11,15 +11,10 @@ public sealed class DownloaderService
 
     public const string Done = "Done";
     
-    public DownloaderService(ILogger<DownloaderService> logger)
+    public DownloaderService(YoutubeDL youtubeDl, ILogger<DownloaderService> logger)
     {
         _logger = logger;
-        var ytdl = new YoutubeDL
-        {
-            YoutubeDLPath = Path.Combine(YoutubeDLInitializer.LibrariesPath, Utils.YtDlpBinaryName),
-            FFmpegPath = Path.Combine(YoutubeDLInitializer.LibrariesPath, Utils.FfmpegBinaryName),
-        };
-        _youtubeDL = ytdl;
+        _youtubeDL = youtubeDl;
     }
 
     public async Task<string> DownloadAsync(string url, string directoryPath, IProgress<AnimeDownloadDownloadProgress>? downloadProgress = null, CancellationToken ct = default)
@@ -33,12 +28,13 @@ public sealed class DownloaderService
                 DownloadSpeed = p.DownloadSpeed,
                 ETA = p.ETA,
                 Status = p.State.ToString(),
-                Error = null,
+                Error = p.Data,
             });
         });
         _youtubeDL.OutputFolder = directoryPath;
         var options = OptionSet.Default;
         options.Progress = true;
+        options.ThrottledRate = 100 * 1024;
         _logger.LogInformation("Starting downloading from {Url}", url);
         var result = await _youtubeDL.RunVideoDownload(url, progress: progress, ct: ct, overrideOptions: options);
         if (!result.Success)
@@ -64,7 +60,7 @@ public sealed class DownloaderService
             ETA = null,
             TotalBytes = null,
         });
-        _logger.LogInformation("Download finished");
+        _logger.LogInformation("Download from {Url} finished", url);
         return result.Data;
     }
 }

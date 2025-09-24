@@ -4,6 +4,7 @@ using BlazorComponents.Services.AnimeServices.Providers;
 using BlazorComponents.Services.Data;
 using BlazorComponents.Services.Data.Models.Animes;
 using BlazorComponents.Services.Data.Models.Episodes;
+using BlazorComponents.Services.Data.Models.EpisodeSources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,10 @@ public class AnimeService : IAnimeService
 
     public async Task<ObservableCollection<Anime>> GetAnimeListAsync()
     {
-        await _context.Anime.LoadAsync();
+        if (_context.Anime.Local.Count == 0)
+        {
+            await _context.Anime.LoadAsync();
+        }
         return _context.Anime.Local.ToObservableCollection();
     }
 
@@ -70,7 +74,6 @@ public class AnimeService : IAnimeService
             _context.Attach(anime);
         }
         _context.Remove(anime);
-
         await _context.SaveChangesAsync(ct);
         _logger.LogInformation("Deleted anime {AnimeId}", anime.Id);
     }
@@ -90,7 +93,7 @@ public class AnimeService : IAnimeService
     public async Task UpdateEpisodeSourcesAsync(Episode episode)
     {
         ArgumentNullException.ThrowIfNull(episode.SourceUri);
-        var sources = await _animeProvider.GetEpisodeSourcesAsync(episode.SourceUri);
+        List<EpisodeSource> sources = await _animeProvider.GetEpisodeSourcesAsync(episode.SourceUri);
         foreach (var source in sources)
         {
             if (episode.Sources.Any(e => e.Url == source.Url)) continue;

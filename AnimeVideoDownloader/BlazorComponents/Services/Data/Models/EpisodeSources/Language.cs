@@ -2,11 +2,11 @@
 
 public enum Language
 {
-    Unknown,
-    English,
-    Polish,
-    Japanese,
-    Chinese
+    Unknown = 0,
+    English = 1,
+    Polish = 2,
+    Japanese = 3,
+    Chinese = 4,
 }
 
 public class LanguageParser

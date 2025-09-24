@@ -2,13 +2,13 @@
 
 public enum SourceKind
 {
-    Unkown,
-    Mega,
-    Cda,
-    Gdrive,
-    Mp4Upload,
-    Sibnet,
-    Yourupload,
+    Unkown = 0,
+    Mega = 1,
+    Cda = 2,
+    Gdrive = 3,
+    Mp4Upload = 4,
+    Sibnet = 5,
+    Yourupload = 6,
 }
 
 public class SourceKindParser

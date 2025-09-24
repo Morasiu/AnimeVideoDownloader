@@ -1,11 +1,8 @@
 ﻿@using BlazorComponents.Services.Data.Models.Animes
 @using BlazorComponents.Services.Data.Models.Episodes
-@using BlazorComponents.Services.Data.Models.EpisodeSources
-@using BlazorComponents.Services.Data.Models.QueueItems
 @using BlazorComponents.Services.Downloads
 @using BlazorComponents.Services.YoutubeDLService
 @using Microsoft.Extensions.Logging
-@using QueueItem=BlazorComponents.Services.Data.Models.QueueItems.QueueItem
 
 @inject DownloadQueueService QueueService
 
@@ -44,17 +41,7 @@
     
     private async Task DownloadEpisode(Episode episode)
     {
-        var queueItem = new QueueItem
-        {
-            EpisodeSource = episode.Sources.Where(x => x.Status == EpisodeSourceStatus.Valid).OrderByDescending(x => x.Quality).First(),
-            Status = QueueItemStatus.Queued,
-        };
-        await QueueService.EnqueueAsync(queueItem);
-        // TODO add to queue
-        // var downloadProgress = new Progress<AnimeDownloadDownloadProgress>(p =>
-        //     Logger.LogInformation("Download progress - Status: {Status}, Progress: {Progress:P}, Speed: {Speed}, ETA: {Eta}, TotalBytes: {TotalBytes}, Error: {Error}",
-        //         p.Status, p.Progress, p.DownloadSpeed, p.ETA, p.TotalBytes, p.Error ?? "None")
-        // );
-        // await DownloaderService.DownloadAsync("https://www.youtube.com/watch?v=XfELJU1mRMg", AppDataPath.AnimeDownloaderPath, downloadProgress);
+        await QueueService.EnqueueAsync(episode);
+        await QueueService.StartNextAsync();
     }
 }

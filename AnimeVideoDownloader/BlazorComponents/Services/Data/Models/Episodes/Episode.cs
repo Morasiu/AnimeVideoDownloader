@@ -23,8 +23,8 @@ public class Episode
 
 public enum EpisodeStatus
 {
-    New, 
-    InProgress,
-    Downloaded,
-    Error,
+    New = 0, 
+    InProgress = 1,
+    Downloaded = 2,
+    Error = 3,
 }

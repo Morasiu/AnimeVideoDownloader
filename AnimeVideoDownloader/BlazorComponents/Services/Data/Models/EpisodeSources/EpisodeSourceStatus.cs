@@ -3,7 +3,5 @@
 public enum EpisodeSourceStatus
 {
     Valid,
-    NotFound,
-    Forbidden,
     Error,
 }

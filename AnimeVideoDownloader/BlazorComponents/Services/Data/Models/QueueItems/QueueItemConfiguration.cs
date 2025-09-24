@@ -10,6 +10,6 @@ public sealed class QueueItemConfiguration : IEntityTypeConfiguration<QueueItem>
         builder.ToTable("QueueItems");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
-        builder.HasOne(x => x.EpisodeSource).WithMany(x => x.QueueItems).HasForeignKey(x => x.EpisodeSourceId);
+        builder.HasOne(x => x.Episode).WithMany().HasForeignKey(x => x.EpisodeId);
     }
 }

@@ -27,20 +27,6 @@ public sealed class ShindenProvider : IAnimeProvider
         return title;
     }
 
-    private async Task<IPage> GetPageAsync(string sourceUri)
-    {
-        _logger.LogInformation("Getting page {SourceUri}", sourceUri);
-        var browser = _browserProvider.GetBrowser();
-        var options = new BrowserNewPageOptions
-        {
-            ViewportSize = new ViewportSize { Width = 1920, Height = 1080 },
-        };
-        var page = await browser.NewPageAsync(options);
-        await page.GotoAsync(sourceUri);
-        _logger.LogInformation("Page {SourceUri} loaded", sourceUri);
-        return page;
-    }
-
     public async Task<List<Episode>> GetEpisodesListAsync(string sourceUri)
     {
         var page = await GetPageAsync(sourceUri);
@@ -69,9 +55,7 @@ public sealed class ShindenProvider : IAnimeProvider
     {
         var page = await GetPageAsync(episodeSourceUri);
         var sources = new List<EpisodeSource>();
-        
         await RemoveFuckingAdsAsync(page);
-        
         var episodeRows = await page.Locator("section.box.episode-player-list > div.table-responsive > table > tbody").Locator("tr").AllAsync();
         foreach (var episodeRow in episodeRows)
         {
@@ -81,15 +65,31 @@ public sealed class ShindenProvider : IAnimeProvider
             var voiceLanguage = await cells[2].InnerTextAsync();
             var subtitlesLanguage = await cells[3].InnerTextAsync();
             await cells[5].Locator("a").DispatchEventAsync("click");
-            var sourceUrl = await page.Locator(".player-container > iframe").GetAttributeAsync("src");
-            ArgumentNullException.ThrowIfNull(sourceUrl);
+            string? sourceUrl;
+            try
+            {
+                sourceUrl = await page.Locator(".player-container > iframe").GetAttributeAsync("src");
+            }
+            catch (Exception e)
+            {
+                var errorId = Guid.NewGuid();
+                var screenshotPath = Path.Combine(Path.GetTempPath(), "AnimeDownloader", $"{errorId}.png");
+                var pageScreenshotOptions = new PageScreenshotOptions()
+                {
+                    FullPage = true,
+                    Path = screenshotPath,
+                };
+                await page.ScreenshotAsync(pageScreenshotOptions);
+                _logger.LogError(e, "Cannot get source url for {EpisodeSourceUri}. SourceKind: {SourceKind}. ErrorId; {ErrorId}. Saved screenshot to {Path}", episodeSourceUri, sourceKind, errorId, screenshotPath);
+                continue;
+            }
             var source = new EpisodeSource
             {
                 Kind = SourceKindParser.Parse(sourceKind),
                 Quality = QualityParser.FromString(quality),
                 VoiceLanguage = LanguageParser.Parse(voiceLanguage),
                 SubtitlesLanguage = LanguageParser.Parse(subtitlesLanguage),
-                Url = sourceUrl,
+                Url = sourceUrl ?? "",
             };
             sources.Add(source);
         }
@@ -102,5 +102,19 @@ public sealed class ShindenProvider : IAnimeProvider
         await page.Locator("html > iframe:last-child").ClickAsync();
         await page.GetByText("Zaakceptuj wszystko").ClickAsync();
         await page.GetByText("Akceptuję").ClickAsync();
+    }
+
+    private async Task<IPage> GetPageAsync(string sourceUri)
+    {
+        _logger.LogInformation("Getting page {SourceUri}", sourceUri);
+        var browser = _browserProvider.GetBrowser();
+        var options = new BrowserNewPageOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1920, Height = 1080 },
+        };
+        var page = await browser.NewPageAsync(options);
+        await page.GotoAsync(sourceUri);
+        _logger.LogInformation("Page {SourceUri} loaded", sourceUri);
+        return page;
     }
 }

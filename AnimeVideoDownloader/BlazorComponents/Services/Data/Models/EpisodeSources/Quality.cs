@@ -8,32 +8,32 @@ public enum Quality {
 	/// 240p
 	/// </summary>
 	[Description("240p")]
-	P240, 
+	P240 = 1, 
 	/// <summary>
 	/// 480P
 	/// </summary>
 	[Description("360p")]
-	P360, 
+	P360 = 2, 
 	/// <summary>
 	/// 480P
 	/// </summary>
 	[Description("480p")]
-	P480, 
+	P480 = 3, 
 	/// <summary>
 	/// 720P
 	/// </summary>
 	[Description("720p")]
-	P720, 
+	P720 = 4, 
 	/// <summary>
 	/// 1080P
 	/// </summary>
 	[Description("1080p")]
-	P1080, 
+	P1080 = 5, 
 	/// <summary>
 	/// 4K
 	/// </summary>
 	[Description("4k")]
-	P4K
+	P4K = 6,
 }
 
 public static class QualityParser {

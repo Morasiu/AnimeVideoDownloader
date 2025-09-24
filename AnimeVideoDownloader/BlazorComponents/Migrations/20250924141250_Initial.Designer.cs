@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorComponents.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250924124123_QueueItem")]
-    partial class QueueItem
+    [Migration("20250924141250_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -105,7 +105,6 @@ namespace BlazorComponents.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("FilePath")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
@@ -147,7 +146,10 @@ namespace BlazorComponents.Migrations
                     b.Property<DateTime>("DownloadedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("EpisodeSourceId")
+                    b.Property<Guid>("EpisodeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("EpisodeSourceId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Order")
@@ -157,6 +159,8 @@ namespace BlazorComponents.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EpisodeId");
 
                     b.HasIndex("EpisodeSourceId");
 
@@ -187,13 +191,17 @@ namespace BlazorComponents.Migrations
 
             modelBuilder.Entity("BlazorComponents.Services.Data.Models.QueueItems.QueueItem", b =>
                 {
-                    b.HasOne("BlazorComponents.Services.Data.Models.EpisodeSources.EpisodeSource", "EpisodeSource")
-                        .WithMany("QueueItems")
-                        .HasForeignKey("EpisodeSourceId")
+                    b.HasOne("BlazorComponents.Services.Data.Models.Episodes.Episode", "Episode")
+                        .WithMany()
+                        .HasForeignKey("EpisodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("EpisodeSource");
+                    b.HasOne("BlazorComponents.Services.Data.Models.EpisodeSources.EpisodeSource", null)
+                        .WithMany("QueueItems")
+                        .HasForeignKey("EpisodeSourceId");
+
+                    b.Navigation("Episode");
                 });
 
             modelBuilder.Entity("BlazorComponents.Services.Data.Models.Animes.Anime", b =>
