@@ -11,9 +11,17 @@ public sealed class DownloadQueueService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<DownloadQueueService> _logger;
 
-    private ObservableCollection<QueueItem>? queue = null;
+    private ObservableCollection<QueueItem>? queue;
 
-    public QueueItem? Current { get; private set; }
+    // The queue itself contains the current item at index 0 (lowest Order).
+    public ObservableCollection<QueueItem> Queue
+    {
+        get
+        {
+            EnsureQueueLoaded();
+            return queue!;
+        }
+    }
 
     public event Action? Changed;
 
@@ -22,26 +30,25 @@ public sealed class DownloadQueueService
         _context = context;
         _logger = logger;
     }
-
-    public async Task<ObservableCollection<QueueItem>> GetQueue()
+    
+    private void ResortQueueByOrder()
     {
-        await LoadQueueAsync();
-        return queue!;
-    }
-
-    private async Task LoadQueueAsync()
-    {
-        if (queue is null)
+        if (queue is null) return;
+        var ordered = queue.OrderBy(x => x.Order).ToList();
+        if (ordered.Count == queue.Count && ordered.SequenceEqual(queue))
         {
-            await _context.QueueItems.LoadAsync();
-            queue = _context.QueueItems.Local.ToObservableCollection();
+            return; // already sorted
+        }
+        queue.Clear();
+        foreach (var item in ordered)
+        {
+            queue.Add(item);
         }
     }
 
     public async Task EnqueueAsync(QueueItem item)
     {
-        await LoadQueueAsync();
-        item.Order = queue!.Select(x => x.Order).DefaultIfEmpty().Max() + 1;
+        item.Order = Queue.Select(x => x.Order).DefaultIfEmpty().Max() + 1;
         queue!.Add(item);
         await _context.SaveChangesAsync();
         Changed?.Invoke();
@@ -49,92 +56,72 @@ public sealed class DownloadQueueService
 
     public async Task RemoveAsync(QueueItem item)
     {
-        if (ReferenceEquals(item, Current))
-        {
-            Current = null;
-        }
-        await LoadQueueAsync();
-        queue!.Remove(item);
+        Queue.Remove(item);
         await _context.SaveChangesAsync();
         Changed?.Invoke();
     }
 
     public async Task ClearAsync()
     {
-        await LoadQueueAsync();
-        queue!.Clear();
+        Queue.Clear();
         Changed?.Invoke();
         await _context.SaveChangesAsync();
     }
 
     public async Task MoveUpAsync(QueueItem item)
     {
-        await LoadQueueAsync();
-        var itemBefore = queue!.FirstOrDefault(x => x.Order == item.Order - 1);
+        var itemBefore = Queue.FirstOrDefault(x => x.Order == item.Order - 1);
         if (itemBefore != null)
         {
             itemBefore.Order++;
         }
         item.Order--;
         await _context.SaveChangesAsync();
+        ResortQueueByOrder();
         Changed?.Invoke();
     }
 
     public async Task MoveDownAsync(QueueItem item)
     {
-        await LoadQueueAsync();
-        var itemAfter = queue!.FirstOrDefault(x => x.Order == item.Order + 1);
+        var itemAfter = Queue.FirstOrDefault(x => x.Order == item.Order + 1);
         if (itemAfter != null)
         {
             itemAfter.Order--;
         }
         item.Order++;
         await _context.SaveChangesAsync();
+        ResortQueueByOrder();
         Changed?.Invoke();
     }
 
     public async Task StartNextAsync()
     {
-        if (Current is { Status: not QueueItemStatus.Downloading })
+        if (!Queue.Any()) return;
+
+        if (!Queue.Any(x => x.Status == QueueItemStatus.Downloading))
         {
-            // do nothing if current is paused or queued; caller should manage state
-        }
-        await LoadQueueAsync();
-        if (Current is null && queue!.Any())
-        {
-            Current = queue!.First();
-            queue!.RemoveAt(0);
-            Current.Status = QueueItemStatus.Downloading;
+            var first = Queue.First();
+            first.Status = QueueItemStatus.Downloading;
+            await _context.SaveChangesAsync();
             Changed?.Invoke();
         }
     }
-
-    public void SetCurrent(QueueItem? item)
-    {
-        Current = item;
-        Changed?.Invoke();
-    }
-
-    public void Pause(QueueItem item)
-    {
-        item.Status = QueueItemStatus.Paused;
-        Changed?.Invoke();
-    }
-
-    public void Resume(QueueItem item)
-    {
-        item.Status = QueueItemStatus.Queued; // will be picked up to start
-        Changed?.Invoke();
-    }
-
+    
     public void UpdateProgress(double progressPercent, string? speed, string? eta, string? totalBytes)
     {
-        if (Current is null) return;
-        Current.Progress = progressPercent;
-        Current.DownloadSpeed = speed;
-        Current.ETA = eta;
-        Current.TotalBytes = totalBytes;
-        Current.Status = QueueItemStatus.Downloading;
+        // Progress reporting for QueueItem is not modeled here; only status is tracked.
+        if (Queue.Count == 0) return;
+        var current = Queue.First();
+        current.Status = QueueItemStatus.Downloading;
         Changed?.Invoke();
+    }
+
+    private void EnsureQueueLoaded()
+    {
+        if (queue is null)
+        {
+            _context.QueueItems.Load();
+            queue = new ObservableCollection<QueueItem>(_context.QueueItems.Local.OrderBy(x => x.Order));
+        }
     }
 }
