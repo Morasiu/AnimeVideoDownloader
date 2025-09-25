@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorComponents.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250924141250_Initial")]
+    [Migration("20250925091510_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -160,7 +160,8 @@ namespace BlazorComponents.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EpisodeId");
+                    b.HasIndex("EpisodeId")
+                        .IsUnique();
 
                     b.HasIndex("EpisodeSourceId");
 
@@ -192,8 +193,8 @@ namespace BlazorComponents.Migrations
             modelBuilder.Entity("BlazorComponents.Services.Data.Models.QueueItems.QueueItem", b =>
                 {
                     b.HasOne("BlazorComponents.Services.Data.Models.Episodes.Episode", "Episode")
-                        .WithMany()
-                        .HasForeignKey("EpisodeId")
+                        .WithOne("QueueItem")
+                        .HasForeignKey("BlazorComponents.Services.Data.Models.QueueItems.QueueItem", "EpisodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -216,6 +217,8 @@ namespace BlazorComponents.Migrations
 
             modelBuilder.Entity("BlazorComponents.Services.Data.Models.Episodes.Episode", b =>
                 {
+                    b.Navigation("QueueItem");
+
                     b.Navigation("Sources");
                 });
 #pragma warning restore 612, 618

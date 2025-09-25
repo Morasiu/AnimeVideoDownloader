@@ -105,7 +105,7 @@ public class AnimeService : IAnimeService
 
     public bool HasDownloadingEpisodes(Anime anime)
     {
-        return anime.Episodes.Any(e => e.Status == EpisodeStatus.InProgress);
+        return anime.Episodes.Any(e => e.QueueItem is not null);
     }
 
     public bool HasErrorEpisodes(Anime anime)

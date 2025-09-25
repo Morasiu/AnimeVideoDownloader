@@ -76,7 +76,6 @@ public sealed class DownloadQueueService
     private async Task StartDownloadAsync(QueueItem item)
     {
         item.Status = QueueItemStatus.Downloading;
-        item.Episode.Status = EpisodeStatus.InProgress;
         if (item.Episode.Sources.Count == 0 && item.Episode.SourcesUpdatedAt is null)
         {
             item.Status = QueueItemStatus.LookingForSources;
@@ -182,6 +181,7 @@ public sealed class DownloadQueueService
         var itemInProgress = Queue.FirstOrDefault(x => x.Status is QueueItemStatus.Downloading or QueueItemStatus.LookingForSources);
         if (itemInProgress is null) return;
         itemInProgress.Status = QueueItemStatus.Queued;
+        itemInProgress.Episode.Status = EpisodeStatus.New;
         await _context.SaveChangesAsync();
         Changed?.Invoke();
     }

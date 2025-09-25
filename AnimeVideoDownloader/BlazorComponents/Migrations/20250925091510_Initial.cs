@@ -117,7 +117,8 @@ namespace BlazorComponents.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_QueueItems_EpisodeId",
                 table: "QueueItems",
-                column: "EpisodeId");
+                column: "EpisodeId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_QueueItems_EpisodeSourceId",

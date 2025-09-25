@@ -55,7 +55,15 @@ public sealed class ShindenProvider : IAnimeProvider
     {
         var page = await GetPageAsync(episodeSourceUri);
         var sources = new List<EpisodeSource>();
-        await RemoveFuckingAdsAsync(page);
+        try
+        {
+            await RemoveFuckingAdsAsync(page);
+        }
+        catch (Exception e)
+        {
+            var (screenshotPath, errorId) = await page.TakeErrorScreenshotAsync();
+            _logger.LogWarning(e, "Cannot close fucking ads on shinden. ErrorId: {ErrorId}. Saved screenshot to: {Path}", errorId, screenshotPath);
+        }
         var episodeRows = await page.Locator("section.box.episode-player-list > div.table-responsive > table > tbody").Locator("tr").AllAsync();
         foreach (var episodeRow in episodeRows)
         {
@@ -72,14 +80,7 @@ public sealed class ShindenProvider : IAnimeProvider
             }
             catch (Exception e)
             {
-                var errorId = Guid.NewGuid();
-                var screenshotPath = Path.Combine(Path.GetTempPath(), "AnimeDownloader", $"{errorId}.png");
-                var pageScreenshotOptions = new PageScreenshotOptions()
-                {
-                    FullPage = true,
-                    Path = screenshotPath,
-                };
-                await page.ScreenshotAsync(pageScreenshotOptions);
+                var (screenshotPath, errorId) = await page.TakeErrorScreenshotAsync();
                 _logger.LogError(e, "Cannot get source url for {EpisodeSourceUri}. SourceKind: {SourceKind}. ErrorId; {ErrorId}. Saved screenshot to {Path}", episodeSourceUri, sourceKind, errorId, screenshotPath);
                 continue;
             }
@@ -96,7 +97,7 @@ public sealed class ShindenProvider : IAnimeProvider
         await page.CloseAsync();
         return sources;
     }
-
+    
     private static async Task RemoveFuckingAdsAsync(IPage page)
     {
         await page.Locator("html > iframe:last-child").ClickAsync();

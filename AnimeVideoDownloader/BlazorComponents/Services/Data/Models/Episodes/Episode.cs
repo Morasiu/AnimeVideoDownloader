@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using BlazorComponents.Services.Data.Models.Animes;
 using BlazorComponents.Services.Data.Models.EpisodeSources;
+using BlazorComponents.Services.Data.Models.QueueItems;
 
 namespace BlazorComponents.Services.Data.Models.Episodes;
 
@@ -16,7 +17,8 @@ public class Episode
     public EpisodeType EpisodeType { get; set; }
     public DateTime? SourcesUpdatedAt { get; set; }
     public virtual ICollection<EpisodeSource> Sources { get; set; } = new ObservableCollection<EpisodeSource>();
-    
+
+    public virtual QueueItem? QueueItem { get; set; }
     public Guid AnimeId { get; set; }
     public virtual Anime Anime { get; set; } = null!;
 }
@@ -24,7 +26,6 @@ public class Episode
 public enum EpisodeStatus
 {
     New = 0, 
-    InProgress = 1,
     Downloaded = 2,
     Error = 3,
 }
