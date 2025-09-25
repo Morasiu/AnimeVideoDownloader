@@ -1,0 +1,74 @@
+﻿@using System.Collections.Specialized
+@using System.Linq
+@using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.Logging
+
+
+<nav class="top-nav">
+    <div class="left-section">
+        <div class="logo">
+           <img src='@Assets["_content/BlazorComponents/Icon.png"]' alt="Logo" class="logo-icon" loading="lazy"/>
+            <span class="logo-text">Anime Downloader</span>
+        </div>
+
+        <div class="nav-menu">
+            <NavLink class="nav-item" href="" Match="NavLinkMatch.All" ActiveClass="active">
+                <span class="nav-icon"><i class="fas fa-home"></i></span>
+                <span class="nav-text">Home</span>
+            </NavLink>
+            <NavLink class="nav-item" href="download-queue" ActiveClass="active">
+                <span class="nav-icon"><i class="fas fa-tasks"></i></span>
+                <span class="nav-text">Queue</span>
+                @if (QueueItemsCount > 0)
+                {
+                    <span class="queue-badge">@QueueItemsCount</span>
+                }
+            </NavLink>
+        </div>
+    </div>
+
+    <div class="right-section">
+
+        <StatusIndicator/>
+
+        <NavLink class="nav-item" href="settings" ActiveClass="active">
+            <span class="nav-icon"><i class="fas fa-cog"></i></span>
+            <span class="nav-text">Settings</span>
+        </NavLink>
+
+        <NavLink class="nav-item" href="debug" ActiveClass="active">
+            <span class="nav-icon"><i class="fas fa-bug"></i></span>
+            <span class="nav-text">Debug</span>
+            @if (HasExceptions)
+            {
+                <span class="error-badge"><i class="fas fa-exclamation-circle"></i></span>
+            }
+        </NavLink>
+    </div>
+</nav>
+
+@code {
+    [Inject] private MemoryLogService LogService { get; set; } = default!;
+    [Inject] private DownloadQueueService QueueService { get; set; } = default!;
+
+    private bool HasExceptions => LogService.Logs.Any(log => log.Exception != null);
+    private int QueueItemsCount => QueueService.Queue.Count;
+
+    protected override void OnInitialized()
+    {
+        LogService.Logs.CollectionChanged += LogsOnCollectionChanged;
+    }
+
+    private void LogsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs notifyCollectionChangedEventArgs)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        LogService.Logs.CollectionChanged -= LogsOnCollectionChanged;
+    }
+
+}
+
+@implements IDisposable

@@ -1,0 +1,47 @@
+﻿@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.Data.Models.Episodes
+@using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.YoutubeDLService
+@using Microsoft.Extensions.Logging
+
+@inject DownloadQueueService QueueService
+
+<div class="episodes-section">
+    <h3>Episodes</h3>
+    <div class="episode-list">
+        @foreach (var episode in Anime.Episodes.OrderBy(x => x.Number))
+        {
+            <EpisodeItem 
+                Episode="episode"
+                OnRetry="RetryDownload"
+                OnDownload="@(async _ => await DownloadEpisode(episode))" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Anime Anime { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<Episode> OnEpisodeAction { get; set; }
+
+    [Inject]
+    public required DownloaderService DownloaderService { get; set; }
+
+    [Inject]
+    public required ILogger<EpisodeList> Logger { get; set; }
+
+
+    private async Task RetryDownload(Episode episode)
+    {
+        // Implement retry functionality
+        await OnEpisodeAction.InvokeAsync(episode);
+    }
+    
+    private async Task DownloadEpisode(Episode episode)
+    {
+        await QueueService.EnqueueAsync(episode);
+        await QueueService.StartNextAsync();
+    }
+}

@@ -1,0 +1,129 @@
+﻿@using System.Diagnostics
+@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.Data.Models.Episodes
+@using BlazorComponents.Services.Data.Models.EpisodeSources
+@using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.Toasts
+@using Humanizer
+
+@inject IAnimeService AnimeService
+@inject DownloadQueueService QueueService
+@inject ToastService ToastService
+
+<div class="episode-item @GetEpisodeStatusClass(Episode)">
+    <div class="episode-number">@Episode.Number</div>
+    <div class="episode-title">@Episode.Title</div>
+    <div class="episode-status">@GetStatusText(Episode)</div>
+    <div class="episode-status" title="Last updated: @Episode.SourcesUpdatedAt.Humanize()">
+        Sources: @Episode.Sources.Count(x => x.Status == EpisodeSourceStatus.Valid)</div>
+    <div class="episode-actions">
+        @if (Episode.Status == EpisodeStatus.Error)
+        {
+            <button class="retry-btn" @onclick="HandleRetry">
+                <i class="fas fa-redo"></i> Retry
+            </button>
+        }
+        else if (!Episode.Sources.Any())
+        {
+            <button class="btn-primary" @onclick="HandleUpdateSources">
+                <Spinner ShouldShow="@isUpdatingEpisodeSources" BaseIconClass="fa-globe"/>
+                Update sources
+            </button>
+        }
+        else if (Episode.Status == EpisodeStatus.Downloaded)
+        {
+            <button class="download-btn" @onclick="HandlePlay">
+                <i class="fas fa-play"></i> Play
+            </button>
+        }
+        else if (Episode.QueueItem is null)
+        {
+            <button class="download-btn" @onclick="HandleDownload">
+                <i class="fas fa-download"></i> Download
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Episode Episode { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<Episode> OnRetry { get; set; }
+
+    [Parameter]
+    public EventCallback<Episode> OnUpdateSources { get; set; }
+
+    [Parameter]
+    public EventCallback<Episode> OnDownload { get; set; }
+
+    private bool isUpdatingEpisodeSources { get; set; }
+
+    private Task HandleRetry() => OnRetry.InvokeAsync(Episode);
+
+    private async Task HandleDownload()
+    {
+        var source = Episode.Sources.FirstOrDefault(s => s.Status == EpisodeSourceStatus.Valid);
+        if (source is null)
+        {
+            ToastService.ShowError("No sources available for this episode.");
+            return;
+        }
+        await QueueService.EnqueueAsync(Episode);
+        await QueueService.StartNextAsync();
+        ToastService.ShowSuccess($"Episode: {Episode.Title} added to download queue.");
+    }
+
+    private static string GetEpisodeStatusClass(Episode episode)
+    {
+        if (episode.Status is EpisodeStatus.Downloaded)
+        {
+            return "downloaded";
+        }
+        if (episode.QueueItem is not null)
+        {
+            return "in-progress";
+        }
+        if (episode.Status is EpisodeStatus.Error)
+        {
+            return "error";
+        }
+        return string.Empty;
+    }
+
+    private static string GetStatusText(Episode episode)
+    {
+        if (episode.Status is EpisodeStatus.Downloaded)
+        {
+            return "Downloaded";
+        }
+        if (episode.QueueItem is not null)
+        {
+            return "In Progress";
+        }
+        if (episode.Status is EpisodeStatus.Error)
+        {
+            return "Error";
+        }
+        return string.Empty;
+    }
+
+    private async Task HandleUpdateSources()
+    {
+        isUpdatingEpisodeSources = true;
+        await AnimeService.UpdateEpisodeSourcesAsync(Episode);
+        isUpdatingEpisodeSources = false;
+        await OnUpdateSources.InvokeAsync(Episode);
+    }
+
+    private void HandlePlay()
+    {
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = Episode.FilePath,
+            UseShellExecute = true,
+        });
+    }
+
+}

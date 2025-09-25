@@ -1,0 +1,78 @@
+﻿.status-item {
+    cursor: pointer;
+    outline: none;
+    position: relative;
+}
+
+.status-item:hover {
+    background-color: var(--border-light);
+    border-radius: 4px;
+}
+
+.status-popover {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px var(--overlay-light);
+    min-width: 250px;
+    z-index: 1000;
+    color: var(--text-dark);
+}
+
+.popover-header {
+    background-color: var(--bg-popover-header);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-muted);
+    border-radius: 6px 6px 0 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.popover-content {
+    padding: 12px 16px;
+}
+
+.status-item-detail {
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.status-item-detail:last-child {
+    margin-bottom: 0;
+}
+
+.status-item-detail strong {
+    display: inline-block;
+    min-width: 80px;
+    color: var(--text-dark-secondary);
+}
+
+.status-icon {
+    margin-left: 8px;
+    font-size: 14px;
+}
+
+.status-icon.success {
+    color: var(--color-success);
+}
+
+.status-icon.error {
+    color: var(--color-error);
+}
+
+.status-icon.warning {
+    color: var(--color-warning);
+}
+
+.status-icon.in-progress {
+    color: var(--color-info);
+}
+
+.status-icon.unknown {
+    color: var(--color-unknown);
+}

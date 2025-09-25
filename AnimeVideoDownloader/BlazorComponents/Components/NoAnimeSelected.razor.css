@@ -1,0 +1,46 @@
+﻿.no-selection {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.no-selection-content {
+    text-align: center;
+    padding: 2rem;
+    max-width: 400px;
+}
+
+.no-selection-icon {
+    font-size: 4rem;
+    color: var(--color-trace);
+    margin-bottom: 1.5rem;
+}
+
+.no-selection-content h2 {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.no-selection-content p {
+    color: var(--text-tertiary);
+    margin-bottom: 1.5rem;
+}
+
+.select-first-btn {
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: var(--text-primary);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.select-first-btn:hover {
+    background: linear-gradient(90deg, var(--color-primary-hover) 0%, var(--color-accent) 100%);
+    transform: translateY(-1px);
+}
