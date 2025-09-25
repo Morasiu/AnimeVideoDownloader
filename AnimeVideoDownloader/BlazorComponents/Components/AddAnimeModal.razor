@@ -57,10 +57,14 @@
     public EventCallback<Anime> OnAdded { get; set; }
 
     private string TitleInput { get; set; } = string.Empty;
-    //private string Url { get; set; } = string.Empty;
-    //private string Directory { get; set; } = string.Empty;
+
+    #if DEBUG
     private string Url { get; set; } = "https://shinden.pl/series/54801-psycho-pass-3/episodes";
     private string Directory { get; set; } = @"D:\Download\Psycho Pass 3";
+    #else
+    private string Url { get; set; } = string.Empty;
+    private string Directory { get; set; } = string.Empty;
+    #endif
     private string? Error { get; set; }
     private bool IsAdding { get; set; }
 
