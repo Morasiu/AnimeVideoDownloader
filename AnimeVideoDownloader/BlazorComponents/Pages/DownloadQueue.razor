@@ -9,6 +9,7 @@
 @using Humanizer
 @inject DownloadQueueService QueueService
 @inject ToastService ToastService
+@implements IDisposable
 
 <div class="container">
     <main class="content-area">
@@ -22,9 +23,9 @@
                     .ToList();
             }
 
-            @if (activeQueue.Any())
+            @if (activeQueue.Any(x => x.Status is QueueItemStatus.Downloading or QueueItemStatus.LookingForSources))
             {
-                var current = activeQueue.First();
+                var current = activeQueue.First(x => x.Status is QueueItemStatus.Downloading or QueueItemStatus.LookingForSources);
                 <div class="current-download card">
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-download"></i> Currently Downloading</h3>
@@ -37,9 +38,7 @@
                                     Episode @current.Episode.Number — @current.Episode.Title</div>
                             </div>
                             <div class="current-stats">
-                                <span>
-                                    <i class="fas fa-rotate"></i>@updatedAt.Humanize() ago 
-                                </span>
+
                                 <span class="speed">
                                     <i class="fas fa-tachometer-alt"></i> @_progress.DownloadSpeed
                                 </span>
@@ -56,7 +55,12 @@
                         </div>
                         <div class="progress-footer">
                             <span>@(ProgressPercent)%</span>
-                            <span>@current.Status</span>
+                            <div class="right-footer-section">
+                                <span>
+                                    @updatedAt.Humanize() since last sync <i class="fas fa-rotate"></i> 
+                                </span>
+                                <span>@current.Status</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -73,7 +77,8 @@
             <div class="queue-list card">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-list"></i> In Queue
-                        (@(activeQueue.Count > 0 ? activeQueue.Count - 1 : 0))</h3>
+                        (@activeQueue.Count(x => x.Status == QueueItemStatus.Queued))
+                    </h3>
                     <div class="header-actions">
                         <button class="btn-primary" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i>
                         </button>
@@ -83,10 +88,10 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if (activeQueue.Skip(1).Any())
+                    @if (activeQueue.Any(x => x.Status == QueueItemStatus.Queued))
                     {
                         <ul class="queue-items">
-                            @foreach (var item in activeQueue.Skip(1))
+                            @foreach (var item in activeQueue.Where(x => x.Status == QueueItemStatus.Queued))
                             {
                                 <li class="queue-item">
                                     <div class="qi-left">
@@ -179,7 +184,7 @@
         timer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
         timer.Start();
     }
-
+    
     private void OnDownloadProgressChanged(AnimeDownloadDownloadProgress progress)
     {
         if (!progress.Error.IsNullOrEmpty())
