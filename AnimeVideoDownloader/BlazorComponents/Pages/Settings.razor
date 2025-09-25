@@ -1,0 +1,63 @@
+﻿@page "/settings"
+@using BlazorComponents.Services.AppData
+@using Microsoft.Extensions.Logging
+
+<h1>Settings</h1>
+
+<div class="settings-container">
+    <div class="settings-section">
+        <h2>Application Settings</h2>
+
+        <div class="setting-group">
+            <h3>General</h3>
+            <div class="setting-item">
+                <label>Theme</label>
+                <select @bind="UserSettings.Theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">System Default</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>Playback</h3>
+            <div class="setting-item">
+                <label for="default-quality">Default Quality</label>
+                <select id="default-quality" @bind="UserSettings.DefaultQuality">
+                    <option value="auto">Auto</option>
+                    <option value="1080p">1080p</option>
+                    <option value="720p">720p</option>
+                    <option value="480p">480p</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="save-button-container">
+        <button class="save-button" @onclick="SaveSettings">Save Settings</button>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private ILogger<Settings> Logger { get; set; } = null!;
+    
+    [Inject]
+    private UserSettingsProvider UserSettingsProvider { get; set; } = null!;
+
+    private UserSettings UserSettings { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        UserSettings = UserSettingsProvider.Settings;
+        Logger.LogDebug("Loaded user settings. Default quality: {DefaultQuality}", UserSettings.DefaultQuality);
+    }
+
+    private void SaveSettings()
+    {
+        UserSettingsProvider.SaveSettings(UserSettings);
+        Logger.LogInformation("User settings saved");
+    }
+}

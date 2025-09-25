@@ -1,0 +1,76 @@
+﻿.button-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.btn-refresh, .btn-clear, .btn-test, .btn-exception, .modal-btn {
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.table-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-secondary);
+    background: var(--text-primary);
+}
+
+.log-table th, .log-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--overlay-light);
+}
+
+/* Level badges/rows */
+[class^="log-badge-"] {
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.log-badge-trace {
+    background: var(--color-trace);
+}
+
+.log-badge-debug {
+    background: var(--color-debug);
+}
+
+.log-badge-information {
+    background: var(--color-success);
+}
+
+.log-badge-warning {
+    background: var(--color-warning);
+}
+
+.log-badge-error {
+    background: var(--color-error);
+}
+
+.log-badge-critical {
+    background: var(--color-critical);
+}
+
+/* Empty state */
+.log-alert {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
+    border-radius: 6px;
+}
+
+.filter-control {
+    margin-bottom: 1rem;
+}

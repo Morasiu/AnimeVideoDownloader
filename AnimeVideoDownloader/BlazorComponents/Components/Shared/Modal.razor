@@ -1,0 +1,49 @@
+﻿@if (IsOpen)
+{
+    <div class="modal-backdrop" @onclick="OnCloseClicked"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <h4>@Title</h4>
+            <button class="close-btn" title="Close" @onclick="OnCloseClicked"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            @ChildContent
+        </div>
+        <div class="modal-footer">
+            @if (Footer is not null)
+            {
+                @Footer
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public bool IsOpen { get; set; }
+    
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+    
+    [Parameter]
+    public bool CanClose { get; set; } = true;
+    
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
+
+    private Task OnCloseClicked()
+    {
+        if (!CanClose)
+        {
+            return Task.CompletedTask;
+        }
+        return OnClose.InvokeAsync();
+    }
+
+}

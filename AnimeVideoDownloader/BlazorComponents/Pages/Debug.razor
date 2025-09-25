@@ -1,0 +1,165 @@
+﻿@page "/debug"
+
+@using System.Diagnostics
+@using Microsoft.Extensions.Logging
+@using BlazorComponents.Services.Logging
+
+<PageTitle>Logs Viewer</PageTitle>
+
+<div class="log-container">
+    <h3 style="color: white;">Application Logs</h3>
+
+    <div class="button-group">
+        <button class="btn-refresh" @onclick="RefreshLogs">Refresh</button>
+        <button class="btn-clear" @onclick="ClearLogs">Clear Logs</button>
+        @if (Debugger.IsAttached)
+        {
+            <button class="btn-test" @onclick="TestLog">Test Log</button>
+        }
+    </div>
+
+    <div class="filter-control">
+        <label for="logLevelFilter" style="color: white;">Filter by level:</label>
+        <select id="logLevelFilter" @bind="selectedLogLevel" @bind:after="FilterLogs">
+            <option value="">All</option>
+            <option value="Trace">Trace</option>
+            <option value="Debug">Debug</option>
+            <option value="Information">Information</option>
+            <option value="Warning">Warning</option>
+            <option value="Error">Error</option>
+            <option value="Critical">Critical</option>
+        </select>
+    </div>
+
+    <div class="table-container">
+        <table class="log-table">
+            <thead>
+            <tr>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Time</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Level</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Category</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Message</th>
+                <th style="color: #212529; background-color: #e9ecef; position: sticky; top: 0;">Exception</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var log in filteredLogs.OrderByDescending(l => l.Timestamp))
+            {
+                <tr class="log-row-@log.Level.ToString().ToLower()">
+                    <td style="color: #212529;">@log.Timestamp.ToString("HH:mm:ss.fff")</td>
+                    <td>
+                        <span class="log-badge-@log.Level.ToString().ToLower()">
+                            @log.Level
+                        </span>
+                    </td>
+                    <td style="color: #212529;">@log.Category</td>
+                    <td style="color: #212529;">@log.Message</td>
+                    <td>
+                        @if (log.Exception != null)
+                        {
+                            <button class="btn-exception" @onclick="() => ShowException(log.Exception)">
+                                Show
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!LogService.Logs.Any())
+    {
+        <div class="log-alert">
+            No logs to display
+        </div>
+    }
+</div>
+
+<!-- Modal for exception -->
+<Modal IsOpen="@(selectedException != null)" Title="Exception Details" OnClose="CloseExceptionModal">
+    <ChildContent>
+        <pre>@selectedException?.ToString()</pre>
+    </ChildContent>
+    <Footer>
+        <button type="button" class="modal-btn" @onclick="CloseExceptionModal">Close</button>
+    </Footer>
+</Modal>
+
+@code {
+    [Inject]
+    private MemoryLogService LogService { get; set; } = null!;
+    [Inject]
+    private ILogger<Debug> Logger { get; set; } = null!;
+
+    private IEnumerable<LogEntry> filteredLogs = [];
+    private string selectedLogLevel = "";
+    private Exception? selectedException;
+
+    protected override void OnInitialized()
+    {
+        filteredLogs = LogService.Logs;
+        LogService.Logs.CollectionChanged += (_, _) => InvokeAsync(OnLogsChanged);
+    }
+
+    private void OnLogsChanged()
+    {
+        InvokeAsync(() =>
+        {
+            RefreshLogs();
+            StateHasChanged();
+        });
+    }
+
+    private void RefreshLogs()
+    {
+        FilterLogs();
+    }
+
+    private void FilterLogs()
+    {
+        if (string.IsNullOrEmpty(selectedLogLevel))
+        {
+            filteredLogs = LogService.Logs;
+        }
+        else
+        {
+            if (Enum.TryParse<LogLevel>(selectedLogLevel, out var level))
+            {
+                filteredLogs = LogService.Logs.Where(l => l.Level == level);
+            }
+        }
+    }
+
+    private void ClearLogs()
+    {
+        LogService.ClearLogs();
+        RefreshLogs();
+    }
+
+    private void TestLog()
+    {
+        Logger.LogInformation("Test log message at {Time}", DateTime.Now);
+        Logger.LogWarning("Test warning message");
+        Logger.LogError("Test error message");
+        try
+        {
+            throw new InvalidOperationException("Test exception");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Test exception log");
+        }
+    }
+
+    private void ShowException(Exception exception)
+    {
+        selectedException = exception;
+    }
+
+    private void CloseExceptionModal()
+    {
+        selectedException = null;
+    }
+
+}

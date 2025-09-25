@@ -1,0 +1,73 @@
+﻿@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.Toasts
+@inject IAnimeService AnimeService
+@inject ToastService ToastService
+
+<Modal IsOpen="@IsOpen" Title="Delete anime" OnClose="OnClose" CanClose="!IsDeleting">
+    <ChildContent>
+        Are you sure you want to remove <b>@Anime?.Title</b>?
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <div class="add-error">@Error</div>
+        }
+        @if (IsDeleting)
+        {
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Removing...</div>
+        }
+    </ChildContent>
+    <Footer>
+        <button class="secondary-btn" @onclick="OnClose" disabled="@IsDeleting">Cancel</button>
+        <button class="btn-primary" @onclick="RemoveAsync" disabled="@(IsDeleting || Anime is null)">
+            <Spinner ShouldShow="@IsDeleting" BaseIconClass="fa-trash"/>
+            <span> Remove</span>
+        </button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter, EditorRequired]
+    public bool IsOpen { get; set; }
+
+    [Parameter, EditorRequired]
+    public Anime? Anime { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<Anime> OnRemoved { get; set; }
+
+    private bool IsDeleting { get; set; }
+    private string? Error { get; set; }
+
+    private async Task RemoveAsync()
+    {
+        Error = null;
+        if (Anime is null)
+        {
+            Error = "No anime selected.";
+            return;
+        }
+        IsDeleting = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await AnimeService.DeleteAnimeAsync(Anime);
+            ToastService.ShowSuccess($"Anime {Anime.Title} removed.");
+            await OnRemoved.InvokeAsync(Anime);
+            IsOpen = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            IsDeleting = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+}

@@ -1,0 +1,26 @@
+﻿/* Episodes section container */
+.episodes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.episodes-section > h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+/* Episodes list layout */
+.episode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Space the items a bit more on larger screens */
+@media (min-width: 900px) {
+    .episode-list {
+        gap: 0.6rem;
+    }
+}

@@ -1,0 +1,121 @@
+﻿@using System.Collections.ObjectModel
+@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.Data.Models.Animes
+@inject IAnimeService AnimeService
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-film me-2"></i> Anime Library</h3>
+        <button class="btn" @onclick="OpenAddModal"><i class="fas fa-plus"></i> Add</button>
+    </div>
+
+    <div class="sidebar-filter">
+        <div class="search-box">
+            <span class="search-icon"><i class="fas fa-filter"></i></span>
+            <input type="text" placeholder="Filter titles" @bind="SearchQuery" @oninput="OnSearchInput"/>
+        </div>
+    </div>
+
+    <div class="anime-list">
+        @foreach (var anime in FilteredAnimeList)
+        {
+            <ContextMenuTrigger MenuId="animeMenu" Data="anime">
+                <button class="@GetAnimeItemClass(anime)" @onclick="() => SelectAnimeItem(anime)">
+                    <div class="anime-title-container">
+                        @if (AnimeService.HasDownloadingEpisodes(anime))
+                        {
+                            <i class="fas fa-circle-notch fa-spin text-blue status-icon-left"></i>
+                        }
+                        else if (AnimeService.HasErrorEpisodes(anime))
+                        {
+                            <i class="fas fa-exclamation-circle text-red status-icon-left"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-check text-green status-icon-left"></i>
+                        }
+                        <span class="anime-title">@anime.Title</span>
+                    </div>
+                    <div class="anime-actions">
+                        <span class="anime-episode-count">@anime.Episodes.Count</span>
+                    </div>
+                </button>
+            </ContextMenuTrigger>
+        }
+    </div>
+
+    <ContextMenu Id="animeMenu">
+        <Item OnClick="@OnRemoveClicked">Remove</Item>
+    </ContextMenu>
+
+    <AddAnimeModal IsOpen="@isAddModalOpen" OnAdded="OnAnimeAdded" OnClose="@(() => isAddModalOpen = false)"/>
+
+    <RemoveAnimeModal IsOpen="@isDeleteModalOpen" Anime="@AnimeToDelete" OnRemoved="OnAnimeRemoved"
+                      OnClose="@(() => isDeleteModalOpen = false)"/>
+</aside>
+
+@code {
+    [Parameter]
+    public Anime? SelectedAnime { get; set; }
+
+    [Parameter]
+    public EventCallback<Anime> OnAnimeSelected { get; set; }
+
+    private string SearchQuery { get; set; } = string.Empty;
+    private ObservableCollection<Anime> AnimeList { get; set; } = [];
+
+    private bool isAddModalOpen;
+    private bool isDeleteModalOpen;
+    private Anime? AnimeToDelete;
+
+    private List<Anime> FilteredAnimeList =>
+        string.IsNullOrEmpty(SearchQuery)
+            ? AnimeList.ToList()
+            : AnimeList.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AnimeList = await AnimeService.GetAnimeListAsync();
+    }
+
+    private async Task SelectAnimeItem(Anime anime)
+    {
+        await OnAnimeSelected.InvokeAsync(anime);
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        SearchQuery = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private string GetAnimeItemClass(Anime anime)
+    {
+        var isActive = SelectedAnime?.Id == anime.Id;
+        return isActive ? "anime-item active" : "anime-item";
+    }
+
+    private void OpenAddModal()
+    {
+        isAddModalOpen = true;
+    }
+
+    private void OnRemoveClicked(ItemClickEventArgs e)
+    {
+        var anime = (Anime)e.Data;
+        AnimeToDelete = anime;
+        isDeleteModalOpen = true;
+    }
+
+    private void OnAnimeRemoved()
+    {
+        isDeleteModalOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnAnimeAdded()
+    {
+        isAddModalOpen = false;
+        StateHasChanged();
+    }
+
+}

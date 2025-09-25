@@ -1,0 +1,93 @@
+﻿@using System.Linq
+@using BlazorComponents.Services.Initializers
+
+<div class="nav-item status-item" @onclick="ToggleStatusPopover" @onblur="HideStatusPopover" tabindex="0">
+    @if (_results.Any(x => x.Status == InitStatus.Error))
+    {
+        <span class="status-icon error"><i class="fas fa-times-circle"></i></span>
+    }
+    else if (_results.Any(x => x.Status == InitStatus.Pending))
+    {
+        <span class="status-icon in-progress"><i class="fas fa-spinner fa-spin"></i></span>
+    }
+    else if (_results.All(x => x.Status == InitStatus.Success))
+    {
+        <span class="status-icon success"><i class="fas fa-check-circle"></i></span>
+    }
+    else
+    {
+        <span clss="status-icon unknown"><i class="fas fa-question-circle"></i></span>
+    }
+    <span class="nav-text">Status</span>
+    @if (showStatusPopover)
+    {
+        <div class="status-popover">
+            <div class="popover-header">System Status</div>
+            <div class="popover-content">
+                <div class="status-item-detail">
+                    <strong>Application:</strong> Running
+                </div>
+                @foreach (var initResult in _results)
+                {
+                    <div class="status-item-detail">
+                        <strong>@initResult.Name.Split("Initializer")[0]:</strong>
+                        @switch (initResult.Status)
+                        {
+                            case InitStatus.Success:
+                                <span class="status-icon success"><i class="fas fa-check-circle"></i></span>
+                                break;
+                            case InitStatus.Error:
+                                <span class="status-icon error"><i class="fas fa-times-circle"></i></span>
+                                break;
+                            case InitStatus.Pending:
+                                <span class="status-icon in-progress"><i class="fas fa-spinner fa-spin"></i></span>
+                                break;
+                            default:
+                                <span class="status-icon unknown"><i class="fas fa-question-circle"></i></span>
+                                break;
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private AppInitializer AppInitializer { get; set; } = default!;
+
+    private IReadOnlyCollection<InitResult> _results => AppInitializer.Results;
+    private bool showStatusPopover;
+
+    private void ToggleStatusPopover()
+    {
+        showStatusPopover = !showStatusPopover;
+    }
+
+    private void HideStatusPopover()
+    {
+        // Small delay to allow clicking on popover content
+        Task.Delay(150).ContinueWith(_ => InvokeAsync(() =>
+        {
+            showStatusPopover = false;
+            StateHasChanged();
+        }));
+    }
+
+    private void OnStatusChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected override void OnInitialized()
+    {
+        AppInitializer.StatusChanged += OnStatusChanged;
+    }
+
+    public void Dispose()
+    {
+        AppInitializer.StatusChanged -= OnStatusChanged;
+    }
+}
+
+@implements IDisposable

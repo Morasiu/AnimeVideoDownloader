@@ -1,0 +1,142 @@
+﻿@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.Data.Models.Animes
+@using BlazorComponents.Services.DirectorySelection
+@using BlazorComponents.Services.Toasts
+@inject IAnimeService AnimeService
+@inject IDirectorySelectionService DirectorySelectionService
+@inject ToastService ToastService
+
+<Modal IsOpen="@IsOpen" Title="Add Anime by URL" OnClose="OnClose" CanClose="!IsAdding">
+    <ChildContent>
+        <div class="form-group">
+            <label for="anime-url">URL</label>
+            <input id="anime-url" type="url" placeholder="https://..." @bind="Url" disabled="@IsAdding"/>
+        </div>
+
+        <div class="form-group">
+            <label for="anime-directory">Directory *</label>
+            <div class="directory-selection">
+                <input id="anime-directory" type="text" placeholder="C:\\Downloads\\Anime" @bind="Directory" readonly
+                       disabled="@IsAdding"/>
+                <button type="button" class="browse-btn" @onclick="SelectDirectory" disabled="@IsAdding">
+                    <i class="fas fa-folder-open"></i> Browse
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="anime-title">Title (optional)</label>
+            <input id="anime-title" type="text" placeholder="Custom title" @bind="TitleInput" disabled="@IsAdding"/>
+        </div>
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <div class="add-error">@Error</div>
+        }
+        @if (IsAdding)
+        {
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Adding anime...</div>
+        }
+    </ChildContent>
+    <Footer>
+        <button class="secondary-btn" @onclick="OnClose" disabled="@IsAdding">Cancel</button>
+        <button class="btn-primary" @onclick="AddAsync" disabled="@IsAdding">
+            <Spinner ShouldShow="IsAdding" BaseIconClass="fa-plus"/>
+            <span> Add</span>
+        </button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter, EditorRequired]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<Anime> OnAdded { get; set; }
+
+    private string TitleInput { get; set; } = string.Empty;
+
+    #if DEBUG
+    private string Url { get; set; } = "https://shinden.pl/series/54801-psycho-pass-3/episodes";
+    private string Directory { get; set; } = @"D:\Download\Psycho Pass 3";
+    #else
+    private string Url { get; set; } = string.Empty;
+    private string Directory { get; set; } = string.Empty;
+    #endif
+    private string? Error { get; set; }
+    private bool IsAdding { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // When opened, reset fields
+        if (IsOpen && string.IsNullOrEmpty(Url) && string.IsNullOrEmpty(Directory) && string.IsNullOrEmpty(TitleInput) && string.IsNullOrEmpty(Error))
+        {
+            Reset();
+        }
+    }
+
+    private void Reset()
+    {
+        Url = string.Empty;
+        TitleInput = string.Empty;
+        Directory = string.Empty;
+        Error = null;
+        IsAdding = false;
+    }
+
+    private async Task AddAsync()
+    {
+        Error = null;
+        var url = Url.Trim();
+        var directory = Directory.Trim();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            Error = "Please provide a valid URL.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            Error = "Please provide a valid directory.";
+            return;
+        }
+        IsAdding = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            var newAnime = await AnimeService.AddAnimeFromUrlAsync(url, directory, TitleInput);
+            await OnAdded.InvokeAsync(newAnime);
+            Reset();
+            await InvokeAsync(StateHasChanged);
+            ToastService.ShowSuccess($"Anime {newAnime.Title} added.", duration: TimeSpan.FromMinutes(99));
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            IsAdding = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void SelectDirectory()
+    {
+        try
+        {
+            var selectedDirectory = DirectorySelectionService.SelectDirectory(Directory);
+            if (!string.IsNullOrEmpty(selectedDirectory))
+            {
+                Directory = selectedDirectory;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = $"Error selecting directory: {ex.Message}";
+        }
+    }
+
+}

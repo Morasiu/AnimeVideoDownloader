@@ -1,0 +1,68 @@
+﻿@page "/"
+@using System.Collections.ObjectModel
+@using System.Collections.Specialized
+@using BlazorComponents.Services.AnimeServices
+@using BlazorComponents.Services.Data.Models.Animes
+@inject IAnimeService AnimeService
+@implements IDisposable
+
+<div class="container">
+    <AnimeSidebar
+        SelectedAnime="@selectedAnime"
+        OnAnimeSelected="@SelectAnime"/>
+
+    <main class="content-area">
+        @if (selectedAnime != null)
+        {
+            <AnimeDetails Anime="@selectedAnime"/>
+        }
+        else
+        {
+            <NoAnimeSelected OnAnimeAdded="OnAnimeAdded"/>
+        }
+    </main>
+</div>
+
+@code {
+    private Anime? selectedAnime;
+    private ObservableCollection<Anime> AnimeList = [];
+
+    private void SelectAnime(Anime anime)
+    {
+        selectedAnime = anime;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AnimeList = await AnimeService.GetAnimeListAsync();
+        selectedAnime = AnimeList.FirstOrDefault();
+        AnimeList.CollectionChanged += AnimeListOnCollectionChanged;
+        StateHasChanged();
+    }
+
+    private void AnimeListOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (selectedAnime is not null && !AnimeList.Contains(selectedAnime))
+        {
+            selectedAnime = null;
+        }
+        if (selectedAnime is null)
+        {
+            if (AnimeList.Any())
+            {
+                selectedAnime = AnimeList.First();
+            }
+        }
+        StateHasChanged();
+    }
+
+    private void OnAnimeAdded(Anime anime)
+    {
+        selectedAnime = anime;
+    }
+
+    public void Dispose()
+    {
+        AnimeList.CollectionChanged -= AnimeListOnCollectionChanged;
+    }
+}

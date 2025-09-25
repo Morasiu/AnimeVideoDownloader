@@ -1,0 +1,57 @@
+﻿@using BlazorComponents.Services.Toasts
+@inject ToastService ToastService
+@implements IDisposable
+
+<div class="toasts-container" aria-live="polite" aria-atomic="true">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast-item @GetTypeClass(toast.Type)" role="status">
+            <div class="toast-header">
+                <span class="toast-title">@((toast.Title ?? toast.Type.ToString()))</span>
+                <button class="toast-close" @onclick="(() => Close(toast.Id))" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="toast-body">@toast.Message</div>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyCollection<ToastMessage> _toasts = Array.Empty<ToastMessage>();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ToastService.Changed += OnChanged;
+        _toasts = ToastService.Messages;
+    }
+
+    private void OnChanged()
+    {
+        // ensure update on UI thread
+        InvokeAsync(() =>
+        {
+            _toasts = ToastService.Messages;
+            StateHasChanged();
+        });
+    }
+
+    private void Close(string id)
+    {
+        ToastService.Dismiss(id);
+    }
+
+    private static string GetTypeClass(ToastType type) => type switch
+    {
+        ToastType.Success => "success",
+        ToastType.Warning => "warning",
+        ToastType.Error => "error",
+        _ => "info"
+    };
+
+    public void Dispose()
+    {
+        ToastService.Changed -= OnChanged;
+    }
+}

@@ -1,0 +1,235 @@
+﻿@page "/download-queue"
+@using System.Diagnostics
+@using System.Timers
+@using BlazorComponents.Extensions
+@using BlazorComponents.Services.Data.Models.QueueItems
+@using BlazorComponents.Services.Downloads
+@using BlazorComponents.Services.Toasts
+@using BlazorComponents.Services.YoutubeDLService
+@using Humanizer
+@inject DownloadQueueService QueueService
+@inject ToastService ToastService
+@implements IDisposable
+
+<div class="container">
+    <main class="content-area">
+        <section class="queue-section">
+            <h2 class="section-title"><i class="fas fa-tasks"></i> Download Queue</h2>
+
+            @{
+                var activeQueue = QueueService.Queue.Where(x => x.Status != QueueItemStatus.Completed).ToList();
+                var downloadedItems = QueueService.Queue.Where(x => x.Status == QueueItemStatus.Completed)
+                    .OrderByDescending(x => x.DownloadedAt)
+                    .ToList();
+            }
+
+            @if (activeQueue.Any(x => x.Status is QueueItemStatus.Downloading or QueueItemStatus.LookingForSources))
+            {
+                var current = activeQueue.First(x => x.Status is QueueItemStatus.Downloading or QueueItemStatus.LookingForSources);
+                <div class="current-download card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-download"></i> Currently Downloading</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="current-info">
+                            <div class="current-meta">
+                                <div class="current-title">@current.Episode.Anime.Title</div>
+                                <div class="current-episode">
+                                    Episode @current.Episode.Number — @current.Episode.Title</div>
+                            </div>
+                            <div class="current-stats">
+
+                                <span class="speed">
+                                    <i class="fas fa-tachometer-alt"></i> @_progress.DownloadSpeed
+                                </span>
+                                <span class="eta"><i class="fas fa-hourglass-half">
+                                    
+                                </i> @_progress.ETA</span>
+                                <span class="bytes">
+                                    <i class="fas fa-database"></i> @_progress.TotalBytes
+                                </span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @(ProgressPercent + "%")"></div>
+                        </div>
+                        <div class="progress-footer">
+                            <span>@(ProgressPercent)%</span>
+                            <div class="right-footer-section">
+                                <span>
+                                    @updatedAt.Humanize() since last sync <i class="fas fa-rotate"></i> 
+                                </span>
+                                <span>@current.Status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty card">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle"></i> Nothing is downloading right now.
+                    </div>
+                </div>
+            }
+
+            <div class="queue-list card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-list"></i> In Queue
+                        (@activeQueue.Count(x => x.Status == QueueItemStatus.Queued))
+                    </h3>
+                    <div class="header-actions">
+                        <button class="btn-primary" title="Start next" @onclick="StartNext"><i class="fas fa-play"></i>
+                        </button>
+                        <button class="secondary-btn" title="Clear all" @onclick="ClearAllAsync"><i
+                                class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (activeQueue.Any(x => x.Status == QueueItemStatus.Queued))
+                    {
+                        <ul class="queue-items">
+                            @foreach (var item in activeQueue.Where(x => x.Status == QueueItemStatus.Queued))
+                            {
+                                <li class="queue-item">
+                                    <div class="qi-left">
+                                        <div class="qi-title">@item.Episode.Anime.Title</div>
+                                        <div class="qi-episode">
+                                            Episode @item.Episode.Number — @item.Episode.Title</div>
+                                    </div>
+                                    <div class="qi-right">
+                                        <span
+                                            class="qi-status status-@item.Status.ToString().ToLower()">@item.Status</span>
+                                        <button class="secondary-btn" @onclick="() => MoveUpAsync(item)"
+                                                title="Move up"><i
+                                                class="fas fa-arrow-up"></i></button>
+                                        <button class="secondary-btn" @onclick="() => MoveDownAsync(item)"
+                                                title="Move down">
+                                            <i class="fas fa-arrow-down"></i></button>
+                                        <button class="secondary-btn" @onclick="() => RemoveFromQueueAsync(item)"
+                                                title="Remove from queue">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="muted">Queue is empty.</div>
+                    }
+                </div>
+            </div>
+
+            <div class="downloaded-list card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-check"></i> Downloaded (@downloadedItems.Count)</h3>
+                </div>
+                <div class="card-body">
+                    @if (downloadedItems.Any())
+                    {
+                        <ul class="queue-items">
+                            @foreach (var item in downloadedItems)
+                            {
+                                <li class="queue-item">
+                                    <div class="qi-left">
+                                        <div class="qi-title">@item.Episode.Anime.Title</div>
+                                        <div class="qi-episode">Episode @item.Episode.Number — @item.Episode.Title</div>
+                                    </div>
+                                    <div class="qi-right">
+                                        <span class="qi-status status-completed">Completed</span>
+                                        @if (item.DownloadedAt != default)
+                                        {
+                                            <span class="muted">@item.DownloadedAt</span>
+                                        }
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="muted">No downloaded items yet.</div>
+                    }
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+@code {
+
+    private static AnimeDownloadDownloadProgress _progress = new()
+    {
+        Status = "",
+        Error = "",
+        DownloadSpeed = "",
+        ETA = "",
+        TotalBytes = "",
+        Progress = 0
+    };
+    private TimeSpan updatedAt => Stopwatch.GetElapsedTime(lastUpdated);
+    private static long lastUpdated = Stopwatch.GetTimestamp();
+
+    private int ProgressPercent => (int)Math.Round(_progress.Progress * 100);
+
+    protected override void OnInitialized()
+    {
+        QueueService.Changed += OnQueueChanged;
+        QueueService.DownloadProgressChanged += OnDownloadProgressChanged;
+        var timer = new Timer(TimeSpan.FromMilliseconds(100));
+        timer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
+        timer.Start();
+    }
+    
+    private void OnDownloadProgressChanged(AnimeDownloadDownloadProgress progress)
+    {
+        if (!progress.Error.IsNullOrEmpty())
+        {
+            ToastService.ShowError($"Error while downloading file {_progress.Error}", "Download error", TimeSpan.FromSeconds(10));
+        }
+        _progress = progress;
+        lastUpdated = Stopwatch.GetTimestamp();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnQueueChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task StartNext()
+    {
+        await QueueService.StartNextAsync();
+    }
+
+    private async Task ClearAllAsync()
+    {
+        await QueueService.ClearAsync();
+    }
+
+    private async Task RemoveFromQueueAsync(QueueItem item)
+    {
+        await QueueService.RemoveAsync(item);
+    }
+
+    private async Task MoveUpAsync(QueueItem item)
+    {
+        await QueueService.MoveUpAsync(item);
+    }
+
+    private async Task MoveDownAsync(QueueItem item)
+    {
+        await QueueService.MoveDownAsync(item);
+    }
+
+    public void Dispose()
+    {
+        QueueService.Changed -= OnQueueChanged;
+        QueueService.DownloadProgressChanged -= OnDownloadProgressChanged;
+    }
+
+}
