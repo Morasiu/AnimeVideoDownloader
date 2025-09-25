@@ -1,5 +1,6 @@
 ﻿@using System.Collections.Specialized
 @using System.Linq
+@using BlazorComponents.Services.Downloads
 @using BlazorComponents.Services.Logging
 
 
@@ -18,6 +19,10 @@
             <NavLink class="nav-item" href="download-queue" ActiveClass="active">
                 <span class="nav-icon"><i class="fas fa-tasks"></i></span>
                 <span class="nav-text">Queue</span>
+                @if (QueueItemsCount > 0)
+                {
+                    <span class="queue-badge">@QueueItemsCount</span>
+                }
             </NavLink>
         </div>
     </div>
@@ -44,8 +49,10 @@
 
 @code {
     [Inject] private MemoryLogService LogService { get; set; } = default!;
+    [Inject] private DownloadQueueService QueueService { get; set; } = default!;
 
     private bool HasExceptions => LogService.Logs.Any(log => log.Exception != null);
+    private int QueueItemsCount => QueueService.Queue.Count;
 
     protected override void OnInitialized()
     {

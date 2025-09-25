@@ -91,6 +91,21 @@
     justify-content: center;
 }
 
+.queue-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--bg-popover-header);
+    color: var(--text-dark);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .nav-item {
     position: relative;
 }

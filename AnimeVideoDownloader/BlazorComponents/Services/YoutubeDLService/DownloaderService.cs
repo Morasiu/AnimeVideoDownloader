@@ -28,7 +28,7 @@ public sealed class DownloaderService
                 DownloadSpeed = p.DownloadSpeed,
                 ETA = p.ETA,
                 Status = p.State.ToString(),
-                Error = p.Data,
+                Error = null,
             });
         });
         _youtubeDL.OutputFolder = directoryPath;

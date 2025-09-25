@@ -97,7 +97,6 @@ public sealed class DownloadQueueService
                 var fullFilePath = RenameDownloadedFile(item, downloadedFilePath);
                 item.Episode.FilePath = fullFilePath;
                 await _context.SaveChangesAsync();
-                await StartNextAsync();
                 Changed?.Invoke();
                 return;
             }
@@ -107,7 +106,6 @@ public sealed class DownloadQueueService
         item.Episode.Status = EpisodeStatus.Error;
         _logger.LogError("Cannot download episode {EpisodeNumber} - {EpisodeTitle} from {EpisodeSourceUrl} from anime {AnimeTitle}", item.Episode.Number, item.Episode.Title, item.Episode.SourceUri, item.Episode.Anime.Title);
         await _context.SaveChangesAsync();
-        await StartNextAsync();
         Changed?.Invoke();
     }
 
@@ -194,7 +192,7 @@ public sealed class DownloadQueueService
             var first = Queue.OrderBy(x => x.Order).First();
             if (first.Status == QueueItemStatus.Downloading) return;
             if (first.Status == QueueItemStatus.Completed) await DequeueAsync(first);
-            var item = Queue.OrderBy(x => x.Order).FirstOrDefault(x => x.Status != QueueItemStatus.Downloading);
+            var item = Queue.OrderBy(x => x.Order).FirstOrDefault(x => x.Status is QueueItemStatus.Queued);
             if (item is not null)
             {
                 await StartDownloadAsync(item);
