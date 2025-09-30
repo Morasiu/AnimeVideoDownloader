@@ -1,5 +1,6 @@
 using BlazorComponents;
 using BlazorComponents.Extensions;
+using BlazorComponents.Services.AppData;
 using BlazorComponents.Services.Data;
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public partial class MainForm : Form
         services.AddBlazorComponentsServices();
         services.AddLogging(l => l
             .AddConsole()
-            .AddFile("anime_downloader.log", o =>
+            .AddFile($"{AppDataPath.AnimeDownloaderPath}/anime_downloader.log", o =>
             {
                 o.Append = true;
                 o.FileSizeLimitBytes = 1024 * 1024 * 10;
