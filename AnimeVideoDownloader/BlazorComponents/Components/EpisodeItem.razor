@@ -64,15 +64,9 @@
 
     private async Task HandleDownload()
     {
-        var source = Episode.Sources.FirstOrDefault(s => s.Status == EpisodeSourceStatus.Valid);
-        if (source is null)
-        {
-            ToastService.ShowError("No sources available for this episode.");
-            return;
-        }
         await QueueService.EnqueueAsync(Episode);
-        await QueueService.StartNextAsync();
         ToastService.ShowSuccess($"Episode: {Episode.Title} added to download queue.");
+        await QueueService.StartNextAsync();
     }
 
     private static string GetEpisodeStatusClass(Episode episode)

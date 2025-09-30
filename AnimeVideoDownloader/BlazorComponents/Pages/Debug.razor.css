@@ -1,4 +1,8 @@
-﻿.button-group {
+﻿.title {
+    margin-bottom: 0.75rem;
+}
+
+.button-group {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
