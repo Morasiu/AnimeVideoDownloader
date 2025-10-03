@@ -57,7 +57,7 @@
                             <span>@(ProgressPercent)%</span>
                             <div class="right-footer-section">
                                 <span>
-                                    @updatedAt.Humanize() since last sync <i class="fas fa-rotate"></i> 
+                                    @updatedSince.Humanize() since last sync <i class="fas fa-rotate"></i> 
                                 </span>
                                 <span>@current.Status</span>
                             </div>
@@ -171,7 +171,7 @@
         TotalBytes = "",
         Progress = 0
     };
-    private TimeSpan updatedAt => Stopwatch.GetElapsedTime(lastUpdated);
+    private static TimeSpan updatedSince => Stopwatch.GetElapsedTime(lastUpdated);
     private static long lastUpdated = Stopwatch.GetTimestamp();
 
     private int ProgressPercent => (int)Math.Round(_progress.Progress * 100);

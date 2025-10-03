@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.IO;
+using System.Reflection;
 using BlazorComponents;
 using BlazorComponents.Extensions;
 using BlazorComponents.Services.AppData;
@@ -15,6 +18,10 @@ public partial class MainForm : Form
     {
         InitializeComponent();
         Icon = new Icon(Application.StartupPath + "/icon.ico");
+        
+        CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        
         var services = new ServiceCollection();
         services.AddBlazorComponentsServices();
         services.AddLogging(l => l
@@ -30,10 +37,9 @@ public partial class MainForm : Form
         var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MainForm>>();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        logger.LogInformation("Starting Database Migration");
-        context.Database.Migrate();
-        logger.LogInformation("Starting Database Migration finished");
+        logger.LogInformation("Current version: {Version}", typeof(IBlazorComponentsMarker).Assembly.GetName().Version);
+        MigrateDatabase(scope, logger);
+        
         logger.LogInformation("Starting Blazor Host");
         BlazorWebView blazor = new BlazorWebView
         {
@@ -43,5 +49,14 @@ public partial class MainForm : Form
         };
         blazor.RootComponents.Add<App>("#app");
         Controls.Add(blazor);
+    }
+
+    private static void MigrateDatabase(IServiceScope scope, ILogger<MainForm> logger)
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        logger.LogInformation("Starting Database Migration");
+        Directory.CreateDirectory(AppDataPath.AnimeDownloaderPath);
+        context.Database.Migrate();
+        logger.LogInformation("Starting Database Migration finished");
     }
 }
