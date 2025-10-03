@@ -1,41 +1,25 @@
-# AnimeVideoDownloader
-
-## WPF
-
-Can be found at `AnimeVideoDownloader/DesktopDownloader`
+# AnimeVideoDownloader 2.0
 
 Supported sites:
-* OgladajAnime.pl
-* Wbijam.pl
 * Shinden.pl
 
 Supported video providers:
-* CDA
-* ~~Mp4Up~~ Require passwords
+- All supported by yt-dlp
 
 History version can be found [here](CHANGELOG.md)
 
 ### Usage
 
 1. Download from release page.
-2. Run by clicking on `DesktopDownloader.exe`
+2. Run by clicking on `DesktopApp.exe`
 
 ![Window1](Docs/Window1.png)
 ![Window2](Docs/Window2.png)
 
-## Console
+### Notes
+- App directory can be found at `%AppData%/AnimeDownloader`
+- App uses Sqlite from here `%AppData%/AnimeDownloader/anime.db`
+- You must have to have Chrome installed
 
-Use:
-
-```bash
-dotnet run url download_directory
-```
-
-For example:
-
-```bash
-dotnet run https://drstone.wbijam.pl/pierwsza_seria.html D:/Dr.Stone/
-```
-## Both
-
-- Logs can be found at `appDirectory/logs.txt`
+## Bugs
+There will be bugs. If you find any, please report it [here](https://github.com/Morasiu/AnimeVideoDownloader/issues)

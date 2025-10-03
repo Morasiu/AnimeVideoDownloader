@@ -1,5 +1,9 @@
+using System.Globalization;
+using System.IO;
+using System.Reflection;
 using BlazorComponents;
 using BlazorComponents.Extensions;
+using BlazorComponents.Services.AppData;
 using BlazorComponents.Services.Data;
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +18,15 @@ public partial class MainForm : Form
     {
         InitializeComponent();
         Icon = new Icon(Application.StartupPath + "/icon.ico");
+        
+        CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        
         var services = new ServiceCollection();
         services.AddBlazorComponentsServices();
         services.AddLogging(l => l
             .AddConsole()
-            .AddFile("anime_downloader.log", o =>
+            .AddFile($"{AppDataPath.AnimeDownloaderPath}/anime_downloader.log", o =>
             {
                 o.Append = true;
                 o.FileSizeLimitBytes = 1024 * 1024 * 10;
@@ -29,10 +37,9 @@ public partial class MainForm : Form
         var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MainForm>>();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        logger.LogInformation("Starting Database Migration");
-        context.Database.Migrate();
-        logger.LogInformation("Starting Database Migration finished");
+        logger.LogInformation("Current version: {Version}", typeof(IBlazorComponentsMarker).Assembly.GetName().Version);
+        MigrateDatabase(scope, logger);
+        
         logger.LogInformation("Starting Blazor Host");
         BlazorWebView blazor = new BlazorWebView
         {
@@ -42,5 +49,14 @@ public partial class MainForm : Form
         };
         blazor.RootComponents.Add<App>("#app");
         Controls.Add(blazor);
+    }
+
+    private static void MigrateDatabase(IServiceScope scope, ILogger<MainForm> logger)
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        logger.LogInformation("Starting Database Migration");
+        Directory.CreateDirectory(AppDataPath.AnimeDownloaderPath);
+        context.Database.Migrate();
+        logger.LogInformation("Starting Database Migration finished");
     }
 }

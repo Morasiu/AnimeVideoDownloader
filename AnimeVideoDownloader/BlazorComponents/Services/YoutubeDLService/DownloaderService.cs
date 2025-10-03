@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BlazorComponents.Extensions;
+using Microsoft.Extensions.Logging;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Options;
 
@@ -30,6 +31,9 @@ public sealed class DownloaderService
                 Status = p.State.ToString(),
                 Error = null,
             });
+            if (p.Data.IsNullOrEmpty()) return;
+            
+            _logger.LogInformation("Download info for {Url}. Info {Info}", url, p.Data);
         });
         _youtubeDL.OutputFolder = directoryPath;
         var options = OptionSet.Default;

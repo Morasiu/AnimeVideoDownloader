@@ -1,17 +1,19 @@
 ﻿@page "/debug"
 
 @using System.Diagnostics
+@using BlazorComponents.Services.AppData
 @using Microsoft.Extensions.Logging
 @using BlazorComponents.Services.Logging
 
 <PageTitle>Logs Viewer</PageTitle>
 
 <div class="log-container">
-    <h3 style="color: white;">Application Logs</h3>
+    <h3 class="title">Application Logs</h3>
 
     <div class="button-group">
         <button class="btn-refresh" @onclick="RefreshLogs">Refresh</button>
         <button class="btn-clear" @onclick="ClearLogs">Clear Logs</button>
+        <button class="btn-clear" @onclick="OpenLogs">Open logs directory</button>
         @if (Debugger.IsAttached)
         {
             <button class="btn-test" @onclick="TestLog">Test Log</button>
@@ -160,6 +162,15 @@
     private void CloseExceptionModal()
     {
         selectedException = null;
+    }
+
+    private void OpenLogs()
+    {
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = $"{AppDataPath.AnimeDownloaderPath}",
+            UseShellExecute = true,
+        });
     }
 
 }
