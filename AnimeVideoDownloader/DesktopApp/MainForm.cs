@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using BlazorComponents;
 using BlazorComponents.Extensions;
 using BlazorComponents.Services.AppData;
