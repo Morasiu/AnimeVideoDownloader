@@ -64,6 +64,16 @@ public sealed class ShindenProvider : IAnimeProvider
             var (screenshotPath, errorId) = await page.TakeErrorScreenshotAsync();
             _logger.LogWarning(e, "Cannot close fucking ads on shinden. ErrorId: {ErrorId}. Saved screenshot to: {Path}", errorId, screenshotPath);
         }
+        try
+        {
+            await AcceptFuckingCookiesAsync(page);
+        }
+        catch (Exception e)
+        {
+            var (screenshotPath, errorId) = await page.TakeErrorScreenshotAsync();
+            _logger.LogWarning(e, "Cannot accept fucking cookies on shinden. ErrorId: {ErrorId}. Saved screenshot to: {Path}", errorId, screenshotPath);
+        }
+
         var episodeRows = await page.Locator("section.box.episode-player-list > div.table-responsive > table > tbody").Locator("tr").AllAsync();
         foreach (var episodeRow in episodeRows)
         {
@@ -97,12 +107,17 @@ public sealed class ShindenProvider : IAnimeProvider
         await page.CloseAsync();
         return sources;
     }
-    
+
+    private static async Task AcceptFuckingCookiesAsync(IPage page)
+    {
+        var options = new LocatorClickOptions { Timeout = 1000 };
+        await page.GetByText("Zaakceptuj wszystko").ClickAsync();
+        await page.GetByText("Akceptuję").ClickAsync(options);
+    }
+
     private static async Task RemoveFuckingAdsAsync(IPage page)
     {
-        await page.Locator("html > iframe:last-child").ClickAsync();
-        await page.GetByText("Zaakceptuj wszystko").ClickAsync();
-        await page.GetByText("Akceptuję").ClickAsync();
+        await page.Locator("html > iframe:last-child").ClickAsync(new LocatorClickOptions { Timeout = 1000 });
     }
 
     private async Task<IPage> GetPageAsync(string sourceUri)
