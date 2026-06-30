@@ -381,3 +381,7 @@ MigrationBackup/
 
 # Ignore custom settings for run/debug configurations
 .idea/runConfigurations/
+
+# Claude Code
+.claude/
+CLAUDE.md
